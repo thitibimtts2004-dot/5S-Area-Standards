@@ -196,7 +196,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 .pr-meta{flex:1;display:flex;flex-wrap:wrap;align-content:center;gap:1.5mm 4mm;font-size:2.7mm;color:#334155;padding:0 3mm}
 .pr-meta b{color:#1A202C}
 .pr-score{flex-shrink:0;width:36mm;border-radius:3mm;padding:2.2mm 3mm;text-align:center;color:#fff;display:flex;flex-direction:column;justify-content:center;
-  background:linear-gradient(135deg,var(--pr-g1,#0a5240),var(--pr-g2,#0F6E56));box-shadow:0 1mm 2.5mm rgba(0,0,0,.18)}
+  background-color:var(--pr-g2,#0F6E56);background-image:linear-gradient(135deg,var(--pr-g1,#0a5240),var(--pr-g2,#0F6E56));box-shadow:0 1mm 2.5mm rgba(0,0,0,.18)}
 .pr-score-n{font-size:8.2mm;font-weight:800;line-height:1;letter-spacing:-.02em}
 .pr-score-mx{font-size:2.3mm;opacity:.85}
 .pr-score-lv{margin-top:1.2mm;font-size:2.6mm;font-weight:700;background:rgba(255,255,255,.24);border-radius:8mm;padding:.9mm 2mm;display:inline-block}
@@ -625,7 +625,7 @@ function buildPrintReport(){
         <span>👤 ผู้ตรวจ <b>${insp}</b></span>
         <span>🔄 รอบ <b>${round}</b></span>
       </div>
-      <div class="pr-score" style="background:linear-gradient(135deg,${g1},${g2})">
+      <div class="pr-score" style="background-color:${g2};background-image:linear-gradient(135deg,${g1},${g2})">
         <div class="pr-score-n">${tot}<span class="pr-score-mx">/100</span></div>
         <div class="pr-score-mx">25 หัวข้อ × 4 คะแนน</div>
         <div class="pr-score-lv">${pass?'✓':'!'} ${lv}</div>
