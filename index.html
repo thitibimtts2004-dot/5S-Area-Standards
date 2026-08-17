@@ -184,31 +184,38 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 
 /* ===== PRINT REPORT (A4, 1 page) ===== */
 #print-report{position:fixed;left:-9999px;top:0;width:210mm;height:297mm;background:#fff;overflow:hidden;z-index:-1}
-.pr-page{width:210mm;box-sizing:border-box;padding:9mm 10mm;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1A202C;transform-origin:top left}
-.pr-head{display:flex;align-items:stretch;gap:6mm;padding-bottom:4mm;border-bottom:2px solid #1A1A2E;margin-bottom:4mm}
+.pr-page{width:210mm;box-sizing:border-box;padding:9mm 10mm;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1A202C;transform-origin:top left;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
+.pr-page *{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
+.pr-head{display:flex;align-items:stretch;gap:6mm;padding-bottom:3.5mm;margin-bottom:4mm;position:relative}
+.pr-head::after{content:'';position:absolute;left:0;right:0;bottom:0;height:.9mm;border-radius:1mm;background:var(--pr-accent,#1A1A2E)}
 .pr-brand{display:flex;align-items:center;gap:3mm;flex-shrink:0}
-.pr-logo{width:11mm;height:11mm;border-radius:3mm;background:#1A1A2E;color:#fff;display:flex;align-items:center;justify-content:center;font-size:6mm}
+.pr-logo{width:11mm;height:11mm;border-radius:3mm;background:var(--pr-accent,#1A1A2E);color:#fff;display:flex;align-items:center;justify-content:center;font-size:6mm}
 .pr-h1{font-size:4.6mm;font-weight:800;line-height:1.2}
 .pr-h2{font-size:2.6mm;color:#64748B;margin-top:.5mm}
 .pr-meta{flex:1;display:flex;flex-wrap:wrap;align-content:center;gap:1.5mm 4mm;font-size:2.7mm;color:#334155;padding:0 3mm}
 .pr-meta b{color:#1A202C}
-.pr-score{flex-shrink:0;width:34mm;border-radius:2.5mm;padding:2mm 3mm;text-align:center;color:#fff;display:flex;flex-direction:column;justify-content:center}
-.pr-score-n{font-size:8mm;font-weight:800;line-height:1}
+.pr-score{flex-shrink:0;width:36mm;border-radius:3mm;padding:2.2mm 3mm;text-align:center;color:#fff;display:flex;flex-direction:column;justify-content:center;
+  background:linear-gradient(135deg,var(--pr-g1,#0a5240),var(--pr-g2,#0F6E56));box-shadow:0 1mm 2.5mm rgba(0,0,0,.18)}
+.pr-score-n{font-size:8.2mm;font-weight:800;line-height:1;letter-spacing:-.02em}
 .pr-score-mx{font-size:2.3mm;opacity:.85}
-.pr-score-lv{margin-top:1mm;font-size:2.6mm;font-weight:700;background:rgba(255,255,255,.22);border-radius:8mm;padding:.8mm 2mm;display:inline-block}
-.pr-sec-ttl{font-size:3mm;font-weight:800;color:#1A1A2E;margin:3mm 0 2mm;letter-spacing:.02em}
-.pr-bars{display:flex;flex-direction:column;gap:1.6mm}
+.pr-score-lv{margin-top:1.2mm;font-size:2.6mm;font-weight:700;background:rgba(255,255,255,.24);border-radius:8mm;padding:.9mm 2mm;display:inline-block}
+.pr-sec-ttl{font-size:3mm;font-weight:800;color:#1A1A2E;margin:3.2mm 0 2mm;letter-spacing:.02em;display:flex;align-items:center;gap:1.6mm}
+.pr-sec-ttl::before{content:'';width:1.4mm;height:1.4mm;border-radius:50%;background:var(--pr-accent,#1A1A2E);flex-shrink:0}
+.pr-bars{display:flex;flex-direction:column;gap:2mm}
 .pr-bar-row{display:flex;align-items:center;gap:2.5mm}
 .pr-bar-n{width:20mm;flex-shrink:0;font-size:2.7mm;font-weight:700}
-.pr-bar-track{flex:1;height:2.8mm;background:#EEF2F7;border-radius:1.4mm;overflow:hidden}
-.pr-bar-fill{height:100%;border-radius:1.4mm}
-.pr-bar-v{width:15mm;flex-shrink:0;text-align:right;font-size:2.7mm;font-weight:700}
-.pr-levels{display:grid;grid-template-columns:repeat(5,1fr);gap:1.5mm;margin:3mm 0}
-.pr-lvbox{text-align:center;padding:1.3mm 1mm;border-radius:1.5mm;border:.4mm solid transparent}
+.pr-bar-track{flex:1;height:3.2mm;background:#EEF2F7;border-radius:1.6mm;overflow:hidden}
+.pr-bar-fill{height:100%;border-radius:1.6mm}
+.pr-bar-v{width:19mm;flex-shrink:0;text-align:right;font-size:2.7mm}
+.pr-bar-v b{font-size:2.7mm;font-weight:700}
+.pr-bar-pct{font-size:2.1mm;color:#94A3B8;margin-left:.8mm}
+.pr-levels{display:grid;grid-template-columns:repeat(5,1fr);gap:1.5mm;margin:3.2mm 0}
+.pr-lvbox{text-align:center;padding:1.4mm 1mm;border-radius:1.5mm;border:.4mm solid transparent}
 .pr-lvn{font-size:2.5mm;font-weight:800}
 .pr-lvl{font-size:2.1mm;margin-top:.3mm}
 .pr-defects{column-count:2;column-gap:4mm}
-.pr-dcard{break-inside:avoid;border:.25mm solid #DDE3EC;border-radius:1.5mm;padding:1.8mm 2.2mm;margin-bottom:2mm;display:flex;gap:2mm;align-items:flex-start}
+.pr-dcard{break-inside:avoid;background:#FAFBFC;border:.2mm solid #E7ECF2;border-left:1mm solid var(--pr-cat,#94A3B8);border-radius:0 1.5mm 1.5mm 0;padding:1.8mm 2.2mm;margin-bottom:2mm;display:flex;gap:2mm;align-items:flex-start}
 .pr-dtxt{flex:1;min-width:0}
 .pr-dttl{font-size:2.7mm;font-weight:700;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pr-dbadge{font-size:2.2mm;font-weight:700;padding:.4mm 1.4mm;border-radius:1.5mm;margin-left:1.2mm;white-space:nowrap}
@@ -221,7 +228,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 .pr-foot{margin-top:2mm;font-size:2mm;color:#94A3B8;text-align:center}
 @media print{
   @page{size:A4;margin:0}
-  html,body{background:#fff}
+  html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
   body *{visibility:hidden}
   #print-report,#print-report *{visibility:visible!important}
   .navbar,.tab-bar{display:none!important}
@@ -275,25 +282,25 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
   </div>
   <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:9px;letter-spacing:.04em">เลือกพื้นที่ตรวจ</div>
   <div class="area-grid">
-    <div class="area-card" onclick="selArea('Office')" id="ac-Office" style="border-color:#0F6E56">
-      <div class="area-icon">🏢</div><div class="area-name" style="color:#0F6E56">Office</div>
+    <div class="area-card" onclick="selArea('Office')" id="ac-Office" style="border-color:#0E8F6C">
+      <div class="area-icon">🏢</div><div class="area-name" style="color:#0E8F6C">Office</div>
       <div class="area-desc">สำนักงาน</div><div class="area-cnt">25 หัวข้อ · 100 คะแนน</div>
-      <div class="area-badge" style="background:#E1F5EE;color:#0F6E56">พร้อม</div>
+      <div class="area-badge" style="background:#E1F5EE;color:#0E8F6C">พร้อม</div>
     </div>
-    <div class="area-card" onclick="selArea('Store')" id="ac-Store" style="border-color:#185FA5">
-      <div class="area-icon">🏭</div><div class="area-name" style="color:#185FA5">Store</div>
+    <div class="area-card" onclick="selArea('Store')" id="ac-Store" style="border-color:#0D6EA6">
+      <div class="area-icon">🏭</div><div class="area-name" style="color:#0D6EA6">Store</div>
       <div class="area-desc">คลังสินค้า</div><div class="area-cnt">25 หัวข้อ · 100 คะแนน</div>
-      <div class="area-badge" style="background:#E6F1FB;color:#185FA5">พร้อม</div>
+      <div class="area-badge" style="background:#E3F1FA;color:#0D6EA6">พร้อม</div>
     </div>
-    <div class="area-card" onclick="selArea('Alu')" id="ac-Alu" style="border-color:#534AB7">
-      <div class="area-icon">🔧</div><div class="area-name" style="color:#534AB7">โรงแบบอลูมิเนียม</div>
+    <div class="area-card" onclick="selArea('Alu')" id="ac-Alu" style="border-color:#7C3AED">
+      <div class="area-icon">🔧</div><div class="area-name" style="color:#7C3AED">โรงแบบอลูมิเนียม</div>
       <div class="area-desc">โรงงานผลิต</div><div class="area-cnt">25 หัวข้อ · 100 คะแนน</div>
-      <div class="area-badge" style="background:#EEEDFE;color:#534AB7">พร้อม</div>
+      <div class="area-badge" style="background:#F1E9FE;color:#7C3AED">พร้อม</div>
     </div>
-    <div class="area-card" onclick="selArea('Custom')" id="ac-Custom" style="border-color:#854F0B">
-      <div class="area-icon">➕</div><div class="area-name" style="color:#854F0B">พื้นที่อื่นๆ</div>
+    <div class="area-card" onclick="selArea('Custom')" id="ac-Custom" style="border-color:#B8650A">
+      <div class="area-icon">➕</div><div class="area-name" style="color:#B8650A">พื้นที่อื่นๆ</div>
       <div class="area-desc">กำหนดเอง</div><div class="area-cnt">25 หัวข้อ · 100 คะแนน</div>
-      <div class="area-badge" style="background:#FAEEDA;color:#854F0B">กำหนดเอง</div>
+      <div class="area-badge" style="background:#FAEEDA;color:#B8650A">กำหนดเอง</div>
     </div>
   </div>
   <div class="recent-card">
@@ -382,15 +389,15 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 
 <script>
 const HMVD=["สะสาง","สะดวก","สะอาด","สร้างมาตรฐาน","สร้างวินัย"];
-const HC={"สะสาง":"#0F6E56","สะดวก":"#185FA5","สะอาด":"#534AB7","สร้างมาตรฐาน":"#854F0B","สร้างวินัย":"#993556"};
-const HB={"สะสาง":"#E1F5EE","สะดวก":"#E6F1FB","สะอาด":"#EEEDFE","สร้างมาตรฐาน":"#FAEEDA","สร้างวินัย":"#FBEAF0"};
+const HC={"สะสาง":"#0E8F6C","สะดวก":"#0D6EA6","สะอาด":"#7C3AED","สร้างมาตรฐาน":"#B8650A","สร้างวินัย":"#C2255C"};
+const HB={"สะสาง":"#E1F5EE","สะดวก":"#E3F1FA","สะอาด":"#F1E9FE","สร้างมาตรฐาน":"#FAEEDA","สร้างวินัย":"#FCE8EF"};
 const SL=["ไม่ผ่าน","ต้องปรับ","พอใช้","ดี","ดีมาก"];
 const SBG=["#F5E6E6","#FCEBEB","#FAEEDA","#E1F5EE","#D0F0E4"];
 const SFG=["#7A1515","#A32D2D","#854F0B","#0F6E56","#085041"];
 const SBC=["#DDA0A0","#F09595","#EF9F27","#5DCAA5","#1D9E75"];
 const AICO={"Office":"🏢","Store":"🏭","Alu":"🔧","Custom":"📍"};
-const ACOL={"Office":"#0F6E56","Store":"#185FA5","Alu":"#534AB7","Custom":"#854F0B"};
-const ABG={"Office":"#E1F5EE","Store":"#E6F1FB","Alu":"#EEEDFE","Custom":"#FAEEDA"};
+const ACOL={"Office":"#0E8F6C","Store":"#0D6EA6","Alu":"#7C3AED","Custom":"#B8650A"};
+const ABG={"Office":"#E1F5EE","Store":"#E3F1FA","Alu":"#F1E9FE","Custom":"#FAEEDA"};
 const ANAME={"Office":"Office (สำนักงาน)","Store":"Store (คลังสินค้า)","Alu":"โรงแบบอลูมิเนียม","Custom":"พื้นที่อื่นๆ"};
 
 const IT={
@@ -601,13 +608,15 @@ function buildPrintReport(){
   const{items,tot,pass,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
   const [g1,g2]=tierGrad(tot);
   const bars=HMVD.map(h=>{const s=hS[h],m=hM[h],p=Math.round(s/m*100),c=HC[h];
-    return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v" style="color:${c}">${s}/${m}</div></div>`;}).join('');
+    return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v"><b style="color:${c}">${s}/${m}</b><span class="pr-bar-pct">${p}%</span></div></div>`;}).join('');
   const lvHtml=lvs.map(l=>`<div class="pr-lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg:''}"><div class="pr-lvn" style="color:${l.fg}">${l.n}</div><div class="pr-lvl" style="color:${l.fg}">${l.l}</div></div>`).join('');
   const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||it.c[s];
     const has=ph[i]&&ph[i].length;
     const pht=has?`<img class="pr-dph" src="${ph[i][0]}">`:'';
-    return `<div class="pr-dcard"><div class="pr-dtxt"><div class="pr-dttl">ข้อ ${it.no} — ${it.t}<span class="pr-dbadge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</span></div><div class="pr-dnote">${note}</div></div>${pht}</div>`;}).join('')
+    return `<div class="pr-dcard" style="--pr-cat:${HC[it.h]}"><div class="pr-dtxt"><div class="pr-dttl">ข้อ ${it.no} — ${it.t}<span class="pr-dbadge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</span></div><div class="pr-dnote">${note}</div></div>${pht}</div>`;}).join('')
     :`<div class="pr-ok">✅ ผ่านทุกหัวข้อ ไม่พบจุดบกพร่อง</div>`;
+  const accent=ACOL[area]||'#1A1A2E';
+  document.getElementById('pr-inner').style.setProperty('--pr-accent',accent);
   document.getElementById('pr-inner').innerHTML=`
     <div class="pr-head">
       <div class="pr-brand"><div class="pr-logo">🏭</div><div><div class="pr-h1">รายงานผลการตรวจ 5ส</div><div class="pr-h2">แบบตรวจ 5ส Pro · v3.0</div></div></div>
