@@ -656,7 +656,14 @@ function fitPrintPage(){
   inner.style.transform='scale('+scale+')';
   inner.style.marginLeft=(210*(1-scale)/2)+'mm';
 }
+function isInAppBrowser(){
+  return /Line\/|FBAN|FBAV|Instagram|MicroMessenger|GSA\/[^\s]* Nebula/i.test(navigator.userAgent);
+}
 function printReport(){
+  if(isInAppBrowser()){
+    alert('เบราว์เซอร์ในแอปนี้ (เช่น LINE) ไม่รองรับการพิมพ์/บันทึก PDF\n\nวิธีแก้: กดปุ่ม ⋮ หรือ ... มุมขวาบนของแอปนี้ → เลือก "เปิดด้วยเบราว์เซอร์อื่น" หรือ "Open in Safari/Chrome" แล้วกดพิมพ์อีกครั้งในเบราว์เซอร์จริง');
+    return;
+  }
   buildPrintReport();
   requestAnimationFrame(()=>{fitPrintPage();requestAnimationFrame(()=>window.print());});
 }
