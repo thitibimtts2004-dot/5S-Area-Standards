@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#1A1A2E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="5ส Pro">
+<link rel="manifest" href='data:application/manifest+json,{"name":"แบบตรวจ 5ส Pro","short_name":"5ส Pro","start_url":".","display":"standalone","background_color":"%23F1F4F8","theme_color":"%231A1A2E","icons":[]}'>
+<title>แบบตรวจ 5ส Pro</title>
+<style>
+:root{
+  --green:#0F6E56;--gm:#1D9E75;--gl:#E1F5EE;--gd:#085041;
+  --blue:#185FA5;--bl:#E6F1FB;--purple:#534AB7;--pl:#EEEDFE;
+  --amber:#854F0B;--al:#FAEEDA;--pink:#993556;
+  --red:#A32D2D;--rl:#FCEBEB;
+  --hdr:#1A1A2E;--white:#fff;--bg:#F1F4F8;--card:#fff;
+  --border:#DDE3EC;--text:#1A202C;--muted:#64748B;--light:#94A3B8;
+  --r:12px;--rs:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;min-height:100vh}
+.navbar{background:var(--hdr);padding:env(safe-area-inset-top,0) 0 0;position:sticky;top:0;z-index:200}
+.nb-inner{max-width:520px;margin:0 auto;padding:12px 16px 0}
+.nb-row{display:flex;align-items:center;gap:10px;padding-bottom:10px}
+.nb-logo{width:34px;height:34px;border-radius:9px;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.nb-title{font-size:17px;font-weight:700;color:#fff;flex:1}
+.nb-ver{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
+.nb-sub{font-size:11px;color:rgba(255,255,255,.6);margin-bottom:8px}
+.pb-wrap{display:flex;align-items:center;gap:8px;padding-bottom:10px}
+.pb-track{flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
+.pb-fill{height:100%;background:#fff;border-radius:2px;transition:width .4s}
+.pb-lbl{font-size:11px;color:rgba(255,255,255,.75);min-width:38px;text-align:right}
+.tab-bar{background:var(--hdr);border-top:1px solid rgba(255,255,255,.07)}
+.tab-inner{max-width:520px;margin:0 auto;display:flex}
+.tb{flex:1;padding:9px 4px 11px;text-align:center;border:none;background:transparent;color:rgba(255,255,255,.45);font-size:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit;transition:color .15s}
+.tb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tb.on{color:#fff}.tb.on svg{stroke:#6EE7B7}
+.wrap{max-width:520px;margin:0 auto;padding:14px}
+.pg{display:none}.pg.on{display:block}
+
+/* HOME */
+.hero-card{background:linear-gradient(135deg,#0a5240,#0F6E56);border-radius:var(--r);padding:18px;margin-bottom:14px;color:#fff}
+.hero-title{font-size:19px;font-weight:700;margin-bottom:3px}
+.hero-sub{font-size:12px;opacity:.7}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stat-box{background:rgba(255,255,255,.15);border-radius:9px;padding:9px;text-align:center}
+.stat-n{font-size:22px;font-weight:700;color:#fff}
+.stat-l{font-size:10px;color:rgba(255,255,255,.7);margin-top:1px}
+.area-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.area-card{background:var(--card);border:2px solid var(--border);border-radius:var(--r);padding:15px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.area-card:active{transform:scale(.97)}
+.area-icon{font-size:26px;margin-bottom:7px}
+.area-name{font-size:14px;font-weight:700;margin-bottom:2px}
+.area-desc{font-size:11px;color:var(--muted)}
+.area-cnt{font-size:11px;color:var(--muted);margin-top:5px}
+.area-badge{position:absolute;top:9px;right:9px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:9px}
+.recent-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:13px;margin-bottom:13px}
+.recent-title{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:9px}
+.recent-empty{text-align:center;padding:12px 0;font-size:12px;color:var(--light)}
+
+/* FORM */
+.fcard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:12px}
+.fhead{padding:12px 15px}
+.fhead-title{font-size:14px;font-weight:600;color:#fff}
+.fbody{padding:13px;display:flex;flex-direction:column;gap:11px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:4px}
+.flbl{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+.inp{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;color:var(--text);background:#fff;outline:none;transition:border-color .15s;-webkit-appearance:none;font-family:inherit}
+.inp:focus{border-color:var(--green)}
+select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:30px}
+.tip-box{padding:10px 12px;background:var(--gl);border-radius:var(--rs);border-left:3px solid var(--green);font-size:12px;color:var(--gd);line-height:1.6}
+
+/* INSPECT */
+.hmvd-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:10px}
+.icard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:11px}
+.ihead{padding:13px 15px}
+.itop{display:flex;align-items:flex-start;gap:9px}
+.ino{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px}
+.ititle{font-size:14px;font-weight:700;line-height:1.4;flex:1}
+.idetail{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6;padding-left:36px}
+.crit{margin:8px 15px 0;padding:9px 11px;border-radius:var(--rs);font-size:12px;line-height:1.6;border:1px solid transparent}
+.ssec{padding:11px 15px;border-top:1px solid var(--border);background:#FAFBFC}
+.slbl{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:7px}
+.srow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.sc{padding:10px 3px;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:17px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .12s;text-align:center;line-height:1}
+.sc span{font-size:9px;font-weight:400;margin-top:3px;display:block}
+.sc.v0{background:#F5E6E6;border-color:#DDA0A0;color:#7A1515}
+.sc.v1{background:#FCEBEB;border-color:#F09595;color:#A32D2D}
+.sc.v2{background:#FAEEDA;border-color:#EF9F27;color:#854F0B}
+.sc.v3{background:#E1F5EE;border-color:#5DCAA5;color:#0F6E56}
+.sc.v4{background:#D0F0E4;border-color:#1D9E75;color:#085041}
+.nsec{padding:9px 15px}
+.nlbl{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.ninp{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--text);resize:none;height:52px;outline:none;font-family:inherit;line-height:1.5}
+.ninp:focus{border-color:var(--green)}
+.psec{padding:0 15px 12px;display:flex;gap:7px;align-items:flex-start;flex-wrap:wrap}
+.pbtn{width:50px;height:50px;border-radius:var(--rs);border:1.5px dashed var(--border);background:#FAFBFC;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:9px;gap:2px;cursor:pointer;flex-shrink:0}
+.pbtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.pthumb-wrap{position:relative}
+.pthumb{width:50px;height:50px;border-radius:var(--rs);object-fit:cover;border:1px solid var(--border);display:block}
+.pdel{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.mini{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:11px 15px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.mini-n{font-size:25px;font-weight:800;line-height:1}
+.mini-mx{font-size:11px;color:var(--muted);margin-top:1px}
+.mini-r{flex:1}
+.mini-track{height:7px;background:#EEF2F7;border-radius:4px;overflow:hidden;margin-bottom:4px}
+.mini-fill{height:100%;border-radius:4px;transition:width .4s}
+.mini-bot{display:flex;justify-content:space-between;align-items:baseline}
+.mini-hint{font-size:11px;color:var(--muted)}
+.mini-pct{font-size:14px;font-weight:800}
+.botnav{display:flex;gap:8px;padding-bottom:env(safe-area-inset-bottom,8px);margin-top:4px}
+.btnback{padding:12px 15px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.btnnext{flex:1;padding:12px;background:var(--green);color:#fff;border:none;border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.btnnext:active{background:var(--gd)}
+.btnfull{width:100%;padding:13px;border:none;border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:8px}
+.bg{background:var(--green);color:#fff}.bg:active{background:var(--gd)}
+.bo{background:#fff;border:1.5px solid var(--border);color:var(--muted)}
+
+/* SUMMARY */
+.sum-hero{background:linear-gradient(135deg,#0a5240,#0F6E56);border-radius:var(--r);padding:17px;display:flex;align-items:center;gap:14px;margin-bottom:13px}
+.hring{width:78px;height:78px;border-radius:50%;border:3px solid rgba(255,255,255,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,.12)}
+.hn{font-size:26px;font-weight:800;color:#fff;line-height:1}
+.hmx{font-size:10px;color:rgba(255,255,255,.65);margin-top:1px}
+.hr{flex:1}
+.hpct{font-size:36px;font-weight:800;color:#fff;line-height:1}
+.hlbl{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px}
+.hbadge{margin-top:7px;display:inline-flex;align-items:center;gap:4px;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(255,255,255,.2);color:#fff}
+.scard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:11px}
+.shd{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:#FAFBFC}
+.sico{width:27px;height:27px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.sttl{font-size:13px;font-weight:700;flex:1}
+.sbd{padding:13px 15px}
+.br-row{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.br-row:last-child{margin-bottom:0}
+.br-n{font-size:11px;width:70px;flex-shrink:0;font-weight:600}
+.br-track{flex:1;height:8px;background:#EEF2F7;border-radius:4px;overflow:hidden}
+.br-fill{height:100%;border-radius:4px}
+.br-v{font-size:13px;font-weight:700}
+.br-p{font-size:10px;color:var(--muted)}
+.lvstrip{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:13px}
+.lvbox{text-align:center;padding:7px 3px;border-radius:var(--rs);border:2px solid transparent}
+.lvn{font-size:10px;font-weight:800}
+.lvl{font-size:9px;margin-top:1px}
+.df-item{border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;margin-bottom:7px}
+.df-item:last-child{margin-bottom:0}
+.df-hd{display:flex;align-items:center;gap:7px;padding:8px 11px;background:#FAFBFC}
+.df-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.df-ttl{font-size:12px;font-weight:700;flex:1;line-height:1.4}
+.df-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;flex-shrink:0}
+.df-note{padding:7px 11px;font-size:12px;color:var(--muted);line-height:1.6}
+.df-photos{padding:0 11px 8px;display:flex;gap:5px;flex-wrap:wrap}
+.df-photo{width:58px;height:58px;border-radius:var(--rs);object-fit:cover;border:1px solid var(--border)}
+.sigrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.sigbox{border:1px solid var(--border);border-radius:var(--rs);padding:9px;text-align:center}
+.sigline{height:1px;background:var(--border);margin:17px 0 5px}
+.siglbl{font-size:10px;color:var(--muted)}
+
+/* HISTORY / RANKING */
+.hitem{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:11px}
+.hico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.hinfo{flex:1}
+.htitle{font-size:13px;font-weight:700}
+.hmeta{font-size:11px;color:var(--muted);margin-top:2px}
+.hscore{text-align:right;flex-shrink:0}
+.hpct{font-size:18px;font-weight:800}
+.hlv{font-size:10px;color:var(--muted);margin-top:1px}
+.ritem{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.rnum{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.rinfo{flex:1}
+.rname{font-size:13px;font-weight:700}
+.rmeta{font-size:11px;color:var(--muted);margin-top:2px}
+.rtrack{margin-top:5px;height:6px;background:#EEF2F7;border-radius:3px;overflow:hidden}
+.rfill{height:100%;border-radius:3px}
+.rpct{font-size:17px;font-weight:800;text-align:right;min-width:48px}
+.empty-state{text-align:center;padding:40px 16px;color:var(--muted)}
+.empty-icon{font-size:46px;margin-bottom:10px}
+.empty-title{font-size:15px;font-weight:600;margin-bottom:5px}
+.empty-desc{font-size:13px;line-height:1.6}
+.sec-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);letter-spacing:.04em}
+
+/* ===== PRINT REPORT (A4, 1 page) ===== */
+#print-report{position:fixed;left:-9999px;top:0;width:210mm;height:297mm;background:#fff;overflow:hidden;z-index:-1}
+.pr-page{width:210mm;box-sizing:border-box;padding:9mm 10mm;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1A202C;transform-origin:top left}
+.pr-head{display:flex;align-items:stretch;gap:6mm;padding-bottom:4mm;border-bottom:2px solid #1A1A2E;margin-bottom:4mm}
+.pr-brand{display:flex;align-items:center;gap:3mm;flex-shrink:0}
+.pr-logo{width:11mm;height:11mm;border-radius:3mm;background:#1A1A2E;color:#fff;display:flex;align-items:center;justify-content:center;font-size:6mm}
+.pr-h1{font-size:4.6mm;font-weight:800;line-height:1.2}
+.pr-h2{font-size:2.6mm;color:#64748B;margin-top:.5mm}
+.pr-meta{flex:1;display:flex;flex-wrap:wrap;align-content:center;gap:1.5mm 4mm;font-size:2.7mm;color:#334155;padding:0 3mm}
+.pr-meta b{color:#1A202C}
+.pr-score{flex-shrink:0;width:34mm;border-radius:2.5mm;padding:2mm 3mm;text-align:center;color:#fff;display:flex;flex-direction:column;justify-content:center}
+.pr-score-n{font-size:8mm;font-weight:800;line-height:1}
+.pr-score-mx{font-size:2.3mm;opacity:.85}
+.pr-score-lv{margin-top:1mm;font-size:2.6mm;font-weight:700;background:rgba(255,255,255,.22);border-radius:8mm;padding:.8mm 2mm;display:inline-block}
+.pr-sec-ttl{font-size:3mm;font-weight:800;color:#1A1A2E;margin:3mm 0 2mm;letter-spacing:.02em}
+.pr-bars{display:flex;flex-direction:column;gap:1.6mm}
+.pr-bar-row{display:flex;align-items:center;gap:2.5mm}
+.pr-bar-n{width:20mm;flex-shrink:0;font-size:2.7mm;font-weight:700}
+.pr-bar-track{flex:1;height:2.8mm;background:#EEF2F7;border-radius:1.4mm;overflow:hidden}
+.pr-bar-fill{height:100%;border-radius:1.4mm}
+.pr-bar-v{width:15mm;flex-shrink:0;text-align:right;font-size:2.7mm;font-weight:700}
+.pr-levels{display:grid;grid-template-columns:repeat(5,1fr);gap:1.5mm;margin:3mm 0}
+.pr-lvbox{text-align:center;padding:1.3mm 1mm;border-radius:1.5mm;border:.4mm solid transparent}
+.pr-lvn{font-size:2.5mm;font-weight:800}
+.pr-lvl{font-size:2.1mm;margin-top:.3mm}
+.pr-defects{column-count:2;column-gap:4mm}
+.pr-dcard{break-inside:avoid;border:.25mm solid #DDE3EC;border-radius:1.5mm;padding:1.8mm 2.2mm;margin-bottom:2mm;display:flex;gap:2mm;align-items:flex-start}
+.pr-dtxt{flex:1;min-width:0}
+.pr-dttl{font-size:2.7mm;font-weight:700;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pr-dbadge{font-size:2.2mm;font-weight:700;padding:.4mm 1.4mm;border-radius:1.5mm;margin-left:1.2mm;white-space:nowrap}
+.pr-dnote{font-size:2.3mm;color:#64748B;line-height:1.35;margin-top:.6mm;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pr-dph{width:13mm;height:13mm;object-fit:cover;border-radius:1mm;border:.25mm solid #DDE3EC;flex-shrink:0}
+.pr-ok{text-align:center;padding:6mm;color:#0F6E56;font-size:3.2mm;font-weight:700;border:.3mm dashed #5DCAA5;border-radius:2mm;background:#E1F5EE}
+.pr-sig{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm;margin-top:6mm;padding-top:5mm}
+.pr-sigline{border-top:.3mm solid #94A3B8;margin-bottom:1.3mm}
+.pr-siglbl{font-size:2.5mm;color:#64748B;text-align:center}
+.pr-foot{margin-top:2mm;font-size:2mm;color:#94A3B8;text-align:center}
+@media print{
+  @page{size:A4;margin:0}
+  html,body{background:#fff}
+  body *{visibility:hidden}
+  #print-report,#print-report *{visibility:visible!important}
+  .navbar,.tab-bar{display:none!important}
+  #print-report{position:absolute!important;left:0!important;top:0!important;z-index:auto}
+}
+</style>
+</head>
+<body>
+<div class="navbar">
+  <div class="nb-inner">
+    <div class="nb-row">
+      <div class="nb-logo">🏭</div>
+      <div style="flex:1">
+        <div class="nb-title">แบบตรวจ 5ส Pro</div>
+      </div>
+      <div class="nb-ver">v3.0</div>
+    </div>
+    <div class="nb-sub" id="nb-sub">เลือกพื้นที่เพื่อเริ่มตรวจ</div>
+    <div class="pb-wrap">
+      <div class="pb-track"><div class="pb-fill" id="pb" style="width:0%"></div></div>
+      <div class="pb-lbl" id="pb-lbl">0/25</div>
+    </div>
+  </div>
+</div>
+<div class="tab-bar">
+  <div class="tab-inner">
+    <button class="tb on" onclick="goTab('home')" id="t-home">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>หน้าหลัก
+    </button>
+    <button class="tb" onclick="goTab('inspect')" id="t-inspect">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>ตรวจ
+    </button>
+    <button class="tb" onclick="goTab('history')" id="t-history">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>ประวัติ
+    </button>
+    <button class="tb" onclick="goTab('ranking')" id="t-ranking">
+      <svg viewBox="0 0 24 24"><polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/></svg>Ranking
+    </button>
+  </div>
+</div>
+
+<div class="pg on" id="pg-home"><div class="wrap">
+  <div class="hero-card">
+    <div class="hero-title">ระบบตรวจ 5ส Pro</div>
+    <div class="hero-sub">Office · Store · โรงแบบอลูมิเนียม · พื้นที่อื่นๆ</div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-n" id="st-tot">0</div><div class="stat-l">ครั้งที่ตรวจ</div></div>
+      <div class="stat-box"><div class="stat-n" id="st-avg">—</div><div class="stat-l">คะแนนเฉลี่ย</div></div>
+      <div class="stat-box"><div class="stat-n" id="st-pass">0</div><div class="stat-l">ผ่านเกณฑ์</div></div>
+    </div>
+  </div>
+  <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:9px;letter-spacing:.04em">เลือกพื้นที่ตรวจ</div>
+  <div class="area-grid">
+    <div class="area-card" onclick="selArea('Office')" id="ac-Office" style="border-color:#0F6E56">
+      <div class="area-icon">🏢</div><div class="area-name" style="color:#0F6E56">Office</div>
+      <div class="area-desc">สำนักงาน</div><div class="area-cnt">25 หัวข้อ · 100 คะแนน</div>
+      <div class="area-badge" style="background:#E1F5EE;color:#0F6E56">พร้อม</div>
+    </div>
+    <div class="area-card" onclick="selArea('Store')" id="ac-Store" style="border-color:#185FA5">
+      <div class="area-icon">🏭</div><div class="area-name" style="color:#185FA5">Store</div>
+      <div class="area-desc">คลังสินค้า</div><div class="area-cnt">25 หัวข้อ · 100 คะแนน</div>
+      <div class="area-badge" style="background:#E6F1FB;color:#185FA5">พร้อม</div>
+    </div>
+    <div class="area-card" onclick="selArea('Alu')" id="ac-Alu" style="border-color:#534AB7">
+      <div class="area-icon">🔧</div><div class="area-name" style="color:#534AB7">โรงแบบอลูมิเนียม</div>
+      <div class="area-desc">โรงงานผลิต</div><div class="area-cnt">25 หัวข้อ · 100 คะแนน</div>
+      <div class="area-badge" style="background:#EEEDFE;color:#534AB7">พร้อม</div>
+    </div>
+    <div class="area-card" onclick="selArea('Custom')" id="ac-Custom" style="border-color:#854F0B">
+      <div class="area-icon">➕</div><div class="area-name" style="color:#854F0B">พื้นที่อื่นๆ</div>
+      <div class="area-desc">กำหนดเอง</div><div class="area-cnt">25 หัวข้อ · 100 คะแนน</div>
+      <div class="area-badge" style="background:#FAEEDA;color:#854F0B">กำหนดเอง</div>
+    </div>
+  </div>
+  <div class="recent-card">
+    <div class="recent-title">⏱ ล่าสุด</div>
+    <div id="recent-list"><div class="recent-empty">ยังไม่มีประวัติ</div></div>
+  </div>
+  <button class="btnfull bg" onclick="startInspect()">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>เริ่มตรวจ
+  </button>
+</div></div>
+
+<div class="pg" id="pg-inspect"><div class="wrap">
+  <div id="st-info">
+    <div class="fcard">
+      <div class="fhead" id="fhead" style="background:var(--hdr)"><div class="fhead-title" id="fhead-title">ข้อมูลการตรวจ</div></div>
+      <div class="fbody">
+        <div id="custom-field" style="display:none">
+          <div class="field"><div class="flbl">ชื่อพื้นที่ (กำหนดเอง)</div>
+            <input class="inp" id="f-custom" placeholder="เช่น ห้องน้ำ, ที่จอดรถ"></div>
+        </div>
+        <div class="frow">
+          <div class="field"><div class="flbl">หน่วยงาน</div>
+            <select class="inp" id="f-dept"><option value="">-- เลือก --</option>
+              <option>BIM</option><option>WH</option><option>AS</option><option>DBD</option><option>RD</option></select></div>
+          <div class="field"><div class="flbl">วันที่ตรวจ</div><input class="inp" type="date" id="f-date"></div>
+        </div>
+        <div class="field"><div class="flbl">พื้นที่ตรวจ</div><input class="inp" id="f-area" placeholder="เช่น ชั้น 3 โซน A"></div>
+        <div class="frow">
+          <div class="field"><div class="flbl">ผู้ตรวจ</div><input class="inp" id="f-insp" placeholder="ชื่อ-นามสกุล"></div>
+          <div class="field"><div class="flbl">รอบการตรวจ</div>
+            <select class="inp" id="f-round">
+              <option>มกราคม</option><option>กุมภาพันธ์</option><option>มีนาคม</option>
+              <option>เมษายน</option><option>พฤษภาคม</option><option>มิถุนายน</option>
+              <option>กรกฎาคม</option><option>สิงหาคม</option><option>กันยายน</option>
+              <option>ตุลาคม</option><option>พฤศจิกายน</option><option>ธันวาคม</option>
+            </select></div>
+        </div>
+        <div class="tip-box"><b>เกณฑ์ 0–4</b> &nbsp;|&nbsp; 4=ดีมาก · 3=ดี · 2=พอใช้ · 1=ต้องปรับปรุง · 0=ไม่ผ่าน<br>25 หัวข้อ × 4 = <b>100 คะแนนเต็ม</b> · ผ่านเกณฑ์ ≥ 80 คะแนน</div>
+      </div>
+    </div>
+    <div class="botnav">
+      <button class="btnback" onclick="goTab('home')">← หน้าหลัก</button>
+      <button class="btnnext" onclick="startItems()">เริ่มตรวจ <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+    </div>
+  </div>
+  <div id="st-items" style="display:none">
+    <div id="item-area"></div>
+    <div class="mini">
+      <div><div class="mini-n" id="ms-n">0</div><div class="mini-mx">/100</div></div>
+      <div class="mini-r">
+        <div class="mini-track"><div class="mini-fill" id="ms-bar" style="width:0%"></div></div>
+        <div class="mini-bot"><div class="mini-hint">คะแนนสะสม</div><div class="mini-pct" id="ms-pct">0%</div></div>
+      </div>
+    </div>
+    <div class="botnav">
+      <button class="btnback" onclick="prevItem()">← ย้อนกลับ</button>
+      <button class="btnnext" id="btn-next" onclick="nextItem()">ถัดไป →</button>
+    </div>
+  </div>
+  <div id="st-sum" style="display:none">
+    <div id="sum-content"></div>
+    <div class="sigrow">
+      <div class="sigbox"><div class="sigline"></div><div class="siglbl">ผู้ตรวจ</div></div>
+      <div class="sigbox"><div class="sigline"></div><div class="siglbl">ผู้รับผิดชอบ</div></div>
+      <div class="sigbox"><div class="sigline"></div><div class="siglbl">ผู้อนุมัติ</div></div>
+    </div>
+    <button class="btnfull bg" onclick="saveResult()">💾 บันทึกผลการตรวจ</button>
+    <button class="btnfull bo" onclick="printReport()">🖨️ พิมพ์รายงาน PDF</button>
+    <button class="btnfull bo" onclick="resetAll()">🔄 เริ่มตรวจใหม่</button>
+    <div style="height:14px"></div>
+  </div>
+</div></div>
+
+<div class="pg" id="pg-history"><div class="wrap">
+  <div class="sec-title">ประวัติการตรวจทั้งหมด</div>
+  <div id="hist-list"></div>
+</div></div>
+
+<div class="pg" id="pg-ranking"><div class="wrap">
+  <div class="sec-title">Ranking คะแนนแต่ละพื้นที่</div>
+  <div id="rank-list"></div>
+</div></div>
+
+<div id="print-report"><div class="pr-page" id="pr-inner"></div></div>
+<input type="file" id="photo-inp" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
+
+<script>
+const HMVD=["สะสาง","สะดวก","สะอาด","สร้างมาตรฐาน","สร้างวินัย"];
+const HC={"สะสาง":"#0F6E56","สะดวก":"#185FA5","สะอาด":"#534AB7","สร้างมาตรฐาน":"#854F0B","สร้างวินัย":"#993556"};
+const HB={"สะสาง":"#E1F5EE","สะดวก":"#E6F1FB","สะอาด":"#EEEDFE","สร้างมาตรฐาน":"#FAEEDA","สร้างวินัย":"#FBEAF0"};
+const SL=["ไม่ผ่าน","ต้องปรับ","พอใช้","ดี","ดีมาก"];
+const SBG=["#F5E6E6","#FCEBEB","#FAEEDA","#E1F5EE","#D0F0E4"];
+const SFG=["#7A1515","#A32D2D","#854F0B","#0F6E56","#085041"];
+const SBC=["#DDA0A0","#F09595","#EF9F27","#5DCAA5","#1D9E75"];
+const AICO={"Office":"🏢","Store":"🏭","Alu":"🔧","Custom":"📍"};
+const ACOL={"Office":"#0F6E56","Store":"#185FA5","Alu":"#534AB7","Custom":"#854F0B"};
+const ABG={"Office":"#E1F5EE","Store":"#E6F1FB","Alu":"#EEEDFE","Custom":"#FAEEDA"};
+const ANAME={"Office":"Office (สำนักงาน)","Store":"Store (คลังสินค้า)","Alu":"โรงแบบอลูมิเนียม","Custom":"พื้นที่อื่นๆ"};
+
+const IT={
+Office:[
+  {no:"1.1",h:"สะสาง",t:"การควบคุมเอกสาร เอกสารเก่า และงานค้าง",d:"บนโต๊ะมีเฉพาะเอกสารที่กำลังดำเนินการ ไม่เกิน 3 แฟ้ม เอกสารอื่นต้องจัดเก็บ",c:["เอกสารกองสุมมาก กระทบการทำงาน","เกิน 5 ชุด วางกอง ไม่ทราบสถานะ","เกิน 3–5 ชุด หรือมีงานเก่าปะปน","เกิน 1–2 ชุด แต่แยกสถานะได้","เอกสารบนโต๊ะไม่เกิน 3 ชุด ไม่มีงานเก่าค้าง"]},
+  {no:"1.2",h:"สะสาง",t:"การคัดแยกของชำรุด / เสื่อมสภาพ",d:"อุปกรณ์ IT เฟอร์นิเจอร์ที่ชำรุดต้องแยกออกและมีป้ายสถานะ",c:["ไม่มีการแยก เสี่ยงนำไปใช้งานผิด","พบมากกว่า 5 ชิ้น หรือรวมกับของพร้อมใช้","พบ 3–5 ชิ้น หรือบางรายการไม่มีป้าย","พบ 1–2 ชิ้น แยกแล้วแต่ป้ายไม่ครบ","ไม่พบ หรือแยกพร้อมติดป้าย/แจ้งซ่อมครบ"]},
+  {no:"1.3",h:"สะสาง",t:"การควบคุมของใช้ส่วนตัว / ของตกแต่ง",d:"โต๊ะทำงานและพื้นที่ส่วนกลาง ไม่มีของส่วนตัวสะสม ของตกแต่งบนโต๊ะไม่เกิน 2 ชิ้น",c:["สะสมมาก กระทบความสะอาด/ภาพลักษณ์","มากกว่า 5 รายการ หรือมีภาชนะ/ขยะส่วนตัว","เกิน 3–5 รายการ เริ่มดูรก","เกิน 1–2 รายการ ไม่กระทบงาน","ไม่เกินเกณฑ์ ไม่รบกวนงานและภาพลักษณ์"]},
+  {no:"1.4",h:"สะสาง",t:"ของไม่จำเป็นในพื้นที่ส่วนกลาง",d:"ห้องประชุม มุมพักผ่อน ห้องครัว ต้องไม่มีของค้าง กล่อง หรือขยะ",c:["พื้นที่ส่วนกลางถูกใช้เป็นที่ฝากของ","พบมากกว่า 5 จุด หรือวางผิดพื้นที่","พบ 3–5 จุด หรือเริ่มกีดขวาง","พบ 1–2 จุดเล็กน้อย","ไม่พบของค้าง กล่อง หรือขยะในพื้นที่ส่วนกลาง"]},
+  {no:"1.5",h:"สะสาง",t:"การแยกของรอทิ้ง / รอซ่อม / รอจัดเก็บ",d:"ของทุกชิ้นที่รอดำเนินการต้องแยกและติดสถานะชัดเจน",c:["ไม่มีการควบคุมของรอดำเนินการ","ขาดสถานะมากกว่า 5 รายการ","ขาดสถานะ 3–5 รายการ","ขาดสถานะ 1–2 รายการ","แยกและติดสถานะครบทุกจุด"]},
+  {no:"2.1",h:"สะดวก",t:"การจัดเก็บเอกสาร อุปกรณ์ และของใช้ส่วนกลาง",d:"เอกสาร เครื่องเขียน อุปกรณ์ประชุมต้องมีจุดจัดเก็บชัดเจน แยกหมวดหมู่",c:["ไม่มีจุดจัดเก็บที่กำหนด","ปะปน หาใช้งานยาก","ผิดหมวด 3–5 รายการ","ผิดหมวด 1–2 รายการ","จัดเป็นหมวดหมู่ครบ หยิบใช้และคืนที่สะดวก"]},
+  {no:"2.2",h:"สะดวก",t:"ป้ายบ่งชี้จุดจัดเก็บและผู้รับผิดชอบพื้นที่",d:"ตู้เอกสาร ชั้นวาง ห้องประชุม ห้องน้ำ ต้องมีป้ายบ่งชี้ครบ",c:["ไม่มีป้ายสำคัญหรือระบุผู้รับผิดชอบไม่ได้","ขาดหลายจุด ไม่ทราบจุดจัดเก็บ","ขาด 3–5 จุด หรือผู้รับผิดชอบไม่ครบ","ขาด 1–2 จุด","ป้ายครบทุกจุดสำคัญ อ่านชัด ตรวจสอบได้"]},
+  {no:"2.3",h:"สะดวก",t:"ทางเดิน ประตู และทางเข้า-ออกไม่ถูกกีดขวาง",d:"ทางเดินในสำนักงาน หน้าประตูห้องต่างๆ และทางออกฉุกเฉินต้องโล่งเสมอ",c:["กีดขวางประตู/ทางหนีไฟ/จุดฉุกเฉิน","กีดขวางชัดเจน เสี่ยงสะดุด","กีดขวาง 2–3 จุด ใช้งานไม่สะดวก","กีดขวางเล็กน้อย 1 จุด ยังผ่านได้","โล่ง เข้าถึงจุดฉุกเฉินได้สะดวก"]},
+  {no:"2.4",h:"สะดวก",t:"การจัดวางอุปกรณ์ IT / สายไฟ / อุปกรณ์โต๊ะ",d:"สายไฟ อุปกรณ์ IT ต้องจัดเรียบร้อย ไม่พาดทางเดิน ไม่พันกัน",c:["สายไฟ/อุปกรณ์กีดขวางหรือเสี่ยงอันตราย","รกรุงรังมากกว่า 5 จุด เสี่ยงสะดุด","ไม่เรียบร้อย 3–5 จุด","ไม่เรียบร้อย 1–2 จุด","จัดเรียบร้อย ไม่พาดทางเดิน ไม่พันกัน"]},
+  {no:"2.5",h:"สะดวก",t:"ห้องประชุม / ห้องถ่ายเอกสารพร้อมใช้งาน",d:"โต๊ะเก้าอี้และอุปกรณ์ประชุมพร้อมใช้งานครบ ไม่มีเอกสารหรือแก้วน้ำค้าง",c:["ไม่พร้อมใช้งาน กระทบการประชุม/บริการ","ไม่พร้อมหลายรายการ","ขาด 3–5 รายการ","ขาด 1–2 รายการ","โต๊ะเก้าอี้และอุปกรณ์พร้อมใช้งานครบ"]},
+  {no:"3.1",h:"สะอาด",t:"ความสะอาดพื้นที่สำนักงาน โต๊ะทำงาน เฟอร์นิเจอร์",d:"โต๊ะ คอมพิวเตอร์ คีย์บอร์ด โทรศัพท์ ตู้เอกสาร พื้น โซฟา ต้องสะอาด",c:["สกปรกมาก กระทบสุขอนามัย/ภาพลักษณ์","พบหลายจุดชัดเจน","พบ 3–5 จุด/รายการ","พบ 1–2 จุด/รายการ","ไม่พบฝุ่น คราบ หรือขยะสะสม"]},
+  {no:"3.2",h:"สะอาด",t:"ความสะอาดห้องครัวและมุมพักผ่อน",d:"เคาน์เตอร์ครัว อ่างล้างจาน ตู้เย็น ไมโครเวฟ ถังขยะ มุมกาแฟ ต้องสะอาด",c:["เสี่ยงแมลง/สัตว์พาหะ สุขอนามัยไม่เหมาะสม","ภาชนะค้างจำนวนมาก กลิ่นแรง","พบ 3–5 รายการ หรือเริ่มมีกลิ่น","พบ 1–2 รายการ ไม่กระทบสุขอนามัย","ไม่มีเศษอาหาร ภาชนะค้าง กลิ่น หรือถังขยะล้น"]},
+  {no:"3.3",h:"สะอาด",t:"ความสะอาดและสุขลักษณะของห้องน้ำ",d:"โถสุขภัณฑ์ อ่างล้างมือ กระจก พื้น ประตู ถังขยะ ต้องสะอาด ไม่มีกลิ่น พื้นไม่เปียกลื่น",c:["ใช้งานไม่เหมาะสมหรือเสี่ยงต่อสุขภาพ","สกปรกมาก มีกลิ่น พื้นลื่น ถังขยะล้น","พบ 3–5 จุด แต่ยังใช้ได้","พบ 1–2 จุดเล็กน้อย","สะอาด ไม่มีกลิ่น พื้นไม่ลื่น อุปกรณ์พร้อมใช้"]},
+  {no:"3.4",h:"สะอาด",t:"ความสะอาดห้องประชุม ห้องถ่ายเอกสาร พื้นที่รับแขก",d:"พร้อมใช้งาน สะอาด ไม่มีของค้างหรือขยะ",c:["ไม่พร้อมใช้งานหรือมีของเสีย/กลิ่น","รก/สกปรกมาก กระทบภาพลักษณ์","พบ 3–5 จุด หรือไม่คืนสภาพบางส่วน","พบข้อบกพร่อง 1–2 จุด","พร้อมใช้ สะอาด ไม่มีของค้างหรือขยะ"]},
+  {no:"3.5",h:"สะอาด",t:"การจัดการขยะและถังขยะในสำนักงาน",d:"ถังขยะไม่ล้น แยกตามที่กำหนด ไม่มีขยะตกค้าง",c:["ขยะกระจัดกระจาย ไม่มีการจัดการ","ขยะล้น หรือผิดประเภทมากกว่า 5 ชิ้น","ขยะเต็ม 70–90% หรือผิดประเภท 3–5 ชิ้น","ขยะเริ่มเต็มไม่เกิน 70% หรือผิดประเภท 1–2 ชิ้น","ถังขยะไม่ล้น แยกตามที่กำหนด ไม่มีขยะตกค้าง"]},
+  {no:"4.1",h:"สร้างมาตรฐาน",t:"มาตรฐานการจัดวางโต๊ะทำงานและเอกสาร",d:"มีมาตรฐานการจัดวางที่ชัดเจนและปฏิบัติได้ครบ",c:["ไม่มีมาตรฐานการจัดวาง","ผิดมากกว่า 5 จุด","ผิด 3–5 จุด","ผิดมาตรฐาน 1–2 จุด","มีมาตรฐานชัดเจน ปฏิบัติได้ครบ"]},
+  {no:"4.2",h:"สร้างมาตรฐาน",t:"มาตรฐานป้าย/สี/จุดจัดเก็บพื้นที่ส่วนกลาง",d:"ป้ายและจุดจัดเก็บในพื้นที่ส่วนกลางครบถ้วนและชัดเจน",c:["ไม่มีการกำหนดจุดจัดเก็บ","ขาดมากกว่า 5 จุด","ขาด 3–5 จุด","ขาด 1–2 จุด","ป้ายและจุดจัดเก็บครบ ชัดเจน"]},
+  {no:"4.3",h:"สร้างมาตรฐาน",t:"ความปลอดภัยไฟฟ้า สายไฟ ปลั๊ก และอุปกรณ์ไฟฟ้า",d:"สายไฟ ปลั๊กพ่วง เครื่องใช้ไฟฟ้า ต้องไม่ชำรุด ไม่พาดทางเดิน",c:["พบชำรุด/แตก/เปลือย เสี่ยงไฟฟ้า","สายไฟ/ปลั๊กเสี่ยงหลายจุด","บกพร่อง 2–3 จุด","บกพร่องเล็กน้อย 1 จุด","ปลอดภัย ไม่พาดทางเดิน ไม่พ่วงเกินกำลัง"]},
+  {no:"4.4",h:"สร้างมาตรฐาน",t:"สภาพแวดล้อม แสงสว่าง อากาศ กลิ่น",d:"แสงสว่างเพียงพอ อากาศไม่อับ ไม่มีกลิ่นผิดปกติ",c:["สภาพแวดล้อมกระทบสุขภาพ/ความปลอดภัย","แสงไม่พอ อับ กลิ่นหลายจุด","บกพร่อง 2–3 จุด","บกพร่องเล็กน้อย 1 จุด","แสงพอ อากาศไม่อับ ไม่มีกลิ่นผิดปกติ"]},
+  {no:"4.5",h:"สร้างมาตรฐาน",t:"มาตรฐานการคืนสภาพหลังใช้งานพื้นที่ส่วนกลาง",d:"มีแนวทางการคืนสภาพพื้นที่ส่วนกลางที่ชัดเจนทุกพื้นที่",c:["ไม่มีมาตรฐานคืนสภาพ","แนวทางไม่ชัดหลายจุด","ขาดแนวทาง 3–5 จุด","ขาดแนวทาง 1–2 จุด","มีแนวทางคืนสภาพชัดเจนทุกพื้นที่"]},
+  {no:"5.1",h:"สร้างวินัย",t:"การคืนสภาพหลังใช้งานพื้นที่ส่วนกลาง",d:"หลังใช้งานต้องคืนสภาพ เก็บของเข้าที่ ปิดไฟ/แอร์/น้ำ/เครื่องใช้ไฟฟ้า",c:["เปิดอุปกรณ์ทิ้ง ไม่คืนสภาพซ้ำหลายครั้ง","ไม่คืนสภาพหลายพื้นที่","ไม่คืนสภาพ 3–5 รายการ","ไม่คืนสภาพ 1–2 รายการ","คืนสภาพครบ เก็บของ ปิดไฟ/แอร์/น้ำครบ"]},
+  {no:"5.2",h:"สร้างวินัย",t:"การปฏิบัติตามมาตรฐาน Clean Desk / Clear Area",d:"ปฏิบัติตามมาตรฐาน Clean Desk ทุกวันต่อเนื่อง",c:["ไม่ปฏิบัติเป็นประจำ","พบมากกว่า 5 จุด","พบ 3–5 จุด","พบไม่ปฏิบัติ 1–2 จุด","ปฏิบัติต่อเนื่องทุกวัน"]},
+  {no:"5.3",h:"สร้างวินัย",t:"การแจ้งซ่อมและติดตามข้อบกพร่อง",d:"แจ้งซ่อมและติดตามครบ มีหลักฐานการดำเนินการ",c:["ไม่มีการแจ้ง/ติดตาม หรือปัญหาเดิมซ้ำ","ไม่ติดตามมากกว่า 5 รายการ","ไม่ติดตาม 3–5 รายการ","ติดตามไม่ครบ 1–2 รายการ","แจ้งซ่อมและติดตามครบ มีหลักฐาน"]},
+  {no:"5.4",h:"สร้างวินัย",t:"การใช้งานพื้นที่ส่วนกลางอย่างรับผิดชอบ",d:"ผู้ใช้เก็บของ ทิ้งขยะถูกที่ และรักษาความสะอาดพื้นที่ส่วนกลาง",c:["พฤติกรรมซ้ำ กระทบผู้อื่นหรือภาพลักษณ์","พบมากกว่า 5 ครั้ง","พบ 3–5 ครั้ง","พบไม่รับผิดชอบ 1–2 ครั้ง","ผู้ใช้เก็บของ ทิ้งขยะ และรักษาความสะอาดครบ"]},
+  {no:"5.5",h:"สร้างวินัย",t:"การแก้ไขข้อบกพร่องจากการตรวจครั้งก่อน",d:"ข้อบกพร่องที่พบในรอบก่อนต้องได้รับการแก้ไขและมีหลักฐาน",c:["ไม่แก้ไข หรือพบปัญหาเดิมซ้ำ","แก้ไขน้อยกว่า 50%","แก้ไข 50–79%","แก้ไข 80–99%","แก้ไขครบ 100% มีหลักฐาน"]},
+],
+Store:[
+  {no:"1.1",h:"สะสาง",t:"การคัดแยกวัสดุใช้งาน / ไม่ใช้งาน / ชำรุด",d:"วัสดุทุกประเภทต้องแยกชัดเจน ของชำรุดไม่ปะปนกับของพร้อมใช้",c:["ไม่มีการแยกประเภท หรือของชำรุดปะปนของพร้อมใช้","พบปะปนมากกว่า 5 รายการ","พบปะปน 3–5 รายการ","พบปะปน 1–2 รายการ","แยกครบทุกประเภท ชัดเจน 100%"]},
+  {no:"1.2",h:"สะสาง",t:"ไม่มีของไม่เกี่ยวข้องในพื้นที่จัดเก็บ",d:"พื้นที่จัดเก็บต้องไม่มีของไม่เกี่ยวข้อง เช่น ขยะ กล่องเก่า หรือของส่วนตัว",c:["มีของไม่เกี่ยวข้องจำนวนมาก กระทบพื้นที่","พบมากกว่า 6 ชิ้น หรือวางผิดพื้นที่","พบ 4–6 ชิ้น หรือเริ่มกีดขวาง","พบ 2–3 ชิ้น แต่ไม่กีดขวาง","ไม่พบ หรือพบไม่เกิน 1 ชิ้น"]},
+  {no:"1.3",h:"สะสาง",t:"วัสดุหมดอายุ / เสื่อมสภาพ / รอจำหน่าย",d:"วัสดุหมดอายุหรือเสื่อมสภาพต้องแยกและติดป้ายสถานะครบถ้วน",c:["ไม่มีการควบคุมวัสดุหมดอายุ/เสื่อมสภาพ","พบมากกว่า 5 รายการ หรือปะปนของใช้งาน","พบผิด 3–5 รายการ หรือป้ายไม่ครบ","พบผิด 1–2 รายการ","แยกและติดป้ายสถานะครบถ้วน"]},
+  {no:"1.4",h:"สะสาง",t:"เศษวัสดุ / ขยะ / ของเสีย",d:"เศษวัสดุและขยะต้องจัดการทันที ไม่ปะปนกับวัสดุใช้งาน",c:["ขยะสะสมมาก ไม่มีการจัดการ","พบมากกว่า 10 ชิ้น หรือปะปนกับวัสดุใช้งาน","พบ 6–10 ชิ้น หรือมีจุดสะสม","พบ 3–5 ชิ้น","พบขยะหรือเศษวัสดุ 0–2 ชิ้น"]},
+  {no:"1.5",h:"สะสาง",t:"การใช้พื้นที่ตรงตามวัตถุประสงค์",d:"ทุกพื้นที่ต้องใช้ตรงตามป้ายและเส้นที่กำหนด",c:["ผิดประเภทจนกระทบทางเดิน/ความปลอดภัย","ผิดมากกว่า 3 จุด หรือวางล้ำพื้นที่","ผิด 2–3 จุด แต่ยังควบคุมได้","ผิดวัตถุประสงค์ 1 จุดเล็กน้อย","ใช้พื้นที่ถูกต้องตามป้าย/เส้น 100%"]},
+  {no:"2.1",h:"สะดวก",t:"การจัดเก็บตามหมวดหมู่ / ประเภทวัสดุ",d:"วัสดุทุกชิ้นต้องจัดเก็บตามหมวดหมู่ที่กำหนดอย่างถูกต้อง",c:["ไม่มีการแยกหมวด วัสดุปะปนจำนวนมาก","พบผิดหมวดมากกว่า 5 รายการ","พบผิดหมวด 3–5 รายการ","พบผิดหมวด 1–2 รายการ","แยกหมวดหมู่ถูกต้องครบถ้วน"]},
+  {no:"2.2",h:"สะดวก",t:"ป้าย Location / Rack / Bin",d:"ทุกตำแหน่งจัดเก็บต้องมีป้ายครบ ชัดเจน อ่านง่าย ตรงของจริง",c:["ไม่มีป้ายระบุตำแหน่งจัดเก็บ","ขาด/ไม่ชัดมากกว่า 5 จุด","ขาด/ไม่ชัด/ไม่ตรงของจริง 3–5 จุด","ป้ายขาด/ไม่ชัด 1–2 จุด","ป้ายครบ ชัดเจน อ่านง่าย ตรงของจริง"]},
+  {no:"2.3",h:"สะดวก",t:"การวางของไม่กีดขวางทางเดิน",d:"ทางเดินต้องไม่มีของล้ำเส้นหรือกีดขวาง รถเข็นและคนต้องผ่านได้สะดวก",c:["ทางเดินถูกกีดขวาง รถเข็น/คนผ่านไม่ได้","ล้ำเส้นมากกว่า 3 จุด หรือทางเดินแคบลง","ล้ำเส้น 2–3 จุด หรือกีดขวางบางส่วน","ล้ำเส้น 1 จุดเล็กน้อย ยังผ่านได้","ไม่พบของล้ำเส้นหรือกีดขวาง"]},
+  {no:"2.4",h:"สะดวก",t:"การจัดวางตามน้ำหนักและความถี่ใช้งาน",d:"ของหนักอยู่ล่าง ใช้บ่อยหยิบง่าย ของเบาอยู่บน ไม่เสี่ยงของหล่น",c:["เสี่ยงของหล่น ทับ หรือหยิบยากชัดเจน","พบมากกว่า 5 รายการ หรือของหนักอยู่สูง","พบไม่เหมาะสม 3–5 รายการ","พบไม่เหมาะสม 1–2 รายการ","ของหนักอยู่ล่าง ใช้บ่อยหยิบง่าย ของเบาอยู่บน"]},
+  {no:"2.5",h:"สะดวก",t:"อุปกรณ์ช่วยหยิบ-ยก / รถเข็น / บันได",d:"อุปกรณ์ช่วยหยิบยกต้องพร้อมใช้และมีจุดเก็บที่ชัดเจน",c:["ไม่มีอุปกรณ์จำเป็น หรือชำรุดเสี่ยงอันตราย","ไม่พร้อมใช้หลายรายการ หรือจุดเก็บไม่ชัด","ไม่เข้าที่/ชำรุดเล็กน้อย 2–3 รายการ","ไม่เข้าที่ 1 รายการ","พร้อมใช้ มีจุดเก็บชัดเจน"]},
+  {no:"3.1",h:"สะอาด",t:"ความสะอาดพื้นทางเดิน / พื้นที่จัดเก็บ",d:"พื้นทางเดินและพื้นที่จัดเก็บต้องสะอาด ไม่มีขยะ คราบ หรือสิ่งกีดขวาง",c:["สกปรกมาก เสี่ยงลื่น/สะดุด","พบมากกว่า 10 ชิ้น หรือมีคราบน้ำ/น้ำมัน","พบขยะ 6–10 ชิ้น หรือสกปรกหลายจุด","พบขยะ 3–5 ชิ้น หรือฝุ่นเล็กน้อย","พบขยะ 0–2 ชิ้น ไม่มีคราบ"]},
+  {no:"3.2",h:"สะอาด",t:"ความสะอาดชั้นวาง / Rack / พาเลท",d:"ชั้นวาง Rack และพาเลทต้องสะอาด ไม่มีฝุ่นหนา คราบ หรือพาเลทชำรุด",c:["สกปรก/ชำรุดมาก เสี่ยงสินค้าเสียหาย","พบมากกว่า 5 จุด หรือพาเลทชำรุดยังใช้งาน","พบฝุ่น/คราบ/พาเลทชำรุด 3–5 จุด","พบฝุ่น/คราบ 1–2 จุด","สะอาด ไม่พบฝุ่นหนา/พาเลทชำรุด"]},
+  {no:"3.3",h:"สะอาด",t:"การจัดการขยะและเศษวัสดุ",d:"มีจุดทิ้งขยะที่ชัดเจน ขยะไม่ล้น แยกประเภทถูกต้อง",c:["ไม่มีจุดทิ้งเหมาะสม หรือขยะกระจัดกระจาย","ขยะล้น หรือผิดประเภทมากกว่า 5 ชิ้น","ขยะเต็ม 70–90% หรือผิดประเภท 3–5 ชิ้น","ขยะเต็มไม่เกิน 70% หรือผิดประเภท 1–2 ชิ้น","มีจุดทิ้งชัดเจน ขยะไม่ล้น แยกถูกต้อง"]},
+  {no:"3.4",h:"สะอาด",t:"คราบหก รั่ว ซึม เช่น สี น้ำมัน สารเคมี",d:"ต้องไม่พบคราบหกรั่วซึม หากพบต้องจัดการทันที มีป้ายเตือน",c:["รั่วไหลโดยไม่มีการควบคุม","พบมากกว่า 3 จุด หรือเสี่ยงลื่น/ปนเปื้อน","พบ 2–3 จุด หรือไม่มีป้ายเตือน","พบคราบเล็กน้อย 1 จุด ไม่เสี่ยงลื่น","ไม่พบ หรือพบแล้วจัดการทันที"]},
+  {no:"3.5",h:"สะอาด",t:"อุปกรณ์ทำความสะอาดพร้อมใช้งาน",d:"อุปกรณ์ทำความสะอาดต้องครบ พร้อมใช้ มีจุดเก็บที่ชัดเจน",c:["ไม่มีอุปกรณ์ทำความสะอาดที่จำเป็น","ไม่พร้อมใช้มากกว่า 3 รายการ หรือจุดเก็บไม่ชัด","ไม่เข้าที่/ไม่พร้อมใช้ 2–3 รายการ","ไม่เข้าที่/ชำรุดเล็กน้อย 1 รายการ","ครบ พร้อมใช้ มีจุดเก็บชัดเจน"]},
+  {no:"4.1",h:"สร้างมาตรฐาน",t:"เส้นตีพื้นและขอบเขตพื้นที่",d:"เส้นตีพื้นต้องชัดเจนครบทุกจุด กำหนดขอบเขตพื้นที่ชัดเจน",c:["ไม่มีเส้นควบคุมพื้นที่","ลบเลือนมากกว่า 5 จุด หรือบางพื้นที่ไม่มีเส้น","ลบเลือน/ขาดหาย 3–5 จุด","เส้นลบเลือน 1–2 จุด แต่ยังเข้าใจได้","เส้นชัดเจนครบทุกจุด"]},
+  {no:"4.2",h:"สร้างมาตรฐาน",t:"ป้ายบ่งชี้ / ป้ายเตือน / ป้าย PPE",d:"ป้ายบ่งชี้ ป้ายเตือน และป้าย PPE ต้องครบ ชัดเจน ถูกต้องตามพื้นที่",c:["ไม่มีป้ายสำคัญ เช่น สารเคมี ห้ามสูบบุหรี่ PPE","ขาดมากกว่า 5 จุด หรือป้ายสำคัญไม่ชัด","ขาด/ไม่ชัด/ไม่ตรงพื้นที่ 3–5 จุด","ขาด/ไม่ชัด 1–2 จุด","ป้ายครบ ชัดเจน ถูกต้อง"]},
+  {no:"4.3",h:"สร้างมาตรฐาน",t:"มาตรฐานการจัดเก็บวัสดุ",d:"วางบนชั้น/พาเลทถูกต้อง ไม่วางพื้น ไม่ซ้อนสูงเกินกำหนด",c:["ไม่มีมาตรฐาน วางปะปน/วางพื้น/เสี่ยงพังทลาย","ผิดมากกว่า 5 จุด หรือเสี่ยงของหล่น","ผิด 3–5 จุด หรือซ้อนสูงบางจุด","ผิดมาตรฐาน 1–2 จุด ไม่เสี่ยง","วางบนชั้น/พาเลทถูกต้อง ไม่วางพื้น ไม่สูงเกินกำหนด"]},
+  {no:"4.4",h:"สร้างมาตรฐาน",t:"การแยกสี / สารเคมี / วัสดุอันตราย",d:"สารเคมีและวัสดุอันตรายต้องแยกโซน มีฉลาก SDS และข้อมูลความปลอดภัยครบ",c:["ไม่มีการแยกสารเคมี/วัสดุอันตราย","มากกว่า 5 รายการ หรือปะปนวัสดุทั่วไป","ไม่ครบ 3–5 รายการ หรือแยกโซนไม่ชัด","ฉลาก/SDS ไม่ครบ 1–2 รายการ","แยกโซน มีฉลาก และ SDS/ข้อมูลความปลอดภัยครบ"]},
+  {no:"4.5",h:"สร้างมาตรฐาน",t:"อุปกรณ์ฉุกเฉิน / ถังดับเพลิง / ตู้ไฟ",d:"อุปกรณ์ฉุกเฉินต้องเข้าถึงได้ทันที ไม่มีของบัง",c:["ถูกบัง ใช้งานไม่ได้ หรือเข้าถึงไม่ได้ทันที","บังชัดเจน เข้าถึงยาก","กีดขวางบางส่วน 2–3 จุด","มีของใกล้ 1 จุด แต่ยังเข้าถึงได้","เข้าถึงได้ ไม่มีของบัง"]},
+  {no:"5.1",h:"สร้างวินัย",t:"การรับเข้า-เบิกจ่ายตามขั้นตอน",d:"การรับเข้าและเบิกจ่ายทุกรายการต้องมีเอกสาร/บันทึกครบถูกต้อง",c:["ไม่มีการควบคุมเอกสาร/บันทึก","ผิดมากกว่า 5 รายการ หรือเบิกจ่ายไม่ตามขั้นตอน","ผิดพลาด 3–5 รายการ หรือบันทึกไม่ครบ","ผิดพลาด 1–2 รายการ","เอกสาร/บันทึกครบถูกต้อง"]},
+  {no:"5.2",h:"สร้างวินัย",t:"การเก็บของคืนที่เดิมหลังใช้งาน",d:"วัสดุและอุปกรณ์ต้องคืนที่เดิมหลังใช้งานทุกครั้ง",c:["ของกระจัดกระจาย ไม่คืนที่เดิม","พบมากกว่า 6 รายการ หรือวางค้างข้ามวัน","พบ 4–6 รายการ หรือวางค้างหลายจุด","พบ 2–3 รายการ","ไม่พบ หรือพบผิดที่ไม่เกิน 1 รายการ"]},
+  {no:"5.3",h:"สร้างวินัย",t:"การใช้หลัก FIFO / FEFO",d:"ต้องเบิกใช้ของเก่าก่อนเสมอ มีป้ายวันที่ชัดเจน",c:["ไม่มีการควบคุม FIFO/FEFO","ผิดมากกว่า 5 รายการ หรือของเก่าค้างหลังชั้น","ผิด 3–5 รายการ หรือไม่มีป้ายวันที่","ผิด 1–2 รายการ","ปฏิบัติครบ มีป้ายวันที่ชัดเจน"]},
+  {no:"5.4",h:"สร้างวินัย",t:"การปฏิบัติตามกฎความปลอดภัย",d:"ต้องไม่พบพฤติกรรมเสี่ยงหรือฝ่าฝืนกฎความปลอดภัย",c:["พบการกระทำไม่ปลอดภัยรุนแรง","พบมากกว่า 3 ครั้ง/จุด หรือพฤติกรรมเสี่ยง","พบ 2–3 ครั้ง/จุด","พบไม่ปฏิบัติ 1 ครั้ง/จุด ไม่รุนแรง","ปฏิบัติครบ ไม่พบพฤติกรรมเสี่ยง"]},
+  {no:"5.5",h:"สร้างวินัย",t:"การแก้ไขข้อบกพร่องครั้งก่อน",d:"ข้อบกพร่องที่พบในรอบก่อนต้องได้รับการแก้ไขครบ มีหลักฐาน",c:["ไม่แก้ไข หรือพบปัญหาเดิมซ้ำ","แก้ไขน้อยกว่า 50%","แก้ไข 50–79%","แก้ไข 80–99%","แก้ไขครบ 100% มีหลักฐาน"]},
+],
+Alu:[
+  {no:"1.1",h:"สะสาง",t:"การแยกของจำเป็น / ไม่จำเป็น",d:"แยกวัสดุที่ใช้งานได้ออกจากของชำรุด รอซ่อม หรือรอทิ้ง ชัดเจน 100%",c:["ไม่มีการแยกเลย ของชำรุดปะปนของพร้อมใช้","พบปะปนมากกว่า 5 รายการ ไม่มีป้ายบ่งชี้","พบปะปน 3–5 รายการ หรือป้ายไม่ครบ","พบปะปน 1–2 รายการ ป้ายบ่งชี้บางส่วน","มีการแยกชัดเจน ป้ายบ่งชี้ครบทุกรายการ"]},
+  {no:"1.2",h:"สะสาง",t:"ไม่มีของที่ไม่เกี่ยวข้องในพื้นที่",d:"พื้นที่โรงแบบต้องไม่มีของไม่เกี่ยวข้องวางค้าง เช่น อุปกรณ์ส่วนตัว ขยะ",c:["มีของไม่เกี่ยวข้องจำนวนมาก กระทบพื้นที่","พบมากกว่า 6 รายการ หรือวางผิดพื้นที่","พบ 4–6 รายการ หรือเริ่มกีดขวาง","พบ 2–3 รายการ แต่ไม่กีดขวาง","ไม่พบ หรือพบไม่เกิน 1 รายการ"]},
+  {no:"1.3",h:"สะสาง",t:"การจัดการเศษวัสดุอลูมิเนียม",d:"เศษอลูมิเนียมและเศษวัสดุต้องแยกเก็บในจุดที่กำหนด ไม่วางกระจัดกระจาย",c:["เศษวัสดุกระจัดกระจายทั่วพื้นที่ เสี่ยงอันตราย","เศษวัสดุสะสมมาก ไม่มีการจัดเก็บ","มีเศษวัสดุหลายจุด แต่ไม่เสี่ยงอันตราย","มีเศษวัสดุเล็กน้อย 1–2 จุด","เศษวัสดุอยู่ในจุดที่กำหนด แยกประเภทครบ"]},
+  {no:"1.4",h:"สะสาง",t:"การจัดการของชำรุด เสียหาย หรือไม่พร้อมใช้งาน",d:"แม่พิมพ์ อุปกรณ์ชำรุดต้องแยกออกจากของพร้อมใช้ มีป้ายสถานะชัดเจน",c:["ไม่มีการแยก เสี่ยงนำไปใช้งานผิด","พบชำรุดปะปนมากกว่า 5 ชิ้น","พบ 3–5 ชิ้น หรือไม่มีป้ายสถานะ","พบ 1–2 ชิ้น มีป้ายสถานะบางส่วน","แยกครบ มีป้ายสถานะและแจ้งซ่อมชัดเจน"]},
+  {no:"1.5",h:"สะสาง",t:"ไม่ใช้พื้นที่เป็นที่ฝากของ",d:"พื้นที่โรงแบบต้องใช้ตรงตามวัตถุประสงค์ ไม่นำของส่วนตัวหรือของไม่เกี่ยวข้องมาวาง",c:["พื้นที่ถูกใช้เป็นที่ฝากของจนกระทบการทำงาน","ผิดวัตถุประสงค์มากกว่า 3 จุด ชัดเจน","ผิด 2–3 จุด แต่ยังควบคุมได้","ผิดวัตถุประสงค์ 1 จุดเล็กน้อย","ใช้พื้นที่ตรงตามวัตถุประสงค์ 100%"]},
+  {no:"2.1",h:"สะดวก",t:"การจัดเก็บแบบอลูมิเนียมเป็นหมวดหมู่",d:"แม่พิมพ์และแบบอลูมิเนียมต้องจัดเก็บตามหมวดหมู่ที่กำหนด ค้นหาได้ง่าย",c:["ไม่มีการจัดหมวดหมู่ ค้นหาไม่ได้","พบผิดหมวดมากกว่า 5 รายการ","พบผิดหมวด 3–5 รายการ","พบผิดหมวด 1–2 รายการ","จัดหมวดหมู่ครบ ค้นหาและหยิบใช้ได้เร็ว"]},
+  {no:"2.2",h:"สะดวก",t:"ป้ายบ่งชี้ชั้นวาง / Location",d:"ทุกตำแหน่งจัดเก็บต้องมีป้าย Location ชัดเจน อ่านง่าย ตรงกับของจริง",c:["ไม่มีป้ายระบุตำแหน่ง","ขาดมากกว่า 5 จุด หรือป้ายไม่ตรงของจริง","ขาด/ไม่ชัด 3–5 จุด","ป้ายขาด/ไม่ชัด 1–2 จุด","ป้ายครบ ชัดเจน ตรงของจริงทุกจุด"]},
+  {no:"2.3",h:"สะดวก",t:"ทางเดินหลักและทางเดินระหว่างชั้นวาง",d:"ทางเดินต้องโล่ง ไม่มีของวางล้ำเส้น รถเข็นและรถยกผ่านได้สะดวก",c:["ทางเดินถูกกีดขวาง รถยก/คนผ่านไม่ได้","ล้ำเส้นมากกว่า 3 จุด ทางเดินแคบลง","ล้ำเส้น 2–3 จุด กีดขวางบางส่วน","ล้ำเส้น 1 จุดเล็กน้อย ยังผ่านได้","ทางเดินโล่ง รถยก/คนผ่านได้สะดวก"]},
+  {no:"2.4",h:"สะดวก",t:"ช่องทางไฟล์คลิฟท์",d:"ช่องทางรถยกต้องชัดเจน มีเส้นแบ่ง ไม่มีของวางกีดขวาง",c:["ช่องทางรถยกถูกกีดขวาง เสี่ยงอุบัติเหตุ","กีดขวางชัดเจน รถยกผ่านลำบาก","กีดขวางบางส่วน 2–3 จุด","กีดขวางเล็กน้อย 1 จุด","ช่องทางชัดเจน ปลอดโล่ง ไม่มีของกีดขวาง"]},
+  {no:"2.5",h:"สะดวก",t:"การวางพาเลทและแบบบนพื้น",d:"พาเลทและแม่พิมพ์ต้องวางในพื้นที่ที่กำหนด ไม่ล้ำเส้น ไม่กีดขวาง",c:["วางพาเลทสุ่ม กีดขวางทางเดิน เสี่ยงอันตราย","ล้ำเส้นมากกว่า 3 จุด ชัดเจน","ล้ำเส้น 2–3 จุด พอควบคุมได้","ล้ำเส้น 1 จุดเล็กน้อย","วางในพื้นที่ที่กำหนด ไม่ล้ำเส้น"]},
+  {no:"3.1",h:"สะอาด",t:"ความสะอาดพื้นทางเดิน",d:"พื้นทางเดินทุกจุดต้องสะอาด ไม่มีเศษวัสดุ น้ำมัน หรือสิ่งอื่นสะสม",c:["สกปรกมาก เสี่ยงลื่น/สะดุด/อุบัติเหตุ","พบสกปรกมากกว่า 10 จุด หรือมีคราบน้ำมัน","พบสกปรก 6–10 จุด หรือสกปรกหลายจุด","พบสกปรก 3–5 จุด","พื้นสะอาด ไม่มีเศษวัสดุหรือคราบ"]},
+  {no:"3.2",h:"สะอาด",t:"ความสะอาดบริเวณเครื่องจักร",d:"เครื่องจักรและอุปกรณ์การผลิตต้องสะอาด ไม่มีเศษวัสดุ คราบน้ำมัน สะสม",c:["เครื่องจักรสกปรกมาก มีคราบน้ำมันสะสมหนา","สกปรกชัดเจน มีเศษวัสดุและคราบน้ำมัน","สกปรกบางส่วน 3–5 จุด","สกปรกเล็กน้อย 1–2 จุด","เครื่องจักรสะอาด ไม่มีเศษวัสดุหรือคราบน้ำมัน"]},
+  {no:"3.3",h:"สะอาด",t:"ความสะอาดของชั้นวาง Rack",d:"ชั้นวาง Rack ต้องสะอาด ไม่มีฝุ่น เศษวัสดุ หรือคราบสกปรกสะสม",c:["ชั้นวางสกปรกมาก เสี่ยงสินค้าเสียหาย","สกปรกหลายจุด พบเศษวัสดุและฝุ่น","สกปรก 3–5 จุด","สกปรกเล็กน้อย 1–2 จุด","ชั้นวางสะอาด ไม่มีฝุ่นหรือเศษวัสดุ"]},
+  {no:"3.4",h:"สะอาด",t:"การจัดเก็บอุปกรณ์ทำความสะอาด",d:"อุปกรณ์ทำความสะอาดต้องอยู่ในจุดที่กำหนด พร้อมใช้งาน",c:["ไม่มีอุปกรณ์ทำความสะอาดเลย","ขาดหลายรายการ จุดเก็บไม่ชัดเจน","ขาด/ไม่พร้อมใช้ 2–3 รายการ","ขาด/ไม่เข้าที่ 1 รายการ","ครบ พร้อมใช้ อยู่ในจุดที่กำหนด"]},
+  {no:"3.5",h:"สะอาด",t:"ถังขยะและจุดทิ้งเศษวัสดุ",d:"มีถังขยะและจุดทิ้งเศษวัสดุที่เหมาะสม ไม่ล้น แยกประเภทถูกต้อง",c:["ไม่มีจุดทิ้งที่เหมาะสม เศษวัสดุกระจัดกระจาย","ถังขยะล้น เศษวัสดุสะสมมาก","ถังขยะเต็ม 70–90% หรือแยกประเภทไม่ครบ","ถังขยะเริ่มเต็ม หรือผิดประเภท 1–2 ชิ้น","ถังขยะไม่ล้น แยกประเภทครบ จุดทิ้งชัดเจน"]},
+  {no:"4.1",h:"สร้างมาตรฐาน",t:"เส้นดีพื้นและกรอบพื้นที่",d:"เส้นตีพื้นกำหนดขอบเขตพื้นที่ต้องชัดเจนครบทุกจุด ไม่ลบเลือน",c:["ไม่มีเส้นกำหนดพื้นที่เลย","เส้นลบเลือนมากกว่า 5 จุด หรือบางพื้นที่ไม่มี","ลบเลือน/ขาดหาย 3–5 จุด","เส้นลบเลือน 1–2 จุด ยังเข้าใจได้","เส้นชัดเจนครบทุกจุด ไม่ลบเลือน"]},
+  {no:"4.2",h:"สร้างมาตรฐาน",t:"ป้ายเตือนความปลอดภัย",d:"ป้ายเตือน PPE ป้ายความปลอดภัย ต้องครบ ชัดเจน ถูกต้อง",c:["ไม่มีป้ายเตือนความปลอดภัยสำคัญ","ขาดมากกว่า 5 จุด หรือป้ายไม่ชัด","ขาด/ไม่ชัด 3–5 จุด","ขาด/ไม่ชัด 1–2 จุด","ป้ายเตือนครบ ชัดเจน ถูกต้อง"]},
+  {no:"4.3",h:"สร้างมาตรฐาน",t:"มาตรฐานการซ้อนเก็บแบบ",d:"การซ้อนเก็บแม่พิมพ์และแบบต้องไม่เสี่ยงล้ม ไม่สูงเกินกำหนด มีที่กั้น",c:["ซ้อนสูงเสี่ยงล้ม ไม่มีที่กั้น เสี่ยงอันตราย","ซ้อนเกินกำหนดหลายจุด หรือไม่มีที่กั้น","ซ้อนเกินกำหนด 2–3 จุด","ซ้อนเกินกำหนดเล็กน้อย 1 จุด","ซ้อนเก็บถูกต้อง ไม่สูงเกินกำหนด มีที่กั้นครบ"]},
+  {no:"4.4",h:"สร้างมาตรฐาน",t:"อุปกรณ์ดับเพลิง/ทางออกฉุกเฉิน",d:"ถังดับเพลิง ตู้ไฟ และทางออกฉุกเฉินต้องเข้าถึงได้ทันที ไม่มีของบัง",c:["ถูกบัง ใช้งานไม่ได้ เสี่ยงอันตรายรุนแรง","บังชัดเจน เข้าถึงยาก","กีดขวางบางส่วน 2–3 จุด","มีของใกล้ 1 จุด แต่ยังเข้าถึงได้","เข้าถึงได้ทันที ไม่มีของบัง"]},
+  {no:"4.5",h:"สร้างมาตรฐาน",t:"เอกสาร/ป้าย Location มาตรฐาน",d:"เอกสารแม่พิมพ์และป้าย Location ต้องอัปเดตตรงกับสภาพจริงเสมอ",c:["เอกสารและป้ายไม่ตรงกับสภาพจริงเลย","ไม่ตรงมากกว่า 5 รายการ","ไม่ตรง 3–5 รายการ","ไม่ตรง 1–2 รายการ","เอกสารและป้าย Location ตรงกับสภาพจริง 100%"]},
+  {no:"5.1",h:"สร้างวินัย",t:"การปฏิบัติตามที่จัดเก็บทุกครั้ง",d:"หลังใช้งานทุกครั้งต้องคืนแม่พิมพ์และอุปกรณ์กลับที่เดิม",c:["ไม่คืนที่เดิมเป็นประจำ ของกระจัดกระจาย","ไม่คืนที่เดิมมากกว่า 5 รายการ","ไม่คืนที่เดิม 3–5 รายการ","ไม่คืนที่เดิม 1–2 รายการ","คืนที่เดิมครบทุกครั้ง ไม่พบของวางผิดที่"]},
+  {no:"5.2",h:"สร้างวินัย",t:"การสวม PPE และปฏิบัติตามกฎ",d:"พนักงานทุกคนต้องสวม PPE และปฏิบัติตามกฎความปลอดภัยโรงแบบเสมอ",c:["พบการไม่สวม PPE หรือฝ่าฝืนกฎรุนแรง","พบมากกว่า 3 ครั้ง หรือพฤติกรรมเสี่ยง","พบ 2–3 ครั้ง","พบ 1 ครั้ง ไม่รุนแรง","ปฏิบัติครบ สวม PPE ถูกต้องทุกคน"]},
+  {no:"5.3",h:"สร้างวินัย",t:"การตรวจประจำวัน",d:"มีการตรวจสอบพื้นที่โรงแบบประจำวัน มีบันทึกและหลักฐาน",c:["ไม่มีการตรวจประจำวันเลย","ตรวจน้อยกว่า 50% ของวันที่กำหนด","ตรวจ 50–75% ของวันที่กำหนด","ตรวจ 76–95% ของวันที่กำหนด","ตรวจประจำวันครบ 100% มีบันทึกครบ"]},
+  {no:"5.4",h:"สร้างวินัย",t:"การแก้ไขข้อบกพร่องต่อเนื่อง",d:"ปัญหาที่พบต้องได้รับการแก้ไขทันที และไม่ซ้ำจากรอบก่อน",c:["ไม่แก้ไขปัญหา หรือพบซ้ำทุกรอบ","แก้ไขน้อยกว่า 50%","แก้ไข 50–75%","แก้ไข 76–95%","แก้ไขครบ 100% ปัญหาไม่ซ้ำจากรอบก่อน"]},
+  {no:"5.5",h:"สร้างวินัย",t:"ความร่วมมือของพนักงาน",d:"พนักงานมีส่วนร่วมในกิจกรรม 5ส รู้หน้าที่ และปฏิบัติได้โดยไม่ต้องสั่ง",c:["ไม่มีการมีส่วนร่วม ไม่รู้หน้าที่","รู้หน้าที่แต่ต้องสั่งเสมอ","บางคนมีส่วนร่วม ส่วนใหญ่ต้องสั่ง","ส่วนใหญ่มีส่วนร่วม บางคนต้องสั่ง","มีส่วนร่วมครบทุกคน ปฏิบัติได้โดยไม่ต้องสั่ง"]},
+]};
+IT.Custom=[...IT.Office];
+
+let area='Office',cur=0,sc={},nt={},ph={},photoIdx=-1;
+let hist=JSON.parse(localStorage.getItem('5s_h')||'[]');
+
+function init(){sc={};nt={};ph={};for(let i=0;i<25;i++){sc[i]=-1;nt[i]='';ph[i]=[];}}
+init();
+
+function goTab(t){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+t).classList.add('on');
+  document.getElementById('t-'+t).classList.add('on');
+  if(t==='history')rHist();if(t==='ranking')rRank();if(t==='home')rHome();
+}
+function selArea(a){
+  area=a;
+  document.querySelectorAll('.area-card').forEach(c=>c.style.borderWidth='2px');
+  const el=document.getElementById('ac-'+a);if(el)el.style.borderWidth='3px';
+  document.getElementById('custom-field').style.display=a==='Custom'?'block':'none';
+  document.getElementById('fhead').style.background=ACOL[a];
+}
+function startInspect(){cur=0;init();showSt(0);goTab('inspect');setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
+function startItems(){cur=0;showSt(1);rItem();setNbSub2();}
+function showSt(s){
+  document.getElementById('st-info').style.display=s===0?'block':'none';
+  document.getElementById('st-items').style.display=s===1?'block':'none';
+  document.getElementById('st-sum').style.display=s===2?'block':'none';
+}
+function setNbSub(t){document.getElementById('nb-sub').textContent=t;}
+function setNbSub2(){setNbSub('ข้อ '+(cur+1)+'/25 — '+IT[area][cur].h);}
+function setPb(done,tot){
+  document.getElementById('pb').style.width=(done/25*100)+'%';
+  document.getElementById('pb-lbl').textContent=done+'/25';
+}
+function getTotal(){return Object.values(sc).reduce((a,v)=>a+(v>=0?v:0),0);}
+function rItem(){
+  const items=IT[area],it=items[cur],s=sc[cur],has=s>=0;
+  const col=ACOL[area],bg=ABG[area];
+  const crit=has?`<div class="crit" style="background:${SBG[s]};color:${SFG[s]};border-color:${SBC[s]}">${it.c[s]}</div>`
+    :`<div class="crit" style="background:#F7F9FC;color:#94A3B8;border-color:#DDE3EC">กดเลือกคะแนนเพื่อดูเกณฑ์</div>`;
+  const sbtns=[0,1,2,3,4].map(v=>`<button class="sc${s===v?' v'+v:''}" onclick="setS(${v})">${v}<span>${SL[v]}</span></button>`).join('');
+  const pht=ph[cur]&&ph[cur].length?ph[cur].map((p,i)=>`<div class="pthumb-wrap"><img class="pthumb" src="${p}"><button class="pdel" onclick="delPh(${cur},${i})">×</button></div>`).join(''):'';
+  document.getElementById('item-area').innerHTML=`
+    <div class="hmvd-tag" style="background:${HB[it.h]};color:${HC[it.h]}">${it.h} · ข้อ ${it.no} (${cur+1}/25)</div>
+    <div class="icard">
+      <div class="ihead">
+        <div class="itop"><div class="ino" style="background:${bg};color:${col}">${cur+1}</div><div class="ititle">${it.t}</div></div>
+        <div class="idetail">${it.d}</div>${crit}
+      </div>
+      <div class="ssec"><div class="slbl">เลือกระดับคะแนน</div><div class="srow">${sbtns}</div></div>
+      <div class="nsec"><div class="nlbl">บันทึกจุดบกพร่องที่พบ</div>
+        <textarea class="ninp" id="ninp" placeholder="ระบุจุดที่พบ..." oninput="nt[${cur}]=this.value">${nt[cur]}</textarea></div>
+      <div class="psec">
+        <div class="pbtn" onclick="openPh(${cur})"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>รูป</div>
+        <div id="ph-list-${cur}" style="display:flex;gap:6px;flex-wrap:wrap">${pht}</div>
+      </div>
+    </div>`;
+  const bn=document.getElementById('btn-next');
+  bn.innerHTML=cur<24?'ถัดไป →':'📋 ดูสรุปผล';
+  uMini();uPb();
+}
+function setS(v){sc[cur]=v;rItem();}
+function openPh(i){photoIdx=i;document.getElementById('photo-inp').click();}
+function handlePhoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{if(!ph[photoIdx])ph[photoIdx]=[];ph[photoIdx].push(ev.target.result);rItem();};
+  r.readAsDataURL(f);e.target.value='';
+}
+function delPh(i,pi){ph[i].splice(pi,1);rItem();}
+function nextItem(){if(cur<24){cur++;rItem();setNbSub2();}else{rSum();showSt(2);setNbSub('สรุปผลการตรวจ');}}
+function prevItem(){if(cur>0){cur--;rItem();setNbSub2();}else{showSt(0);setNbSub('กรอกข้อมูล');}}
+function uMini(){
+  const t=getTotal(),c=t>=80?'#0F6E56':t>=60?'#854F0B':'#A32D2D';
+  document.getElementById('ms-n').textContent=t;document.getElementById('ms-n').style.color=c;
+  document.getElementById('ms-bar').style.width=t+'%';document.getElementById('ms-bar').style.background=c;
+  document.getElementById('ms-pct').textContent=t+'%';document.getElementById('ms-pct').style.color=c;
+}
+function uPb(){
+  const d=Object.values(sc).filter(v=>v>=0).length;
+  document.getElementById('pb').style.width=(d/25*100)+'%';
+  document.getElementById('pb-lbl').textContent=d+'/25';
+}
+function getReportData(){
+  const items=IT[area],tot=getTotal(),pass=tot>=80;
+  const lv=tot>=90?'ดีมาก':tot>=80?'ผ่านเกณฑ์':tot>=70?'พอใช้':tot>=60?'ต้องปรับปรุง':'ไม่ผ่านเกณฑ์';
+  const dept=document.getElementById('f-dept').value||'—';
+  const aname=area==='Custom'?(document.getElementById('f-custom').value||'พื้นที่อื่น'):ANAME[area];
+  const adet=document.getElementById('f-area').value;
+  const insp=document.getElementById('f-insp').value||'—';
+  const dv=document.getElementById('f-date').value;
+  const ds=dv?new Date(dv).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'-';
+  const round=document.getElementById('f-round').value;
+  const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
+  items.forEach((it,i)=>{if(sc[i]>=0)hS[it.h]+=sc[i];hM[it.h]+=4;});
+  const probs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2);
+  const lvs=[{n:'<60',l:'ไม่ผ่าน',bg:'#F5E6E6',fg:'#7A1515',a:tot<60},{n:'60–69',l:'ต้องปรับ',bg:'#FAEEDA',fg:'#854F0B',a:tot>=60&&tot<70},{n:'70–79',l:'พอใช้',bg:'#FFF3CD',fg:'#6B4C00',a:tot>=70&&tot<80},{n:'80–89',l:'ผ่าน',bg:'#E1F5EE',fg:'#0F6E56',a:tot>=80&&tot<90},{n:'90+',l:'ดีมาก',bg:'#D0F0E4',fg:'#085041',a:tot>=90}];
+  return{items,tot,pass,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs};
+}
+function rSum(){
+  const{items,tot,pass,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
+  const bars=HMVD.map(h=>{const s=hS[h],m=hM[h],p=Math.round(s/m*100),c=HC[h];
+    return `<div class="br-row"><div class="br-n" style="color:${c}">${h}</div><div class="br-track"><div class="br-fill" style="width:${p}%;background:${c}"></div></div><div style="display:flex;align-items:baseline;gap:2px;min-width:42px;justify-content:flex-end"><div class="br-v" style="color:${c}">${s}</div><div class="br-p">/${m}</div></div></div>`;}).join('');
+  const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||it.c[s];
+    const pht=ph[i]&&ph[i].length?`<div class="df-photos">${ph[i].map(p=>`<img class="df-photo" src="${p}">`).join('')}</div>`:'';
+    return `<div class="df-item"><div class="df-hd"><div class="df-dot" style="background:${HC[it.h]}"></div><div class="df-ttl">ข้อ ${it.no} — ${it.t}</div><div class="df-badge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</div></div><div class="df-note">${note}</div>${pht}</div>`;}).join('')
+    :`<div style="padding:14px;text-align:center;font-size:13px;color:var(--muted)">✅ ไม่พบจุดบกพร่อง</div>`;
+  document.getElementById('sum-content').innerHTML=`
+    <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:11px;color:var(--muted);margin-bottom:12px">
+      <span>${AICO[area]||'📍'} ${aname}</span>${adet?`<span>📍 ${adet}</span>`:''}<span>🏢 ${dept}</span><span>📅 ${ds}</span><span>👤 ${insp}</span><span>🔄 ${round}</span>
+    </div>
+    <div class="sum-hero"><div class="hring"><div class="hn">${tot}</div><div class="hmx">/100</div></div>
+      <div class="hr"><div class="hpct">${tot}%</div><div class="hlbl">25 หัวข้อ × 4 คะแนน</div><div class="hbadge">${pass?'✓':'!'} ${lv}</div></div></div>
+    <div class="scard"><div class="shd"><div class="sico" style="background:#E1F5EE">📊</div><div class="sttl">คะแนนแยกรายหมวด</div></div><div class="sbd">${bars}</div></div>
+    <div class="lvstrip">${lvs.map(l=>`<div class="lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg+';':'border-color:transparent'}"><div class="lvn" style="color:${l.fg}">${l.n}</div><div class="lvl" style="color:${l.fg}">${l.l}</div></div>`).join('')}</div>
+    <div class="scard"><div class="shd"><div class="sico" style="background:${probs.length?'#FCEBEB':'#E1F5EE'}">${probs.length?'⚠️':'✅'}</div>
+      <div class="sttl" style="color:${probs.length?'#A32D2D':'#0F6E56'}">${probs.length?'จุดต้องแก้ไข ('+probs.length+' หัวข้อ)':'ผ่านทุกหัวข้อ'}</div></div>
+      <div class="sbd" style="padding:${probs.length?'12px 15px':'0'}">${dfHtml}</div></div>`;
+  buildPrintReport();
+}
+function tierGrad(tot){return tot>=80?['#0a5240','#0F6E56']:tot>=60?['#6b3d09','#854F0B']:['#7a1515','#A32D2D'];}
+function buildPrintReport(){
+  const{items,tot,pass,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
+  const [g1,g2]=tierGrad(tot);
+  const bars=HMVD.map(h=>{const s=hS[h],m=hM[h],p=Math.round(s/m*100),c=HC[h];
+    return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v" style="color:${c}">${s}/${m}</div></div>`;}).join('');
+  const lvHtml=lvs.map(l=>`<div class="pr-lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg:''}"><div class="pr-lvn" style="color:${l.fg}">${l.n}</div><div class="pr-lvl" style="color:${l.fg}">${l.l}</div></div>`).join('');
+  const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||it.c[s];
+    const has=ph[i]&&ph[i].length;
+    const pht=has?`<img class="pr-dph" src="${ph[i][0]}">`:'';
+    return `<div class="pr-dcard"><div class="pr-dtxt"><div class="pr-dttl">ข้อ ${it.no} — ${it.t}<span class="pr-dbadge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</span></div><div class="pr-dnote">${note}</div></div>${pht}</div>`;}).join('')
+    :`<div class="pr-ok">✅ ผ่านทุกหัวข้อ ไม่พบจุดบกพร่อง</div>`;
+  document.getElementById('pr-inner').innerHTML=`
+    <div class="pr-head">
+      <div class="pr-brand"><div class="pr-logo">🏭</div><div><div class="pr-h1">รายงานผลการตรวจ 5ส</div><div class="pr-h2">แบบตรวจ 5ส Pro · v3.0</div></div></div>
+      <div class="pr-meta">
+        <span>${AICO[area]||'📍'} <b>${aname}</b>${adet?' ('+adet+')':''}</span>
+        <span>🏢 หน่วยงาน <b>${dept}</b></span>
+        <span>📅 <b>${ds}</b></span>
+        <span>👤 ผู้ตรวจ <b>${insp}</b></span>
+        <span>🔄 รอบ <b>${round}</b></span>
+      </div>
+      <div class="pr-score" style="background:linear-gradient(135deg,${g1},${g2})">
+        <div class="pr-score-n">${tot}<span class="pr-score-mx">/100</span></div>
+        <div class="pr-score-mx">25 หัวข้อ × 4 คะแนน</div>
+        <div class="pr-score-lv">${pass?'✓':'!'} ${lv}</div>
+      </div>
+    </div>
+    <div class="pr-sec-ttl">📊 คะแนนแยกรายหมวด</div>
+    <div class="pr-bars">${bars}</div>
+    <div class="pr-levels">${lvHtml}</div>
+    <div class="pr-sec-ttl">${probs.length?'⚠️ จุดต้องแก้ไข ('+probs.length+' หัวข้อ)':'✅ สรุปผล'}</div>
+    <div class="pr-defects">${dfHtml}</div>
+    <div class="pr-sig">
+      <div><div class="pr-sigline"></div><div class="pr-siglbl">ผู้ตรวจ</div></div>
+      <div><div class="pr-sigline"></div><div class="pr-siglbl">ผู้รับผิดชอบพื้นที่</div></div>
+      <div><div class="pr-sigline"></div><div class="pr-siglbl">ผู้อนุมัติ</div></div>
+    </div>
+    <div class="pr-foot">รายงานสร้างโดยระบบแบบตรวจ 5ส Pro</div>`;
+  fitPrintPage();
+}
+function fitPrintPage(){
+  const inner=document.getElementById('pr-inner');
+  inner.style.transform='none';inner.style.marginLeft='0';
+  const pxPerMm=96/25.4;
+  const availPx=291*pxPerMm;
+  const contentPx=inner.scrollHeight;
+  let scale=contentPx>availPx?Math.max(0.55,(availPx/contentPx)*0.985):1;
+  inner.style.transform='scale('+scale+')';
+  inner.style.marginLeft=(210*(1-scale)/2)+'mm';
+}
+function printReport(){
+  buildPrintReport();
+  requestAnimationFrame(()=>{fitPrintPage();requestAnimationFrame(()=>window.print());});
+}
+function saveResult(){
+  const items=IT[area],tot=getTotal();
+  const dept=document.getElementById('f-dept').value||'—';
+  const aname=area==='Custom'?(document.getElementById('f-custom').value||'พื้นที่อื่น'):ANAME[area];
+  const adet=document.getElementById('f-area').value;
+  const insp=document.getElementById('f-insp').value||'—';
+  const dv=document.getElementById('f-date').value||new Date().toISOString().split('T')[0];
+  const round=document.getElementById('f-round').value;
+  const hS={};HMVD.forEach(h=>{hS[h]=0;});
+  items.forEach((it,i)=>{if(sc[i]>=0)hS[it.h]+=sc[i];});
+  const defs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2).map(it=>{const i=items.indexOf(it);return{no:it.no,t:it.t,sc:sc[i],nt:nt[i]};});
+  hist.unshift({id:Date.now(),date:dv,area,aname,adet,dept,insp,round,tot,hS,defs,saved:new Date().toISOString()});
+  if(hist.length>50)hist=hist.slice(0,50);
+  localStorage.setItem('5s_h',JSON.stringify(hist));
+  rHome();alert('✅ บันทึกผลการตรวจเรียบร้อยแล้ว');
+}
+function resetAll(){init();cur=0;showSt(0);setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
+function rHome(){
+  const total=hist.length,avg=total?Math.round(hist.reduce((a,h)=>a+h.tot,0)/total):0,pass=hist.filter(h=>h.tot>=80).length;
+  document.getElementById('st-tot').textContent=total;
+  document.getElementById('st-avg').textContent=total?avg+'%':'—';
+  document.getElementById('st-pass').textContent=pass;
+  const recent=hist.slice(0,3);
+  document.getElementById('recent-list').innerHTML=recent.length?recent.map(h=>{
+    const c=h.tot>=80?'#0F6E56':h.tot>=60?'#854F0B':'#A32D2D';
+    return `<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:20px">${AICO[h.area]||'📍'}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${h.aname}</div><div style="font-size:11px;color:var(--muted)">${h.dept} · ${new Date(h.date).toLocaleDateString('th-TH')}</div></div>
+      <div style="font-size:16px;font-weight:800;color:${c}">${h.tot}%</div></div>`;}).join('')
+    :'<div class="recent-empty">ยังไม่มีประวัติ</div>';
+}
+function rHist(){
+  const el=document.getElementById('hist-list');
+  if(!hist.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">ยังไม่มีประวัติ</div><div class="empty-desc">ตรวจและบันทึกผลแล้วจะแสดงที่นี่</div></div>';return;}
+  el.innerHTML=hist.map(h=>{
+    const c=h.tot>=80?'#0F6E56':h.tot>=60?'#854F0B':'#A32D2D';
+    const bg=h.tot>=80?'#E1F5EE':h.tot>=60?'#FAEEDA':'#FCEBEB';
+    const lv=h.tot>=90?'ดีมาก':h.tot>=80?'ผ่านเกณฑ์':h.tot>=70?'พอใช้':h.tot>=60?'ต้องปรับ':'ไม่ผ่าน';
+    return `<div class="hitem"><div class="hico" style="background:${bg}">${AICO[h.area]||'📍'}</div>
+      <div class="hinfo"><div class="htitle">${h.aname}${h.adet?' ('+h.adet+')':''}</div>
+        <div class="hmeta">${h.dept} · ${h.insp} · ${new Date(h.date).toLocaleDateString('th-TH')} · ${h.round}</div>
+        <div style="font-size:11px;margin-top:3px;color:${h.defs&&h.defs.length?'#A32D2D':'#0F6E56'}">${h.defs&&h.defs.length?'⚠️ ต้องแก้ไข '+h.defs.length+' หัวข้อ':'✅ ผ่านทุกหัวข้อ'}</div></div>
+      <div class="hscore"><div class="hpct" style="color:${c}">${h.tot}%</div><div class="hlv" style="color:${c}">${lv}</div><div style="font-size:10px;color:var(--light);margin-top:2px">${h.tot}/100</div></div></div>`;}).join('');
+}
+function rRank(){
+  const el=document.getElementById('rank-list');
+  if(!hist.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">ยังไม่มีข้อมูล</div><div class="empty-desc">ตรวจและบันทึกผลแล้วจะแสดง Ranking ที่นี่</div></div>';return;}
+  const grp={};
+  hist.forEach(h=>{const k=h.aname+'|'+h.dept;if(!grp[k]||new Date(h.date)>new Date(grp[k].date))grp[k]=h;});
+  const ranked=Object.values(grp).sort((a,b)=>b.tot-a.tot);
+  const medals=['🥇','🥈','🥉'],mbc=['#DAA520','#A8A9AD','#CD7F32'];
+  el.innerHTML='<div class="sec-title">อันดับคะแนนล่าสุดแต่ละพื้นที่</div>'+ranked.map((h,i)=>{
+    const c=h.tot>=80?'#0F6E56':h.tot>=60?'#854F0B':'#A32D2D';
+    const bg=h.tot>=80?'#E1F5EE':h.tot>=60?'#FAEEDA':'#FCEBEB';
+    const lv=h.tot>=90?'ดีมาก':h.tot>=80?'ผ่าน':h.tot>=70?'พอใช้':h.tot>=60?'ต้องปรับ':'ไม่ผ่าน';
+    return `<div class="ritem"><div class="rnum" style="background:${i<3?mbc[i]:'#94A3B8'};color:#fff">${i<3?medals[i]:i+1}</div>
+      <div style="font-size:22px">${AICO[h.area]||'📍'}</div>
+      <div class="rinfo"><div class="rname">${h.aname}</div><div class="rmeta">${h.dept} · ${new Date(h.date).toLocaleDateString('th-TH')}</div>
+        <div class="rtrack"><div class="rfill" style="width:${h.tot}%;background:${c}"></div></div></div>
+      <div style="text-align:right;min-width:50px"><div class="rpct" style="color:${c}">${h.tot}%</div>
+        <div style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:7px;background:${bg};color:${c};margin-top:3px">${lv}</div></div></div>`;}).join('');
+}
+document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+document.getElementById('f-round').selectedIndex=new Date().getMonth();
+selArea('Office');rHome();
+</script></body></html>

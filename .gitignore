@@ -1,0 +1,14 @@
+# Internal AI-agent harness/config files — not part of the public app,
+# kept local-only. Remove lines here if you want any of these versioned too.
+.claude/
+.sessions/
+knowledge/
+domain/
+docs/
+CLAUDE.md
+AGENTS.md
+CODING_FAILURE_PATTERNS.md
+INVARIANTS.md
+error_index.md
+REPO_MAP.md
+*.xlsx
