@@ -228,11 +228,9 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 .pr-foot{margin-top:2mm;font-size:2mm;color:#94A3B8;text-align:center}
 @media print{
   @page{size:A4;margin:0}
-  html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
-  body *{visibility:hidden}
-  #print-report,#print-report *{visibility:visible!important}
-  .navbar,.tab-bar{display:none!important}
-  #print-report{position:absolute!important;left:0!important;top:0!important;z-index:auto}
+  html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;height:auto!important;min-height:0!important}
+  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking{display:none!important}
+  #print-report{position:static!important;height:auto!important;overflow:visible!important;z-index:auto}
 }
 </style>
 </head>
@@ -648,13 +646,12 @@ function buildPrintReport(){
 }
 function fitPrintPage(){
   const inner=document.getElementById('pr-inner');
-  inner.style.transform='none';inner.style.marginLeft='0';
+  inner.style.zoom=1;
   const pxPerMm=96/25.4;
-  const availPx=291*pxPerMm;
+  const availPx=282*pxPerMm;
   const contentPx=inner.scrollHeight;
-  let scale=contentPx>availPx?Math.max(0.55,(availPx/contentPx)*0.985):1;
-  inner.style.transform='scale('+scale+')';
-  inner.style.marginLeft=(210*(1-scale)/2)+'mm';
+  const scale=contentPx>availPx?Math.max(0.5,(availPx/contentPx)*0.96):1;
+  inner.style.zoom=scale;
 }
 function isInAppBrowser(){
   return /Line\/|FBAN|FBAV|Instagram|MicroMessenger|GSA\/[^\s]* Nebula/i.test(navigator.userAgent);
