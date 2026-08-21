@@ -60,6 +60,36 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .area-card.sel{box-shadow:0 4px 14px -4px rgba(0,0,0,.22)}
 .area-check{position:absolute;top:9px;left:9px;width:19px;height:19px;border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
 .area-card.sel .area-check{display:flex}
+.exp-btn{font-size:11px;font-weight:700;padding:6px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--green);cursor:pointer;white-space:nowrap}
+.exp-btn:active{transform:scale(.96)}
+.spinner{width:36px;height:36px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);opacity:0;transition:opacity .25s,transform .25s;background:#1A1A2E;color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px -6px rgba(0,0,0,.4);z-index:1200;max-width:90%;text-align:center;display:none;line-height:1.5}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ADMIN */
+.grp-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);border-left:4px solid #94A3B8;padding:14px 15px;margin-bottom:12px;box-shadow:0 2px 10px -6px rgba(0,0,0,.1)}
+.grp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+.grp-date{font-size:13px;font-weight:700}
+.grp-area{font-size:12px;font-weight:600;margin-top:2px}
+.grp-n{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap}
+.grp-spread{font-size:11px;font-weight:700;margin-top:3px;white-space:nowrap}
+.grp-rows{border-top:1px solid var(--border);margin-top:6px}
+.insp-row{border-bottom:1px solid var(--border);padding:9px 0}
+.insp-row:last-child{border-bottom:none}
+.insp-row-main{display:flex;align-items:center;gap:10px}
+.insp-chk{width:18px;height:18px;flex-shrink:0;accent-color:#0F6E56;cursor:pointer}
+.insp-info{flex:1;cursor:pointer;min-width:0}
+.insp-name{font-size:13px;font-weight:600}
+.insp-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.insp-score{font-size:15px;font-weight:700;white-space:nowrap}
+.insp-detail{margin-top:8px;padding-top:8px;padding-left:28px;border-top:1px dashed var(--border)}
+.detail-row{display:flex;gap:8px;font-size:11px;padding:3px 0;color:var(--muted)}
+.detail-no{width:28px;flex-shrink:0;font-weight:600;color:var(--text)}
+.detail-t{flex:1}
+.detail-sc{width:28px;text-align:right;font-weight:700;color:var(--text)}
+.fab-delete{position:fixed;left:50%;bottom:72px;transform:translateX(-50%);background:#A32D2D;color:#fff;border:none;padding:12px 22px;border-radius:30px;font-size:13px;font-weight:700;box-shadow:0 8px 20px -4px rgba(163,45,45,.5);cursor:pointer;z-index:150;display:flex;align-items:center;gap:6px}
+.fab-delete:active{transform:translateX(-50%) scale(.96)}
 .recent-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:13px;margin-bottom:13px}
 .recent-title{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:9px}
 .recent-empty{text-align:center;padding:12px 0;font-size:12px;color:var(--light)}
@@ -245,7 +275,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 @media print{
   @page{size:A4;margin:0}
   html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;height:auto!important;min-height:0!important}
-  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,.modal-overlay{display:none!important}
+  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-admin,.modal-overlay,.toast,.fab-delete{display:none!important}
   #print-report{position:static!important;height:auto!important;overflow:visible!important;z-index:auto}
 }
 </style>
@@ -280,6 +310,9 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
     </button>
     <button class="tb" onclick="goTab('ranking')" id="t-ranking">
       <svg viewBox="0 0 24 24"><polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/></svg>Ranking
+    </button>
+    <button class="tb" onclick="goTab('admin')" id="t-admin">
+      <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>ข้อมูลรวม
     </button>
   </div>
 </div>
@@ -385,7 +418,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
       <div class="sigbox"><div class="sigline"></div><div class="siglbl">ผู้รับผิดชอบ</div></div>
       <div class="sigbox"><div class="sigline"></div><div class="siglbl">ผู้อนุมัติ</div></div>
     </div>
-    <button class="btnfull bg" onclick="saveResult()">💾 บันทึกผลการตรวจ</button>
+    <button class="btnfull bg" id="btn-save" onclick="saveResult()">💾 บันทึกผลการตรวจ</button>
     <button class="btnfull bo" onclick="printReport()">🖨️ พิมพ์รายงาน PDF</button>
     <button class="btnfull bo" onclick="resetAll()">🔄 เริ่มตรวจใหม่</button>
     <div style="height:14px"></div>
@@ -393,7 +426,10 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 </div></div>
 
 <div class="pg" id="pg-history"><div class="wrap">
-  <div class="sec-title">ประวัติการตรวจทั้งหมด</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+    <div class="sec-title" style="margin:0;padding:0;border:none">ประวัติการตรวจทั้งหมด</div>
+    <button class="exp-btn" onclick="exportCSV()">📥 Export CSV</button>
+  </div>
   <div id="hist-list"></div>
 </div></div>
 
@@ -401,6 +437,17 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
   <div class="sec-title">Ranking คะแนนแต่ละพื้นที่</div>
   <div id="rank-list"></div>
 </div></div>
+
+<div class="pg" id="pg-admin"><div class="wrap">
+  <div id="admin-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+      <div class="sec-title" style="margin:0;padding:0;border:none">ข้อมูลรวมทุกคนประเมิน (<span id="admin-count">0</span>)</div>
+      <button class="exp-btn" onclick="loadAdminData()">🔄 รีเฟรช</button>
+    </div>
+    <div id="admin-list"></div>
+  </div>
+</div></div>
+<button class="fab-delete" id="admin-fab" style="display:none" onclick="deleteSelectedAdmin()">🗑️ ลบที่เลือก (<span id="admin-fab-n">0</span>)</button>
 
 <div id="print-report"><div class="pr-page" id="pr-inner"></div></div>
 <!-- MODAL รูปมาตรฐาน -->
@@ -417,9 +464,23 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
   </div>
 </div>
 
+<!-- SAVE SPINNER -->
+<div class="modal-overlay" id="save-spinner" style="display:none;align-items:center;background:rgba(15,20,30,.6)">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+    <div class="spinner"></div>
+    <div id="save-spinner-lbl" style="color:#fff;font-size:13px;font-weight:600">กำลังบันทึกผล...</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
 <input type="file" id="photo-inp" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
+const firebaseConfig={apiKey:"AIzaSyDS06AiH5y1XRQyRrIZuuqZTGt1QpgKzeU",authDomain:"fir-area-standards.firebaseapp.com",projectId:"fir-area-standards",storageBucket:"fir-area-standards.firebasestorage.app",messagingSenderId:"635164427514",appId:"1:635164427514:web:aec1a0f7947cf4b87af543"};
+let db=null;
+try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();}catch(e){console.warn('[firestore] init failed — จะบันทึกลงเครื่องอย่างเดียว',e);}
 const HMVD=["สะสาง","สะดวก","สะอาด","สร้างมาตรฐาน","สร้างวินัย"];
 const HC={"สะสาง":"#0E8F6C","สะดวก":"#0D6EA6","สะอาด":"#7C3AED","สร้างมาตรฐาน":"#B8650A","สร้างวินัย":"#C2255C"};
 const HB={"สะสาง":"#E1F5EE","สะดวก":"#E3F1FA","สะอาด":"#F1E9FE","สร้างมาตรฐาน":"#FAEEDA","สร้างวินัย":"#FCE8EF"};
@@ -530,7 +591,7 @@ function goTab(t){
   document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   document.getElementById('pg-'+t).classList.add('on');
   document.getElementById('t-'+t).classList.add('on');
-  if(t==='history')rHist();if(t==='ranking')rRank();if(t==='home')rHome();
+  if(t==='history')rHist();if(t==='ranking')rRank();if(t==='home')rHome();if(t==='admin')rAdmin();
 }
 function selArea(a){
   area=a;
@@ -582,6 +643,9 @@ function rItem(){
   const nabtn=`<button class="sc${isNA?' vna':''}" onclick="setNA()">N/A<span>ข้ามหัวข้อ</span></button>`;
   const stdBtnHtml=hasStd?`<div class="std-btn-wrap"><button class="std-btn" onclick="openStdModal()">📐 ดูรูปมาตรฐาน</button></div>`:'';
   const pht=ph[cur]&&ph[cur].length?ph[cur].map((p,i)=>`<div class="pthumb-wrap"><img class="pthumb" src="${p}"><button class="pdel" onclick="delPh(${cur},${i})">×</button></div>`).join(''):'';
+  const needPhoto=has&&s<=2;
+  const hasPhoto=ph[cur]&&ph[cur].length>0;
+  const photoHint=needPhoto?(hasPhoto?'<div style="width:100%;font-size:11px;color:#0F6E56;font-weight:700;margin-top:4px">✓ แนบรูปหลักฐานแล้ว</div>':'<div style="width:100%;font-size:11px;color:#A32D2D;font-weight:700;margin-top:4px">* คะแนนนี้ต้องแนบรูปหลักฐานอย่างน้อย 1 รูป</div>'):'';
   document.getElementById('item-area').innerHTML=`
     <div class="hmvd-tag" style="background:${HB[it.h]};color:${HC[it.h]}">${it.h} · ข้อ ${it.no} (${cur+1}/25)</div>
     ${isNA?'<div class="na-badge">⊘ N/A — ข้ามหัวข้อนี้</div>':''}
@@ -596,8 +660,9 @@ function rItem(){
       ${!isNA?`<div class="nsec"><div class="nlbl">บันทึกจุดบกพร่องที่พบ</div>
         <textarea class="ninp" id="ninp" placeholder="ระบุจุดที่พบ..." oninput="nt[${cur}]=this.value">${nt[cur]}</textarea></div>
       <div class="psec">
-        <div class="pbtn" onclick="openPh(${cur})"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>รูป</div>
+        <div class="pbtn" style="${needPhoto&&!hasPhoto?'border-color:#A32D2D;background:#FCEBEB':''}" onclick="openPh(${cur})"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>รูป</div>
         <div id="ph-list-${cur}" style="display:flex;gap:6px;flex-wrap:wrap">${pht}</div>
+        ${photoHint}
       </div>`:'<div style="padding:10px 15px 12px;font-size:12px;color:#185FA5;text-align:center">หัวข้อนี้ถูกข้ามไป (N/A) ไม่นำมาคิดคะแนน</div>'}
     </div>`;
   const bn=document.getElementById('btn-next');
@@ -617,14 +682,42 @@ function closeStdModal(){
 }
 function closeModal(e){if(e.target===document.getElementById('std-modal'))closeStdModal();}
 function openPh(i){photoIdx=i;document.getElementById('photo-inp').click();}
+function compressImage(dataUrl,maxDim,quality){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>h&&w>maxDim){h=Math.round(h*maxDim/w);w=maxDim;}
+      else if(h>=w&&h>maxDim){w=Math.round(w*maxDim/h);h=maxDim;}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
 function handlePhoto(e){
   const f=e.target.files[0];if(!f)return;
   const r=new FileReader();
-  r.onload=ev=>{if(!ph[photoIdx])ph[photoIdx]=[];ph[photoIdx].push(ev.target.result);rItem();};
+  r.onload=async ev=>{
+    const compressed=await compressImage(ev.target.result,900,0.6);
+    if(!ph[photoIdx])ph[photoIdx]=[];
+    ph[photoIdx].push(compressed);
+    rItem();
+  };
   r.readAsDataURL(f);e.target.value='';
 }
 function delPh(i,pi){ph[i].splice(pi,1);rItem();}
-function nextItem(){if(cur<24){cur++;rItem();setNbSub2();}else{rSum();showSt(2);setNbSub('สรุปผลการตรวจ');}}
+function nextItem(){
+  const s=sc[cur];
+  if(s>=0&&s<=2&&(!ph[cur]||!ph[cur].length)){
+    showToast('📷 คะแนนข้อนี้ต่ำ (0-2) ต้องแนบรูปหลักฐานอย่างน้อย 1 รูปก่อนไปต่อ');
+    return;
+  }
+  if(cur<24){cur++;rItem();setNbSub2();}else{rSum();showSt(2);setNbSub('สรุปผลการตรวจ');}
+}
 function prevItem(){if(cur>0){cur--;rItem();setNbSub2();}else{showSt(0);setNbSub('กรอกข้อมูล');}}
 function uMini(){
   const t=getTotal(),c=t>=80?'#0F6E56':t>=60?'#854F0B':'#A32D2D';
@@ -740,7 +833,54 @@ function printReport(){
   buildPrintReport();
   requestAnimationFrame(()=>{fitPrintPage();requestAnimationFrame(()=>window.print());});
 }
-function saveResult(){
+function levelLabel(t){return t>=90?'ดีมาก':t>=80?'ผ่านเกณฑ์':t>=70?'พอใช้':t>=60?'ต้องปรับปรุง':'ไม่ผ่านเกณฑ์';}
+function showSpinner(on,label){
+  const el=document.getElementById('save-spinner');
+  if(label)document.getElementById('save-spinner-lbl').textContent=label;
+  el.style.display=on?'flex':'none';
+}
+let toastTimer=null;
+function showToast(msg,ms){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.display='flex';
+  setTimeout(()=>el.classList.add('show'),10);
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{el.style.display='none';},250);},ms||3200);
+}
+function syncToFirestore(h){
+  if(!db)return Promise.resolve({ok:false});
+  try{
+    const batch=db.batch();
+    const ref=db.collection('inspections').doc(String(h.id));
+    const categoryScores={};
+    HMVD.forEach(cat=>{categoryScores[cat]={score:h.hS[cat]||0,max:h.hM[cat]||0};});
+    batch.set(ref,{
+      date:h.date,area:h.area,areaName:h.aname,areaDetail:h.adet||'',dept:h.dept,
+      inspector:h.insp,round:h.round,totalScore:h.tot,
+      naCount:h.items.filter(it=>it.sc==='NA').length,
+      passed:h.tot>=80,level:levelLabel(h.tot),
+      categoryScores,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+      clientSavedAt:h.saved
+    });
+    h.items.forEach(it=>{
+      const data={
+        itemNo:it.no,category:it.h,title:it.t,
+        score:(it.sc==='NA'||it.sc==='')?null:it.sc,
+        isNA:it.sc==='NA',
+        note:it.nt||''
+      };
+      if(it.ph&&it.ph.length)data.photos=it.ph;
+      batch.set(ref.collection('items').doc(it.no),data);
+    });
+    return batch.commit().then(()=>({ok:true})).catch(err=>{console.warn('[firestore] sync failed — บันทึกในเครื่องไว้แล้ว, อัปขึ้นคลาวด์ไม่สำเร็จ:',err);return{ok:false};});
+  }catch(err){console.warn('[firestore] sync error:',err);return Promise.resolve({ok:false});}
+}
+async function saveResult(){
+  const btn=document.getElementById('btn-save');
+  if(btn)btn.disabled=true;
+  showSpinner(true,'กำลังบันทึกผล...');
   const items=IT[area],tot=getTotal();
   const dept=document.getElementById('f-dept').value||'—';
   const aname=area==='Custom'?(document.getElementById('f-custom').value||'พื้นที่อื่น'):ANAME[area];
@@ -748,13 +888,151 @@ function saveResult(){
   const insp=document.getElementById('f-insp').value||'—';
   const dv=document.getElementById('f-date').value||new Date().toISOString().split('T')[0];
   const round=document.getElementById('f-round').value;
-  const hS={};HMVD.forEach(h=>{hS[h]=0;});
-  items.forEach((it,i)=>{if(sc[i]>=0)hS[it.h]+=sc[i];});
+  const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
+  items.forEach((it,i)=>{if(sc[i]!=='NA'){hM[it.h]+=4;if(sc[i]>=0)hS[it.h]+=sc[i];}});
   const defs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2).map(it=>{const i=items.indexOf(it);return{no:it.no,t:it.t,sc:sc[i],nt:nt[i]};});
-  hist.unshift({id:Date.now(),date:dv,area,aname,adet,dept,insp,round,tot,hS,defs,saved:new Date().toISOString()});
+  const fullItems=items.map((it,i)=>({no:it.no,h:it.h,t:it.t,sc:sc[i]==='NA'?'NA':(sc[i]>=0?sc[i]:''),nt:nt[i]||'',ph:(ph[i]||[]).slice(0,3)}));
+  const rec={id:Date.now(),date:dv,area,aname,adet,dept,insp,round,tot,hS,hM,defs,items:fullItems,saved:new Date().toISOString()};
+  hist.unshift(rec);
   if(hist.length>50)hist=hist.slice(0,50);
   localStorage.setItem('5s_h',JSON.stringify(hist));
-  rHome();alert('✅ บันทึกผลการตรวจเรียบร้อยแล้ว');
+  const result=await syncToFirestore(rec);
+  rHome();
+  showSpinner(false);
+  if(btn)btn.disabled=false;
+  showToast(result.ok?'✅ บันทึกผลและซิงก์ขึ้นคลาวด์เรียบร้อยแล้ว':'⚠️ บันทึกผลในเครื่องแล้ว แต่ซิงก์ขึ้นคลาวด์ไม่สำเร็จ (ข้อมูลยังปลอดภัยอยู่ในเครื่องนี้)');
+}
+function csvCell(v){const s=String(v==null?'':v).replace(/"/g,'""');return/[",\n]/.test(s)?'"'+s+'"':s;}
+function exportCSV(){
+  const rows=hist.filter(h=>h.items&&h.items.length);
+  if(!rows.length){alert('⚠️ ยังไม่มีข้อมูลที่บันทึกครบทุกข้อสำหรับ Export\n(รายการเก่าก่อนอัปเดตนี้จะไม่มีคะแนนรายข้อ ต้องตรวจใหม่แล้วกด "บันทึกผล" อีกครั้ง)');return;}
+  const header=['วันที่ตรวจ','ผู้ตรวจ','หน่วยงาน','พื้นที่','รายละเอียดพื้นที่','รอบตรวจ','คะแนนรวม(%)','ข้อที่','หมวด','หัวข้อการตรวจ','คะแนน','หมายเหตุ'];
+  const lines=[header.map(csvCell).join(',')];
+  rows.forEach(h=>{
+    h.items.forEach(it=>{
+      lines.push([h.date,h.insp,h.dept,h.aname,h.adet||'',h.round,h.tot,it.no,it.h,it.t,it.sc,it.nt].map(csvCell).join(','));
+    });
+  });
+  const csv='﻿'+lines.join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='5s_report_'+new Date().toISOString().split('T')[0]+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+let adminData=[],adminSelected=new Set(),adminItemsCache={};
+function rAdmin(){
+  loadAdminData();
+}
+async function loadAdminData(){
+  const listEl=document.getElementById('admin-list');
+  if(!db){listEl.innerHTML='<div class="empty-state"><div class="empty-title">Firebase ยังไม่พร้อมใช้งาน</div></div>';return;}
+  listEl.innerHTML='<div class="empty-state"><div class="empty-title">กำลังโหลด...</div></div>';
+  try{
+    const snap=await db.collection('inspections').orderBy('date','desc').limit(300).get();
+    adminData=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderAdminList();
+  }catch(err){
+    listEl.innerHTML='<div class="empty-state"><div class="empty-title">โหลดข้อมูลไม่สำเร็จ</div><div class="empty-desc">'+err.message+'</div></div>';
+  }
+}
+function renderAdminList(){
+  const listEl=document.getElementById('admin-list');
+  document.getElementById('admin-count').textContent=adminData.length;
+  if(!adminData.length){
+    listEl.innerHTML='<div class="empty-state"><div class="empty-icon">🗄️</div><div class="empty-title">ยังไม่มีข้อมูล</div></div>';
+    updateAdminFab();return;
+  }
+  const groups={};
+  adminData.forEach(d=>{
+    const k=d.date+'|'+d.area;
+    if(!groups[k])groups[k]={date:d.date,area:d.area,areaName:d.areaName,rows:[]};
+    groups[k].rows.push(d);
+  });
+  const keys=Object.keys(groups).sort((a,b)=>groups[b].date.localeCompare(groups[a].date));
+  listEl.innerHTML=keys.map(k=>{
+    const g=groups[k];
+    const scores=g.rows.map(r=>r.totalScore);
+    const spread=scores.length>1?Math.max(...scores)-Math.min(...scores):0;
+    const spreadColor=spread>=20?'#A32D2D':spread>=10?'#854F0B':'#0F6E56';
+    const dateFmt=new Date(g.date).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+    const rowsHtml=g.rows.map(r=>adminRowHtml(r)).join('');
+    return `<div class="grp-card" style="border-left-color:${ACOL[g.area]||'#94A3B8'}">
+      <div class="grp-head">
+        <div><div class="grp-date">📅 ${dateFmt}</div><div class="grp-area" style="color:${ACOL[g.area]||'#333'}">${AICO[g.area]||'📍'} ${g.areaName}</div></div>
+        <div style="text-align:right">
+          <div class="grp-n">👥 ${g.rows.length} คนประเมิน</div>
+          ${g.rows.length>1?`<div class="grp-spread" style="color:${spreadColor}">คะแนนต่างกัน ${spread} pts</div>`:''}
+        </div>
+      </div>
+      <div class="grp-rows">${rowsHtml}</div>
+    </div>`;
+  }).join('');
+  updateAdminFab();
+}
+function adminRowHtml(r){
+  const c=r.totalScore>=80?'#0F6E56':r.totalScore>=60?'#854F0B':'#A32D2D';
+  const checked=adminSelected.has(r.id)?'checked':'';
+  const time=r.createdAt&&r.createdAt.seconds?new Date(r.createdAt.seconds*1000).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'';
+  return `<div class="insp-row">
+    <div class="insp-row-main">
+      <input type="checkbox" class="insp-chk" ${checked} onchange="toggleAdminSel('${r.id}',this.checked)">
+      <div class="insp-info" onclick="toggleAdminDetail('${r.id}')">
+        <div class="insp-name">${r.inspector}</div>
+        <div class="insp-meta">${r.dept||'—'}${time?' · '+time:''}${r.naCount?' · ข้าม '+r.naCount+' N/A':''}</div>
+      </div>
+      <div class="insp-score" style="color:${c}">${r.totalScore}%</div>
+    </div>
+    <div id="insp-detail-${r.id}" class="insp-detail" style="display:none"></div>
+  </div>`;
+}
+function toggleAdminSel(id,checked){
+  if(checked)adminSelected.add(id);else adminSelected.delete(id);
+  updateAdminFab();
+}
+function updateAdminFab(){
+  const fab=document.getElementById('admin-fab');
+  if(adminSelected.size>0){fab.style.display='flex';document.getElementById('admin-fab-n').textContent=adminSelected.size;}
+  else fab.style.display='none';
+}
+async function toggleAdminDetail(id){
+  const el=document.getElementById('insp-detail-'+id);
+  if(el.style.display==='block'){el.style.display='none';return;}
+  if(!adminItemsCache[id]){
+    el.style.display='block';
+    el.innerHTML='<div style="padding:6px 0;font-size:11px;color:var(--muted)">กำลังโหลด...</div>';
+    try{
+      const snap=await db.collection('inspections').doc(id).collection('items').orderBy('itemNo').get();
+      adminItemsCache[id]=snap.docs.map(d=>d.data());
+    }catch(err){el.innerHTML='<div style="padding:6px 0;font-size:11px;color:#A32D2D">โหลดรายละเอียดไม่สำเร็จ</div>';return;}
+  }
+  el.style.display='block';
+  el.innerHTML=adminItemsCache[id].map(it=>{
+    const val=it.isNA?'<span style="color:#185FA5">N/A</span>':(it.score??'-');
+    const photos=it.photos&&it.photos.length?`<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap">${it.photos.map(p=>`<img src="${p}" style="width:44px;height:44px;border-radius:6px;object-fit:cover;border:1px solid var(--border)">`).join('')}</div>`:'';
+    return `<div class="detail-row"><span class="detail-no">${it.itemNo}</span><div class="detail-t">${it.title}${photos}</div><span class="detail-sc">${val}</span></div>`;
+  }).join('');
+}
+async function deleteSelectedAdmin(){
+  if(!adminSelected.size)return;
+  if(!confirm(`ยืนยันลบข้อมูลการตรวจที่เลือก ${adminSelected.size} รายการ?\nการลบนี้ไม่สามารถย้อนกลับได้`))return;
+  showSpinner(true,'กำลังลบข้อมูล...');
+  const ids=[...adminSelected];
+  for(const id of ids){
+    try{
+      const itemsSnap=await db.collection('inspections').doc(id).collection('items').get();
+      const batch=db.batch();
+      itemsSnap.docs.forEach(d=>batch.delete(d.ref));
+      batch.delete(db.collection('inspections').doc(id));
+      await batch.commit();
+      delete adminItemsCache[id];
+    }catch(err){console.warn('[admin] delete failed for',id,err);}
+  }
+  adminSelected.clear();
+  showSpinner(false);
+  showToast('🗑️ ลบข้อมูลที่เลือกแล้ว');
+  loadAdminData();
 }
 function resetAll(){init();cur=0;showSt(0);setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
 function rHome(){
