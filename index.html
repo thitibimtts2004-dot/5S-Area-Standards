@@ -276,10 +276,29 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 .pr-sigline{border-top:.3mm solid #94A3B8;margin-bottom:1.3mm}
 .pr-siglbl{font-size:2.5mm;color:#64748B;text-align:center}
 .pr-foot{margin-top:2mm;font-size:2mm;color:#94A3B8;text-align:center}
+/* ===== DESKTOP (Sidebar + Dashboard) ===== */
+@media (min-width:1000px){
+  .tab-bar{position:fixed;left:0;top:0;bottom:0;width:220px;border-top:none;border-right:1px solid rgba(255,255,255,.08);z-index:210;overflow-y:auto}
+  .tab-bar::before{content:'🏭  5ส Pro';position:absolute;top:0;left:0;right:0;height:60px;display:flex;align-items:center;gap:8px;padding:0 20px;font-size:16px;font-weight:700;color:#fff;border-bottom:1px solid rgba(255,255,255,.08);background:var(--hdr)}
+  .tab-inner{max-width:none;flex-direction:column;align-items:stretch;padding:74px 12px 20px;gap:4px}
+  .tb{flex:none;flex-direction:row;justify-content:flex-start;gap:13px;padding:11px 16px;font-size:14px;border-radius:10px}
+  .tb svg{width:22px;height:22px}
+  .tb.on{background:rgba(255,255,255,.08)}
+  .navbar{margin-left:220px}
+  .pg{margin-left:220px}
+  .nb-inner{max-width:1120px;padding:14px 34px 0}
+  .wrap{max-width:1120px;padding:24px 34px}
+  .area-grid{grid-template-columns:repeat(4,1fr)}
+  #hist-list,#rank-list,#admin-list{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start}
+  #hist-list>.empty-state,#rank-list>.empty-state,#admin-list>.empty-state,#rank-list>.sec-title{grid-column:1/-1}
+  .modal-overlay{align-items:center}
+  .modal-box{border-radius:16px;max-width:560px}
+  .fab-delete{left:calc(50% + 110px)}
+}
 @media print{
   @page{size:A4;margin:0}
   html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;height:auto!important;min-height:0!important}
-  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-admin,.modal-overlay,.pv-overlay,.toast,.fab-delete{display:none!important}
+  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-compare,#pg-admin,.modal-overlay,.pv-overlay,.toast,.fab-delete{display:none!important}
   #print-report{position:static!important;height:auto!important;overflow:visible!important;z-index:auto}
 }
 </style>
@@ -1186,32 +1205,78 @@ function cmpScCell(v){
   const m={4:['#97C459','#173404'],3:['#C0DD97','#173404'],2:['#FAC775','#412402'],1:['#F7C1C1','#501313'],0:['#F09595','#501313']}[n]||['#F8FAFC','#64748B'];
   return `<td style="text-align:center;font-weight:700;background:${m[0]};color:${m[1]}">${n}</td>`;
 }
-let cmpArea='',cmpDept='',cmpRound='';
-function cmpSet(k,v){if(k==='area'){cmpArea=v;cmpDept='';cmpRound='';}if(k==='dept'){cmpDept=v;cmpRound='';}if(k==='round')cmpRound=v;rCompare();}
+const CMP_DEPTS=['BIM','WH','AS','DBD','RD'];
+let cmpArea='',cmpDept='',cmpRound='',cmpData=null;
+function cmpFiltersHtml(rounds){
+  const aopt=['<option value="">-- เลือกพื้นที่ --</option>'].concat(Object.keys(ANAME).map(k=>`<option value="${k}"${k===cmpArea?' selected':''}>${AICO[k]||''} ${cmpEsc(ANAME[k])}</option>`)).join('');
+  const dopt=['<option value="">-- เลือกหน่วยงาน --</option>'].concat(CMP_DEPTS.map(d=>`<option${d===cmpDept?' selected':''}>${d}</option>`)).join('');
+  let roundSel='';
+  if(rounds&&rounds.length){
+    const ropt=['<option value="">ทุกรอบ (ล่าสุดของแต่ละคน)</option>'].concat(rounds.map(r=>`<option${r===cmpRound?' selected':''}>${cmpEsc(r)}</option>`)).join('');
+    roundSel=`<div style="flex:1;min-width:120px"><div class="flbl" style="margin-bottom:4px">รอบตรวจ</div><select class="inp" onchange="cmpSet('round',this.value)">${ropt}</select></div>`;
+  }
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+    <div style="flex:1;min-width:150px"><div class="flbl" style="margin-bottom:4px">พื้นที่ตรวจ</div><select class="inp" onchange="cmpSet('area',this.value)">${aopt}</select></div>
+    <div style="flex:1;min-width:120px"><div class="flbl" style="margin-bottom:4px">หน่วยงาน</div><select class="inp" onchange="cmpSet('dept',this.value)">${dopt}</select></div>
+    ${roundSel}</div>`;
+}
+function cmpSet(k,v){
+  if(k==='round'){cmpRound=v;cmpRender();return;}
+  if(k==='area'){cmpArea=v;cmpRound='';cmpData=null;}
+  if(k==='dept'){cmpDept=v;cmpRound='';cmpData=null;}
+  cmpLoad();
+}
 function rCompare(){
-  const fEl=document.getElementById('cmp-filters'),bEl=document.getElementById('cmp-body');
-  const recs=hist.filter(h=>h.items&&h.items.length);
-  if(!recs.length){fEl.innerHTML='';bEl.innerHTML='<div class="empty-state"><div class="empty-icon">⚖️</div><div class="empty-title">ยังไม่มีข้อมูลเทียบ</div><div class="empty-desc">ต้องมีผลตรวจที่บันทึกคะแนนรายข้อ (ตรวจใหม่แล้วกด "บันทึกผล")</div></div>';return;}
-  const areas=[...new Set(recs.map(h=>h.aname))];
-  if(!areas.includes(cmpArea))cmpArea=areas[0];
-  const depts=[...new Set(recs.filter(h=>h.aname===cmpArea).map(h=>h.dept))];
-  if(!depts.includes(cmpDept))cmpDept=depts[0];
-  const rounds=[...new Set(recs.filter(h=>h.aname===cmpArea&&h.dept===cmpDept).map(h=>h.round))];
-  if(!rounds.includes(cmpRound))cmpRound=rounds[0];
-  const opt=(arr,sel)=>arr.map(v=>`<option${v===sel?' selected':''}>${cmpEsc(v)}</option>`).join('');
-  fEl.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
-    <div style="flex:1;min-width:120px"><div class="flbl" style="margin-bottom:4px">พื้นที่</div><select class="inp" onchange="cmpSet('area',this.value)">${opt(areas,cmpArea)}</select></div>
-    <div style="flex:1;min-width:100px"><div class="flbl" style="margin-bottom:4px">หน่วยงาน</div><select class="inp" onchange="cmpSet('dept',this.value)">${opt(depts,cmpDept)}</select></div>
-    <div style="flex:1;min-width:100px"><div class="flbl" style="margin-bottom:4px">รอบตรวจ</div><select class="inp" onchange="cmpSet('round',this.value)">${opt(rounds,cmpRound)}</select></div>
-  </div>`;
-  let grp=recs.filter(h=>h.aname===cmpArea&&h.dept===cmpDept&&h.round===cmpRound);
-  const byInsp={};
-  grp.forEach(h=>{const k=h.insp||'—';if(!byInsp[k]||new Date(h.saved||h.date)>new Date(byInsp[k].saved||byInsp[k].date))byInsp[k]=h;});
-  const raters=Object.values(byInsp);
-  if(raters.length<2){
-    bEl.innerHTML=`<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">รอบนี้มีผู้ตรวจ ${raters.length} คน</div><div class="empty-desc">ต้องมีผู้ตรวจตั้งแต่ 2 คนขึ้นไป ในพื้นที่ + หน่วยงาน + รอบเดียวกัน ถึงจะเทียบได้</div></div>`;
+  document.getElementById('cmp-filters').innerHTML=cmpFiltersHtml(cmpData&&cmpData._rounds);
+  const bEl=document.getElementById('cmp-body');
+  if(cmpArea&&cmpDept){ if(cmpData)cmpRender(); else cmpLoad(); }
+  else bEl.innerHTML='<div class="empty-state"><div class="empty-icon">⚖️</div><div class="empty-title">เลือกพื้นที่และหน่วยงาน</div><div class="empty-desc">เลือกด้านบนให้ครบ ระบบจะดึงข้อมูลผู้ตรวจมาเทียบให้อัตโนมัติ</div></div>';
+}
+async function cmpLoad(){
+  const bEl=document.getElementById('cmp-body');
+  document.getElementById('cmp-filters').innerHTML=cmpFiltersHtml(null);
+  if(!cmpArea||!cmpDept){rCompare();return;}
+  bEl.innerHTML='<div class="empty-state"><div class="empty-title">⏳ กำลังดึงข้อมูลจากคลาวด์...</div></div>';
+  const raters=[];
+  try{
+    if(db){
+      const snap=await db.collection('inspections').where('area','==',cmpArea).limit(300).get();
+      const docs=snap.docs.map(d=>({id:d.id,...d.data()})).filter(d=>{const dd=(d.dept||'').trim();return dd===cmpDept||dd===''});
+      for(const d of docs){
+        const isnap=await db.collection('inspections').doc(d.id).collection('items').get();
+        const items=isnap.docs.map(x=>x.data()).map(it=>({no:String(it.itemNo),t:it.title,h:it.category,sc:it.isNA?'NA':(it.score==null?'':it.score)}));
+        raters.push({insp:d.inspector||'—',dept:(d.dept||'').trim(),round:d.round||'—',date:d.date,saved:d.clientSavedAt||d.date,items});
+      }
+    }else{
+      hist.filter(h=>{const dd=(h.dept||'').trim();return h.area===cmpArea&&h.items&&h.items.length&&(dd===cmpDept||dd==='')}).forEach(h=>{
+        raters.push({insp:h.insp||'—',dept:(h.dept||'').trim(),round:h.round||'—',date:h.date,saved:h.saved||h.date,items:h.items});
+      });
+    }
+  }catch(err){
+    bEl.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">โหลดข้อมูลไม่สำเร็จ</div><div class="empty-desc">'+cmpEsc(err.message||'')+'</div></div>';
     return;
   }
+  const rounds=[...new Set(raters.map(r=>r.round))];
+  if(cmpRound&&!rounds.includes(cmpRound))cmpRound='';
+  cmpData={raters,_rounds:rounds};
+  document.getElementById('cmp-filters').innerHTML=cmpFiltersHtml(rounds);
+  cmpRender();
+}
+function cmpRender(){
+  const bEl=document.getElementById('cmp-body');
+  if(!cmpData){bEl.innerHTML='';return;}
+  let pool=cmpData.raters.slice();
+  if(cmpRound)pool=pool.filter(r=>r.round===cmpRound);
+  const byInsp={};
+  pool.forEach(h=>{const k=h.insp||'—';if(!byInsp[k]||new Date(h.saved||h.date)>new Date(byInsp[k].saved||byInsp[k].date))byInsp[k]=h;});
+  const raters=Object.values(byInsp);
+  if(raters.length<2){
+    bEl.innerHTML=`<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">พบผู้ตรวจ ${raters.length} คน</div><div class="empty-desc">พื้นที่ + หน่วยงานนี้${cmpRound?' รอบ '+cmpEsc(cmpRound):''} ยังมีผู้ตรวจไม่ถึง 2 คน จึงยังเทียบไม่ได้</div></div>`;
+    return;
+  }
+  const multiRoundNote=(!cmpRound&&cmpData._rounds.length>1)?'<div style="font-size:11px;color:#854F0B;background:#FAEEDA;border-radius:8px;padding:7px 10px;margin-bottom:12px">ℹ️ กำลังเทียบครั้งล่าสุดของแต่ละคน (อาจคนละรอบกัน) — เลือก "รอบตรวจ" ด้านบนเพื่อเทียบเฉพาะรอบเดียว</div>':'';
+  const noDept=raters.filter(r=>!r.dept).map(r=>r.insp||'—');
+  const noDeptNote=noDept.length?`<div style="font-size:11px;color:#854F0B;background:#FAEEDA;border-radius:8px;padding:7px 10px;margin-bottom:12px">ℹ️ รวมผู้ตรวจที่ไม่ได้ระบุหน่วยงานไว้ด้วย: <b>${cmpEsc(noDept.join(', '))}</b> — ถ้าไม่ควรอยู่ในหน่วยงานนี้ ให้แก้หน่วยงานในประวัติการตรวจ</div>`:'';
   const base=raters[0].items;
   const rows=base.map(it=>{
     const scores=raters.map(r=>{const f=(r.items||[]).find(x=>x.no===it.no);return f?f.sc:'';});
@@ -1246,6 +1311,8 @@ function rCompare(){
         <b style="color:var(--text)">${cmpEsc(hi.join(', '))}</b> ให้ ${mx} คะแนน · <b style="color:var(--text)">${cmpEsc(lo.join(', '))}</b> ให้ ${mn} คะแนน<br>เกณฑ์ข้อนี้อาจตีความต่างกัน ควรนิยามให้ชัด</div></div>`;
   }).join(''):'<div style="font-size:12px;color:#0F6E56;padding:11px 13px;background:#E1F5EE;border-radius:10px">✓ ผู้ตรวจให้คะแนนสอดคล้องกันดี ไม่มีข้อที่ต่างกันตั้งแต่ 2 คะแนน</div>';
   bEl.innerHTML=`
+    ${multiRoundNote}
+    ${noDeptNote}
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
       <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--muted)">ผู้ตรวจที่เทียบ</div><div style="font-size:20px;font-weight:800">${raters.length} คน</div></div>
       <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--muted)">ความสอดคล้อง</div><div style="font-size:20px;font-weight:800;color:${oc}">${overall}%</div></div>
