@@ -115,6 +115,10 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 .modal-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--bg);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted)}
 .modal-img{width:100%;border-radius:var(--rs);margin-bottom:10px;display:block}
 .modal-caption{font-size:12px;color:var(--muted);line-height:1.6;background:var(--gl);padding:10px 12px;border-radius:var(--rs);border-left:3px solid var(--green)}
+.pv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1002;display:none;align-items:center;justify-content:center;padding:16px}
+.pv-overlay img{max-width:100%;max-height:88vh;border-radius:8px;object-fit:contain;box-shadow:0 6px 30px rgba(0,0,0,.5)}
+.pv-close{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;width:42px;height:42px;border-radius:50%;border:none;background:rgba(255,255,255,.16);color:#fff;font-size:24px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pv-hint{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:0;right:0;text-align:center;color:rgba(255,255,255,.7);font-size:12px}
 
 /* INSPECT */
 .hmvd-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:10px}
@@ -147,7 +151,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 .pbtn{width:50px;height:50px;border-radius:var(--rs);border:1.5px dashed var(--border);background:#FAFBFC;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:9px;gap:2px;cursor:pointer;flex-shrink:0}
 .pbtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .pthumb-wrap{position:relative}
-.pthumb{width:50px;height:50px;border-radius:var(--rs);object-fit:cover;border:1px solid var(--border);display:block}
+.pthumb{width:50px;height:50px;border-radius:var(--rs);object-fit:cover;border:1px solid var(--border);display:block;cursor:zoom-in}
 .pdel{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
 .mini{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:11px 15px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
 .mini-n{font-size:25px;font-weight:800;line-height:1}
@@ -199,7 +203,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 .df-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;flex-shrink:0}
 .df-note{padding:7px 11px;font-size:12px;color:var(--muted);line-height:1.6}
 .df-photos{padding:0 11px 8px;display:flex;gap:5px;flex-wrap:wrap}
-.df-photo{width:58px;height:58px;border-radius:var(--rs);object-fit:cover;border:1px solid var(--border)}
+.df-photo{width:58px;height:58px;border-radius:var(--rs);object-fit:cover;border:1px solid var(--border);cursor:zoom-in}
 .sigrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .sigbox{border:1px solid var(--border);border-radius:var(--rs);padding:9px;text-align:center}
 .sigline{height:1px;background:var(--border);margin:17px 0 5px}
@@ -275,7 +279,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 @media print{
   @page{size:A4;margin:0}
   html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;height:auto!important;min-height:0!important}
-  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-admin,.modal-overlay,.toast,.fab-delete{display:none!important}
+  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-admin,.modal-overlay,.pv-overlay,.toast,.fab-delete{display:none!important}
   #print-report{position:static!important;height:auto!important;overflow:visible!important;z-index:auto}
 }
 </style>
@@ -310,6 +314,9 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
     </button>
     <button class="tb" onclick="goTab('ranking')" id="t-ranking">
       <svg viewBox="0 0 24 24"><polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/></svg>Ranking
+    </button>
+    <button class="tb" onclick="goTab('compare')" id="t-compare">
+      <svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M6 8h12"/><path d="M6 8l-3 6a3 3 0 0 0 6 0z"/><path d="M18 8l-3 6a3 3 0 0 0 6 0z"/><path d="M8 21h8"/></svg>เทียบเกณฑ์
     </button>
     <button class="tb" onclick="goTab('admin')" id="t-admin">
       <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>ข้อมูลรวม
@@ -418,9 +425,10 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
       <div class="sigbox"><div class="sigline"></div><div class="siglbl">ผู้รับผิดชอบ</div></div>
       <div class="sigbox"><div class="sigline"></div><div class="siglbl">ผู้อนุมัติ</div></div>
     </div>
+    <button class="btnfull bg" id="btn-back-admin" style="display:none" onclick="goTab('admin')">← กลับข้อมูลรวม</button>
     <button class="btnfull bg" id="btn-save" onclick="saveResult()">💾 บันทึกผลการตรวจ</button>
     <button class="btnfull bo" onclick="printReport()">🖨️ พิมพ์รายงาน PDF</button>
-    <button class="btnfull bo" onclick="resetAll()">🔄 เริ่มตรวจใหม่</button>
+    <button class="btnfull bo" id="btn-reset" onclick="resetAll()">🔄 เริ่มตรวจใหม่</button>
     <div style="height:14px"></div>
   </div>
 </div></div>
@@ -436,6 +444,13 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 <div class="pg" id="pg-ranking"><div class="wrap">
   <div class="sec-title">Ranking คะแนนแต่ละพื้นที่</div>
   <div id="rank-list"></div>
+</div></div>
+
+<div class="pg" id="pg-compare"><div class="wrap">
+  <div class="sec-title">เทียบเกณฑ์ · คะแนนรายผู้ตรวจ</div>
+  <div style="font-size:12px;color:var(--muted);margin:-4px 0 12px">ดูว่าเกณฑ์แต่ละข้อ เมื่อหลายคนตรวจที่เดียวกัน ให้คะแนนตรงกันไหม</div>
+  <div id="cmp-filters"></div>
+  <div id="cmp-body"></div>
 </div></div>
 
 <div class="pg" id="pg-admin"><div class="wrap">
@@ -462,6 +477,13 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
       ตัวอย่างมาตรฐานโต๊ะทำงานตามหลัก 5ส — มีเฉพาะอุปกรณ์จำเป็น เอกสารจัดระบบ สายไฟเรียบร้อย พื้นที่ทำงานโล่ง สะอาด
     </div>
   </div>
+</div>
+
+<!-- PHOTO LIGHTBOX -->
+<div class="pv-overlay" id="photo-viewer" onclick="closePhoto(event)">
+  <button class="pv-close" onclick="closePhoto()" aria-label="ปิด">×</button>
+  <img id="pv-img" src="" alt="รูปที่แนบมา">
+  <div class="pv-hint">แตะพื้นที่ว่างเพื่อปิด</div>
 </div>
 
 <!-- SAVE SPINNER -->
@@ -580,18 +602,19 @@ Alu:[
 };
 IT.Custom=[...IT.Office];
 
-let area='Office',cur=0,sc={},nt={},ph={},photoIdx=-1;
+let area='Office',cur=0,sc={},nt={},ph={},photoIdx=-1,viewMode=false;
 let hist=JSON.parse(localStorage.getItem('5s_h')||'[]');
 
 function init(){sc={};nt={};ph={};for(let i=0;i<25;i++){sc[i]=-1;nt[i]='';ph[i]=[];}}
 init();
 
 function goTab(t){
+  if(viewMode)exitViewMode();
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   document.getElementById('pg-'+t).classList.add('on');
   document.getElementById('t-'+t).classList.add('on');
-  if(t==='history')rHist();if(t==='ranking')rRank();if(t==='home')rHome();if(t==='admin')rAdmin();
+  if(t==='history')rHist();if(t==='ranking')rRank();if(t==='home')rHome();if(t==='admin')rAdmin();if(t==='compare')rCompare();
 }
 function selArea(a){
   area=a;
@@ -681,6 +704,27 @@ function closeStdModal(){
   document.body.style.overflow='';
 }
 function closeModal(e){if(e.target===document.getElementById('std-modal'))closeStdModal();}
+function openPhoto(src){
+  if(!src)return;
+  document.getElementById('pv-img').src=src;
+  document.getElementById('photo-viewer').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closePhoto(e){
+  if(e&&e.target&&e.target.id==='pv-img')return;
+  document.getElementById('photo-viewer').style.display='none';
+  document.getElementById('pv-img').src='';
+  document.body.style.overflow='';
+}
+document.addEventListener('click',function(e){
+  const t=e.target;
+  if(t&&t.tagName==='IMG'&&(t.classList.contains('df-photo')||t.classList.contains('pthumb'))){
+    openPhoto(t.getAttribute('src'));
+  }
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&document.getElementById('photo-viewer').style.display==='flex')closePhoto();
+});
 function openPh(i){photoIdx=i;document.getElementById('photo-inp').click();}
 function compressImage(dataUrl,maxDim,quality){
   return new Promise(resolve=>{
@@ -878,6 +922,7 @@ function syncToFirestore(h){
   }catch(err){console.warn('[firestore] sync error:',err);return Promise.resolve({ok:false});}
 }
 async function saveResult(){
+  if(viewMode)return;
   const btn=document.getElementById('btn-save');
   if(btn)btn.disabled=true;
   showSpinner(true,'กำลังบันทึกผล...');
@@ -978,7 +1023,7 @@ function adminRowHtml(r){
   return `<div class="insp-row">
     <div class="insp-row-main">
       <input type="checkbox" class="insp-chk" ${checked} onchange="toggleAdminSel('${r.id}',this.checked)">
-      <div class="insp-info" onclick="toggleAdminDetail('${r.id}')">
+      <div class="insp-info" onclick="viewAdminReport('${r.id}')" style="cursor:pointer">
         <div class="insp-name">${r.inspector}</div>
         <div class="insp-meta">${r.dept||'—'}${time?' · '+time:''}${r.naCount?' · ข้าม '+r.naCount+' N/A':''}</div>
       </div>
@@ -1013,6 +1058,59 @@ async function toggleAdminDetail(id){
     const photos=it.photos&&it.photos.length?`<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap">${it.photos.map(p=>`<img src="${p}" style="width:44px;height:44px;border-radius:6px;object-fit:cover;border:1px solid var(--border)">`).join('')}</div>`:'';
     return `<div class="detail-row"><span class="detail-no">${it.itemNo}</span><div class="detail-t">${it.title}${photos}</div><span class="detail-sc">${val}</span></div>`;
   }).join('');
+}
+function setViewMode(on){
+  viewMode=on;
+  const save=document.getElementById('btn-save');
+  const reset=document.getElementById('btn-reset');
+  const back=document.getElementById('btn-back-admin');
+  if(save)save.style.display=on?'none':'';
+  if(reset)reset.style.display=on?'none':'';
+  if(back)back.style.display=on?'':'none';
+}
+function exitViewMode(){setViewMode(false);init();cur=0;showSt(0);}
+async function viewAdminReport(id){
+  const rec=adminData.find(r=>r.id===id);
+  if(!rec)return;
+  if(!adminItemsCache[id]){
+    showSpinner(true,'กำลังเปิดรายงาน...');
+    try{
+      const snap=await db.collection('inspections').doc(id).collection('items').orderBy('itemNo').get();
+      adminItemsCache[id]=snap.docs.map(d=>d.data());
+    }catch(err){showSpinner(false);showToast('⚠️ เปิดรายงานไม่สำเร็จ');return;}
+    showSpinner(false);
+  }
+  const its=adminItemsCache[id]||[];
+  if(!its.length){showToast('ℹ️ รายการนี้ไม่มีคะแนนรายข้อ (บันทึกก่อนอัปเดต) จึงเปิดรายงานเต็มไม่ได้');return;}
+  area=IT[rec.area]?rec.area:'Office';
+  const list=IT[area]||[];
+  init();
+  const byNo={};its.forEach(it=>{byNo[String(it.itemNo)]=it;});
+  list.forEach((it,i)=>{
+    const r=byNo[String(it.no)];
+    if(!r)return;
+    if(r.isNA)sc[i]='NA';
+    else if(r.score===null||r.score===undefined||r.score==='')sc[i]=-1;
+    else sc[i]=Number(r.score);
+    nt[i]=r.note||'';
+    ph[i]=Array.isArray(r.photos)?r.photos:[];
+  });
+  const setV=(elId,v)=>{const el=document.getElementById(elId);if(el)el.value=v;};
+  setV('f-dept',rec.dept||'');
+  setV('f-area',rec.areaDetail||'');
+  if(area==='Custom')setV('f-custom',rec.areaName||'');
+  setV('f-insp',rec.inspector||'');
+  setV('f-date',rec.date||'');
+  if(rec.round)setV('f-round',rec.round);
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-inspect').classList.add('on');
+  const tabBtn=document.getElementById('t-inspect');if(tabBtn)tabBtn.classList.add('on');
+  const fh=document.getElementById('fhead');if(fh)fh.style.background=ACOL[area]||'#0E8F6C';
+  setViewMode(true);
+  showSt(2);
+  rSum();
+  window.scrollTo(0,0);
 }
 async function deleteSelectedAdmin(){
   if(!adminSelected.size)return;
@@ -1079,6 +1177,87 @@ function rRank(){
         <div class="rtrack"><div class="rfill" style="width:${h.tot}%;background:${c}"></div></div></div>
       <div style="text-align:right;min-width:50px"><div class="rpct" style="color:${c}">${h.tot}%</div>
         <div style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:7px;background:${bg};color:${c};margin-top:3px">${lv}</div></div></div>`;}).join('');
+}
+function cmpEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function cmpScCell(v){
+  if(v==='NA')return '<td style="text-align:center;background:#EEF1F5;color:#94A3B8">NA</td>';
+  if(v===''||v==null)return '<td style="text-align:center;background:#F8FAFC;color:#CBD5E1">–</td>';
+  const n=Number(v);
+  const m={4:['#97C459','#173404'],3:['#C0DD97','#173404'],2:['#FAC775','#412402'],1:['#F7C1C1','#501313'],0:['#F09595','#501313']}[n]||['#F8FAFC','#64748B'];
+  return `<td style="text-align:center;font-weight:700;background:${m[0]};color:${m[1]}">${n}</td>`;
+}
+let cmpArea='',cmpDept='',cmpRound='';
+function cmpSet(k,v){if(k==='area'){cmpArea=v;cmpDept='';cmpRound='';}if(k==='dept'){cmpDept=v;cmpRound='';}if(k==='round')cmpRound=v;rCompare();}
+function rCompare(){
+  const fEl=document.getElementById('cmp-filters'),bEl=document.getElementById('cmp-body');
+  const recs=hist.filter(h=>h.items&&h.items.length);
+  if(!recs.length){fEl.innerHTML='';bEl.innerHTML='<div class="empty-state"><div class="empty-icon">⚖️</div><div class="empty-title">ยังไม่มีข้อมูลเทียบ</div><div class="empty-desc">ต้องมีผลตรวจที่บันทึกคะแนนรายข้อ (ตรวจใหม่แล้วกด "บันทึกผล")</div></div>';return;}
+  const areas=[...new Set(recs.map(h=>h.aname))];
+  if(!areas.includes(cmpArea))cmpArea=areas[0];
+  const depts=[...new Set(recs.filter(h=>h.aname===cmpArea).map(h=>h.dept))];
+  if(!depts.includes(cmpDept))cmpDept=depts[0];
+  const rounds=[...new Set(recs.filter(h=>h.aname===cmpArea&&h.dept===cmpDept).map(h=>h.round))];
+  if(!rounds.includes(cmpRound))cmpRound=rounds[0];
+  const opt=(arr,sel)=>arr.map(v=>`<option${v===sel?' selected':''}>${cmpEsc(v)}</option>`).join('');
+  fEl.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+    <div style="flex:1;min-width:120px"><div class="flbl" style="margin-bottom:4px">พื้นที่</div><select class="inp" onchange="cmpSet('area',this.value)">${opt(areas,cmpArea)}</select></div>
+    <div style="flex:1;min-width:100px"><div class="flbl" style="margin-bottom:4px">หน่วยงาน</div><select class="inp" onchange="cmpSet('dept',this.value)">${opt(depts,cmpDept)}</select></div>
+    <div style="flex:1;min-width:100px"><div class="flbl" style="margin-bottom:4px">รอบตรวจ</div><select class="inp" onchange="cmpSet('round',this.value)">${opt(rounds,cmpRound)}</select></div>
+  </div>`;
+  let grp=recs.filter(h=>h.aname===cmpArea&&h.dept===cmpDept&&h.round===cmpRound);
+  const byInsp={};
+  grp.forEach(h=>{const k=h.insp||'—';if(!byInsp[k]||new Date(h.saved||h.date)>new Date(byInsp[k].saved||byInsp[k].date))byInsp[k]=h;});
+  const raters=Object.values(byInsp);
+  if(raters.length<2){
+    bEl.innerHTML=`<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">รอบนี้มีผู้ตรวจ ${raters.length} คน</div><div class="empty-desc">ต้องมีผู้ตรวจตั้งแต่ 2 คนขึ้นไป ในพื้นที่ + หน่วยงาน + รอบเดียวกัน ถึงจะเทียบได้</div></div>`;
+    return;
+  }
+  const base=raters[0].items;
+  const rows=base.map(it=>{
+    const scores=raters.map(r=>{const f=(r.items||[]).find(x=>x.no===it.no);return f?f.sc:'';});
+    const nums=scores.filter(v=>v!=='NA'&&v!==''&&v!=null).map(Number);
+    const spread=nums.length>=2?Math.max(...nums)-Math.min(...nums):null;
+    return {it,scores,nums,spread};
+  });
+  const valid=rows.filter(r=>r.spread!=null);
+  const overall=valid.length?Math.round(valid.reduce((a,r)=>a+(4-r.spread)/4,0)/valid.length*100):0;
+  const review=rows.filter(r=>r.spread!=null&&r.spread>=2).sort((a,b)=>b.spread-a.spread);
+  const oc=overall>=85?'#0F6E56':overall>=70?'#854F0B':'#A32D2D';
+  const ths=raters.map(r=>`<th style="padding:7px 3px;font-weight:600;font-size:11px;white-space:nowrap">${cmpEsc(r.insp||'—')}</th>`).join('');
+  const trs=rows.map(r=>{
+    const sp=r.spread;
+    const flag=sp==null?'<span style="color:#CBD5E1">–</span>':sp<=1?'<span style="color:#0F6E56">น้อย</span>':sp===2?'<span style="color:#854F0B;font-weight:700">กลาง</span>':'<span style="color:#A32D2D;font-weight:700">สูง</span>';
+    const rowBg=sp>=3?'background:#FCEBEB;':sp===2?'background:#FAEEDA;':'';
+    return `<tr style="border-top:1px solid var(--border);${rowBg}">
+      <td style="padding:7px 8px;font-size:12px"><b>ข้อ ${r.it.no}</b> · <span style="color:var(--muted)">${cmpEsc(r.it.t)}</span></td>
+      ${r.scores.map(cmpScCell).join('')}
+      <td style="text-align:center;font-size:11px">${flag}</td></tr>`;
+  }).join('');
+  const reviewHtml=review.length?review.map(r=>{
+    const mx=Math.max(...r.nums),mn=Math.min(...r.nums);
+    const hi=[],lo=[];
+    raters.forEach((rt,i)=>{const v=r.scores[i];if(v===''||v==='NA'||v==null)return;if(Number(v)===mx)hi.push(rt.insp||'—');if(Number(v)===mn)lo.push(rt.insp||'—');});
+    const bd=r.spread>=3?'#A32D2D':'#854F0B',bg=r.spread>=3?'#FCEBEB':'#FAEEDA';
+    return `<div style="background:var(--card);border:1px solid ${bd};border-radius:12px;padding:11px 13px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px">
+        <span style="font-weight:700;font-size:13px">ข้อ ${r.it.no} · ${cmpEsc(r.it.t)}</span>
+        <span style="font-size:11px;background:${bg};color:${bd};padding:2px 9px;border-radius:8px;white-space:nowrap">ต่างกัน ${r.spread} คะแนน</span></div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">
+        <b style="color:var(--text)">${cmpEsc(hi.join(', '))}</b> ให้ ${mx} คะแนน · <b style="color:var(--text)">${cmpEsc(lo.join(', '))}</b> ให้ ${mn} คะแนน<br>เกณฑ์ข้อนี้อาจตีความต่างกัน ควรนิยามให้ชัด</div></div>`;
+  }).join(''):'<div style="font-size:12px;color:#0F6E56;padding:11px 13px;background:#E1F5EE;border-radius:10px">✓ ผู้ตรวจให้คะแนนสอดคล้องกันดี ไม่มีข้อที่ต่างกันตั้งแต่ 2 คะแนน</div>';
+  bEl.innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+      <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--muted)">ผู้ตรวจที่เทียบ</div><div style="font-size:20px;font-weight:800">${raters.length} คน</div></div>
+      <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--muted)">ความสอดคล้อง</div><div style="font-size:20px;font-weight:800;color:${oc}">${overall}%</div></div>
+      <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--muted)">ข้อควรทบทวน</div><div style="font-size:20px;font-weight:800;color:${review.length?'#A32D2D':'#0F6E56'}">${review.length} ข้อ</div></div>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:7px">ตารางคะแนนรายข้อ × ผู้ตรวจ</div>
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:18px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:var(--bg)"><th style="text-align:left;padding:7px 8px;font-weight:700;min-width:150px">หัวข้อ</th>${ths}<th style="padding:7px 6px;font-weight:700">ต่างกัน</th></tr></thead>
+        <tbody>${trs}</tbody></table></div>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:7px">ข้อที่ควรทบทวนเกณฑ์ (เรียงตามความต่าง)</div>
+    ${reviewHtml}`;
 }
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 document.getElementById('f-round').selectedIndex=new Date().getMonth();
