@@ -104,6 +104,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .flbl{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.02em}
 .inp{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;color:var(--text);background:#fff;outline:none;transition:border-color .15s;-webkit-appearance:none;font-family:inherit}
 .inp:focus{border-color:var(--green)}
+.inp.inp-err{border-color:#A32D2D;box-shadow:0 0 0 2px rgba(163,45,45,.15)}
 select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:30px}
 .tip-box{padding:10px 12px;background:var(--gl);border-radius:var(--rs);border-left:3px solid var(--green);font-size:12px;color:var(--gd);line-height:1.6}
 
@@ -399,14 +400,14 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
             <input class="inp" id="f-custom" placeholder="เช่น ห้องน้ำ, ที่จอดรถ"></div>
         </div>
         <div class="frow">
-          <div class="field"><div class="flbl">หน่วยงาน</div>
-            <select class="inp" id="f-dept"><option value="">-- เลือก --</option>
+          <div class="field"><div class="flbl">หน่วยงาน <span style="color:#A32D2D">*</span></div>
+            <select class="inp" id="f-dept" onchange="this.classList.remove('inp-err')"><option value="">-- เลือก --</option>
               <option>BIM</option><option>WH</option><option>AS</option><option>DBD</option><option>RD</option></select></div>
           <div class="field"><div class="flbl">วันที่ตรวจ</div><input class="inp" type="date" id="f-date"></div>
         </div>
         <div class="field"><div class="flbl">พื้นที่ตรวจ</div><input class="inp" id="f-area" placeholder="เช่น ชั้น 3 โซน A"></div>
         <div class="frow">
-          <div class="field"><div class="flbl">ผู้ตรวจ</div><input class="inp" id="f-insp" placeholder="ชื่อ-นามสกุล"></div>
+          <div class="field"><div class="flbl">ผู้ตรวจ <span style="color:#A32D2D">*</span></div><input class="inp" id="f-insp" placeholder="ชื่อ-นามสกุล" oninput="this.classList.remove('inp-err')"></div>
           <div class="field"><div class="flbl">รอบการตรวจ</div>
             <select class="inp" id="f-round">
               <option>มกราคม</option><option>กุมภาพันธ์</option><option>มีนาคม</option>
@@ -669,7 +670,22 @@ function selArea(a){
   document.getElementById('fhead').style.background=ACOL[a];
 }
 function startInspect(){cur=0;init();showSt(0);goTab('inspect');setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
-function startItems(){cur=0;showSt(1);rItem();setNbSub2();}
+function startItems(){
+  const req=[['f-dept','หน่วยงาน'],['f-insp','ผู้ตรวจ']];
+  const miss=[];
+  req.forEach(([id,label])=>{
+    const el=document.getElementById(id);
+    const empty=!(el.value||'').trim();
+    el.classList.toggle('inp-err',empty);
+    if(empty)miss.push(label);
+  });
+  if(miss.length){
+    showToast('⚠️ กรุณากรอก '+miss.join(' และ ')+' ก่อนเริ่มตรวจ');
+    document.getElementById(miss[0]==='หน่วยงาน'?'f-dept':'f-insp').focus();
+    return;
+  }
+  cur=0;showSt(1);rItem();setNbSub2();
+}
 function showSt(s){
   document.getElementById('st-info').style.display=s===0?'block':'none';
   document.getElementById('st-items').style.display=s===1?'block':'none';
