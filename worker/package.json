@@ -1,0 +1,13 @@
+{
+  "name": "s5-photos-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker for 5S photo storage on R2",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^3.114.17"
+  }
+}

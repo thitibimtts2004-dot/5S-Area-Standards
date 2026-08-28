@@ -1,0 +1,18 @@
+# Cloudflare Worker config for 5S photo storage on R2
+# Deploy:  cd worker && npx wrangler deploy
+# Secret:  npx wrangler secret put UPLOAD_TOKEN   (paste the same token the app uses)
+
+name = "s5-photos"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+account_id = "27b7ce1ae9f9f75ffedb731aec2c3f45"  # Maildbd2004@gmail.com's Account (has the s5-photos bucket)
+
+# Binds the R2 bucket to env.BUCKET inside the Worker.
+# The bucket "s5-photos" must be created first (Cloudflare dashboard > R2, or:
+#   npx wrangler r2 bucket create s5-photos ).
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "s5-photos"
+
+# UPLOAD_TOKEN is NOT stored here on purpose — set it as a secret:
+#   npx wrangler secret put UPLOAD_TOKEN

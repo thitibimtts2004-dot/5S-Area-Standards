@@ -476,7 +476,10 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
   <div id="admin-content">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
       <div class="sec-title" style="margin:0;padding:0;border:none">ข้อมูลรวมทุกคนประเมิน (<span id="admin-count">0</span>)</div>
-      <button class="exp-btn" onclick="loadAdminData()">🔄 รีเฟรช</button>
+      <div style="display:flex;gap:6px">
+        <button class="exp-btn" onclick="migrateOldPhotosToStorage()">☁️ ย้ายรูปเก่าไป R2</button>
+        <button class="exp-btn" onclick="loadAdminData()">🔄 รีเฟรช</button>
+      </div>
     </div>
     <div id="admin-list"></div>
   </div>
@@ -518,10 +521,27 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script>
 const firebaseConfig={apiKey:"AIzaSyDS06AiH5y1XRQyRrIZuuqZTGt1QpgKzeU",authDomain:"fir-area-standards.firebaseapp.com",projectId:"fir-area-standards",storageBucket:"fir-area-standards.firebasestorage.app",messagingSenderId:"635164427514",appId:"1:635164427514:web:aec1a0f7947cf4b87af543"};
-let db=null;
-try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();}catch(e){console.warn('[firestore] init failed — จะบันทึกลงเครื่องอย่างเดียว',e);}
+let db=null,storage=null;
+try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();storage=firebase.storage();}catch(e){console.warn('[firebase] init failed — จะบันทึกลงเครื่องอย่างเดียว',e);}
+// ── Cloudflare R2 (ที่เก็บรูป) ──
+// R2_WORKER = URL ของ Worker หลัง deploy (เช่น https://s5-photos.<subdomain>.workers.dev). เว้นว่าง = เก็บ base64 อย่างเดียว
+// R2_TOKEN  = ต้องตรงกับ secret UPLOAD_TOKEN ของ Worker. เป็น public โดยดีไซน์ (ดู worker/src/index.js)
+const R2_WORKER='https://s5-photos.maildbd2004.workers.dev';
+const R2_TOKEN='s5tok_326c616de8295e77b6242db1';
+// แปลง data: URL เป็น Blob เพื่ออัปโหลด
+function dataUrlToBlob(dataUrl){const parts=dataUrl.split(',');const mime=(parts[0].match(/data:([^;]+)/)||[,'image/jpeg'])[1];const bin=atob(parts[1]);const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime});}
+// อัปโหลดรูป 1 ใบ (data: URL หรือ URL ปลายทาง) ขึ้น R2 ผ่าน Worker → คืน URL ของไฟล์บน R2 (ไม่สำเร็จ = throw)
+async function r2Upload(path,src){
+  let blob;
+  if(typeof src==='string'&&src.startsWith('data:'))blob=dataUrlToBlob(src);
+  else{const r=await fetch(src);if(!r.ok)throw new Error('fetch source failed '+r.status);blob=await r.blob();}
+  const res=await fetch(R2_WORKER.replace(/\/$/,'')+'/upload',{method:'POST',headers:{'Content-Type':blob.type||'image/jpeg','x-upload-token':R2_TOKEN,'x-file-path':path},body:blob});
+  if(!res.ok)throw new Error('R2 upload failed '+res.status);
+  const j=await res.json();return j.url;
+}
 const HMVD=["สะสาง","สะดวก","สะอาด","สร้างมาตรฐาน","สร้างวินัย"];
 const HC={"สะสาง":"#0E8F6C","สะดวก":"#0D6EA6","สะอาด":"#7C3AED","สร้างมาตรฐาน":"#B8650A","สร้างวินัย":"#C2255C"};
 const HB={"สะสาง":"#E1F5EE","สะดวก":"#E3F1FA","สะอาด":"#F1E9FE","สร้างมาตรฐาน":"#FAEEDA","สร้างวินัย":"#FCE8EF"};
@@ -911,6 +931,60 @@ function showToast(msg,ms){
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{el.style.display='none';},250);},ms||3200);
 }
+// อัปโหลดรูป base64 ขึ้น Cloudflare R2 (ผ่าน Worker) แล้วคืน URL
+// ถ้า Worker ยังไม่ตั้งค่า/อัปไม่สำเร็จ จะคืน base64 เดิม (แอปไม่พัง)
+async function uploadPhotos(inspectionId,itemNo,photos){
+  if(!R2_WORKER||!Array.isArray(photos)||!photos.length)return photos||[];
+  const out=[];
+  for(let i=0;i<photos.length;i++){
+    const p=photos[i];
+    if(typeof p!=='string'||!p.startsWith('data:')){out.push(p);continue;} // เป็น URL อยู่แล้ว
+    try{
+      const path=`inspections/${inspectionId}/${itemNo}/${i}_${Date.now()}.jpg`;
+      out.push(await r2Upload(path,p));
+    }catch(err){console.warn('[r2] upload failed, keeping base64:',err);out.push(p);}
+  }
+  return out;
+}
+// เครื่องมือแอดมิน: ย้ายรูปเก่า (base64 + URL Firebase Storage เดิม) ไป Cloudflare R2 — รันซ้ำได้ ไม่ทำซ้ำของที่ย้ายแล้ว
+async function migrateOldPhotosToStorage(){
+  if(!db){showToast('⚠️ Firebase ยังไม่พร้อม');return;}
+  if(!R2_WORKER){showToast('⚠️ ยังไม่ได้ตั้งค่า R2_WORKER (deploy Worker แล้วใส่ URL ในโค้ดก่อน)');return;}
+  if(!confirm('ย้ายรูปเก่าทั้งหมด (base64 + Firebase Storage) ไป Cloudflare R2?\nทำครั้งเดียวพอ ใช้เวลาสักครู่ อย่าปิดหน้านี้ระหว่างทำ'))return;
+  showSpinner(true,'กำลังค้นหารูปเก่า...');
+  let moved=0,failed=0;
+  const base=R2_WORKER.replace(/\/$/,'');
+  const isR2=u=>typeof u==='string'&&u.indexOf(base)===0;
+  const needsMove=u=>typeof u==='string'&&(u.startsWith('data:')||(/^https?:/.test(u)&&!isR2(u)));
+  try{
+    const snap=await db.collection('inspections').get();
+    for(const doc of snap.docs){
+      const itemsSnap=await doc.ref.collection('items').get();
+      for(const itemDoc of itemsSnap.docs){
+        const data=itemDoc.data();
+        const photos=data.photos;
+        if(!Array.isArray(photos)||!photos.length)continue;
+        if(!photos.some(needsMove))continue; // ย้ายครบแล้ว ข้าม
+        showSpinner(true,`กำลังย้ายรูป... (สำเร็จ ${moved} รายการ)`);
+        const newPhotos=[];
+        for(let i=0;i<photos.length;i++){
+          const p=photos[i];
+          if(needsMove(p)){
+            try{
+              const path=`inspections/${doc.id}/${data.itemNo}/${i}_${Date.now()}.jpg`;
+              newPhotos.push(await r2Upload(path,p));
+            }catch(err){console.warn('[migrate] upload failed',doc.id,data.itemNo,err);newPhotos.push(p);failed++;}
+          }else newPhotos.push(p);
+        }
+        try{await itemDoc.ref.update({photos:newPhotos});moved++;}
+        catch(err){console.warn('[migrate] doc update failed',err);failed++;}
+      }
+    }
+    adminItemsCache={};
+    showSpinner(false);
+    showToast(`✅ ย้ายเสร็จ ${moved} รายการ`+(failed?` · พลาด ${failed} (ลองรันซ้ำได้)`:''));
+  }catch(err){showSpinner(false);showToast('⚠️ ย้ายไม่สำเร็จ: '+(err.message||''));}
+}
 function syncToFirestore(h){
   if(!db)return Promise.resolve({ok:false});
   try{
@@ -957,6 +1031,8 @@ async function saveResult(){
   const defs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2).map(it=>{const i=items.indexOf(it);return{no:it.no,t:it.t,sc:sc[i],nt:nt[i]};});
   const fullItems=items.map((it,i)=>({no:it.no,h:it.h,t:it.t,sc:sc[i]==='NA'?'NA':(sc[i]>=0?sc[i]:''),nt:nt[i]||'',ph:(ph[i]||[]).slice(0,3)}));
   const rec={id:Date.now(),date:dv,area,aname,adet,dept,insp,round,tot,hS,hM,defs,items:fullItems,saved:new Date().toISOString()};
+  showSpinner(true,'กำลังอัปโหลดรูป...');
+  for(const it of rec.items){it.ph=await uploadPhotos(rec.id,it.no,it.ph);}
   hist.unshift(rec);
   if(hist.length>50)hist=hist.slice(0,50);
   localStorage.setItem('5s_h',JSON.stringify(hist));
