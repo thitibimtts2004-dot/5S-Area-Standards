@@ -1304,7 +1304,7 @@ async function cmpLoad(){
       const docs=snap.docs.map(d=>({id:d.id,...d.data()})).filter(d=>{const dd=(d.dept||'').trim();return dd===cmpDept||dd===''});
       for(const d of docs){
         const isnap=await db.collection('inspections').doc(d.id).collection('items').get();
-        const items=isnap.docs.map(x=>x.data()).map(it=>({no:String(it.itemNo),t:it.title,h:it.category,sc:it.isNA?'NA':(it.score==null?'':it.score),ph:Array.isArray(it.photos)?it.photos:[]}));
+        const items=isnap.docs.map(x=>x.data()).map(it=>({no:String(it.itemNo),t:it.title,h:it.category,sc:it.isNA?'NA':(it.score==null?'':it.score),ph:Array.isArray(it.photos)?it.photos:[],nt:it.note||''}));
         raters.push({insp:d.inspector||'—',dept:(d.dept||'').trim(),round:d.round||'—',date:d.date,saved:d.clientSavedAt||d.date,items});
       }
     }else{
@@ -1428,6 +1428,7 @@ function cmpEvidence(ri,no){
   const r=cmpLast.raters[ri]; if(!r)return;
   const item=(r.items||[]).find(x=>x.no===no)||{};
   const sc=item.sc;
+  const note=item.nt||'';
   const mit=(IT[cmpArea]||[]).find(x=>x.no===no)||{};
   const scNum=(sc==='NA'||sc===''||sc==null)?null:Number(sc);
   const COL={4:['#97C459','#173404'],3:['#C0DD97','#173404'],2:['#FAC775','#412402'],1:['#F7C1C1','#501313'],0:['#F09595','#501313']};
@@ -1447,7 +1448,8 @@ function cmpEvidence(ri,no){
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;font-size:13px">
       <span style="color:var(--muted)">ผู้ตรวจ</span> <b>${cmpEsc(r.insp||'—')}</b> <span style="color:var(--muted)">ให้</span> ${badge}
     </div>
-    ${crit?`<div style="font-size:12px;background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:14px;line-height:1.6"><b>เกณฑ์คะแนน ${scNum}:</b> ${cmpEsc(crit)}</div>`:''}
+    ${crit?`<div style="font-size:12px;background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:10px;line-height:1.6"><b>เกณฑ์คะแนน ${scNum}:</b> ${cmpEsc(crit)}</div>`:''}
+    ${note?`<div style="font-size:12px;background:#FFF8E6;border:1px solid #F0DDA8;border-radius:8px;padding:10px 12px;margin-bottom:14px;line-height:1.6"><b>📝 หมายเหตุจากผู้ตรวจ:</b> ${cmpEsc(note)}</div>`:''}
     <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">รูปหลักฐาน (${photos.length})</div>
     ${phHtml}`;
   document.getElementById('cmp-ev').style.display='flex';
