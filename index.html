@@ -510,7 +510,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 
 <!-- EVIDENCE POPUP (คะแนน + รูป + เกณฑ์) -->
 <div class="pv-overlay" id="cmp-ev" style="z-index:1001;background:rgba(0,0,0,.55);align-items:flex-start;padding:24px 14px;overflow:auto" onclick="cmpEvClose(event)">
-  <div id="cmp-ev-card" onclick="event.stopPropagation()" style="background:var(--card);border-radius:16px;max-width:460px;width:100%;margin:auto;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.3)"></div>
+  <div id="cmp-ev-card" onclick="event.stopPropagation()" style="background:var(--card);border-radius:16px;max-width:560px;width:100%;margin:auto;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.3)"></div>
 </div>
 
 <!-- SAVE SPINNER -->
@@ -1437,7 +1437,7 @@ function cmpEvidence(ri,no){
   const crit=(scNum!=null&&mit.c)?mit.c[scNum]:'';
   const photos=(item.ph||[]).filter(p=>typeof p==='string'&&p);
   const phHtml=photos.length
-    ? `<div style="display:flex;flex-direction:column;gap:8px">${photos.map(p=>`<img class="df-photo" src="${cmpEsc(p)}" style="width:100%;border-radius:10px;cursor:zoom-in;border:1px solid var(--border)">`).join('')}</div>`
+    ? `<div style="display:flex;flex-direction:column;gap:10px">${photos.map(p=>`<img src="${cmpEsc(p)}" onclick="openPhoto(this.src)" style="width:100%;height:auto;display:block;border-radius:10px;cursor:zoom-in;border:1px solid var(--border)">`).join('')}</div>`
     : '<div style="font-size:12px;color:var(--muted);background:var(--bg);border-radius:8px;padding:14px;text-align:center">— ไม่มีรูปแนบสำหรับข้อนี้ —</div>';
   document.getElementById('cmp-ev-card').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:12px">
