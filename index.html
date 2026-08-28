@@ -508,6 +508,11 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
   <div class="pv-hint">แตะพื้นที่ว่างเพื่อปิด</div>
 </div>
 
+<!-- EVIDENCE POPUP (คะแนน + รูป + เกณฑ์) -->
+<div class="pv-overlay" id="cmp-ev" style="z-index:1001;background:rgba(0,0,0,.55);align-items:flex-start;padding:24px 14px;overflow:auto" onclick="cmpEvClose(event)">
+  <div id="cmp-ev-card" onclick="event.stopPropagation()" style="background:var(--card);border-radius:16px;max-width:460px;width:100%;margin:auto;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.3)"></div>
+</div>
+
 <!-- SAVE SPINNER -->
 <div class="modal-overlay" id="save-spinner" style="display:none;align-items:center;background:rgba(15,20,30,.6)">
   <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
@@ -1250,12 +1255,15 @@ function rRank(){
         <div style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:7px;background:${bg};color:${c};margin-top:3px">${lv}</div></div></div>`;}).join('');
 }
 function cmpEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-function cmpScCell(v){
-  if(v==='NA')return '<td style="text-align:center;background:#EEF1F5;color:#94A3B8">NA</td>';
+function cmpScCell(v,ri,no){
+  const canClick=ri!=null&&no!=null&&v!==''&&v!=null;
+  const onc=canClick?` onclick="cmpEvidence(${ri},'${no}')" title="ดูหลักฐาน/เกณฑ์"`:'';
+  const cur=canClick?';cursor:pointer':'';
+  if(v==='NA')return `<td${onc} style="text-align:center;background:#EEF1F5;color:#94A3B8${cur}">NA</td>`;
   if(v===''||v==null)return '<td style="text-align:center;background:#F8FAFC;color:#CBD5E1">–</td>';
   const n=Number(v);
   const m={4:['#97C459','#173404'],3:['#C0DD97','#173404'],2:['#FAC775','#412402'],1:['#F7C1C1','#501313'],0:['#F09595','#501313']}[n]||['#F8FAFC','#64748B'];
-  return `<td style="text-align:center;font-weight:700;background:${m[0]};color:${m[1]}">${n}</td>`;
+  return `<td${onc} style="text-align:center;font-weight:700;background:${m[0]};color:${m[1]}${cur}">${n}</td>`;
 }
 const CMP_DEPTS=['BIM','WH','AS','DBD','RD'];
 let cmpArea='',cmpDept='',cmpRound='',cmpData=null,cmpLast=null;
@@ -1296,7 +1304,7 @@ async function cmpLoad(){
       const docs=snap.docs.map(d=>({id:d.id,...d.data()})).filter(d=>{const dd=(d.dept||'').trim();return dd===cmpDept||dd===''});
       for(const d of docs){
         const isnap=await db.collection('inspections').doc(d.id).collection('items').get();
-        const items=isnap.docs.map(x=>x.data()).map(it=>({no:String(it.itemNo),t:it.title,h:it.category,sc:it.isNA?'NA':(it.score==null?'':it.score)}));
+        const items=isnap.docs.map(x=>x.data()).map(it=>({no:String(it.itemNo),t:it.title,h:it.category,sc:it.isNA?'NA':(it.score==null?'':it.score),ph:Array.isArray(it.photos)?it.photos:[]}));
         raters.push({insp:d.inspector||'—',dept:(d.dept||'').trim(),round:d.round||'—',date:d.date,saved:d.clientSavedAt||d.date,items});
       }
     }else{
@@ -1343,7 +1351,7 @@ function cmpRender(){
   // % คะแนนรวมของผู้ตรวจแต่ละคน (ข้าม NA · เต็ม 4 ต่อข้อ) — เทียบคะแนนรวมกัน
   const raterTotals=raters.map(r=>{let s=0,m=0;base.forEach(it=>{const f=(r.items||[]).find(x=>x.no===it.no);const v=f?f.sc:'';if(v==='NA'||v===''||v==null)return;m+=4;s+=Number(v);});return m?Math.round(s/m*100):null;});
   const totColor=t=>t==null?'#94A3B8':t>=80?'#0F6E56':t>=60?'#854F0B':'#A32D2D';
-  const totalRow=`<tr style="border-top:2px solid var(--border);background:#EEF2F7"><td style="padding:8px;font-size:12px;font-weight:800">คะแนนรวม %</td>${raterTotals.map(t=>`<td style="text-align:center;font-weight:800;color:${totColor(t)}">${t==null?'–':t+'%'}</td>`).join('')}<td></td></tr>`;
+  const totalRow=`<tr style="border-top:2px solid var(--border);background:#EEF2F7"><td></td><td style="padding:8px;font-size:12px;font-weight:800">คะแนนรวม %</td>${raterTotals.map(t=>`<td style="text-align:center;font-weight:800;color:${totColor(t)}">${t==null?'–':t+'%'}</td>`).join('')}<td></td></tr>`;
   cmpLast={raters,rows,raterTotals,overall,review};
   const ths=raters.map(r=>`<th style="padding:7px 3px;font-weight:600;font-size:11px;white-space:nowrap">${cmpEsc(r.insp||'—')}</th>`).join('');
   const trs=rows.map(r=>{
@@ -1351,10 +1359,11 @@ function cmpRender(){
     const flag=sp==null?'<span style="color:#CBD5E1">–</span>':sp<=1?'<span style="color:#0F6E56">น้อย</span>':sp===2?'<span style="color:#854F0B;font-weight:700">กลาง</span>':'<span style="color:#A32D2D;font-weight:700">สูง</span>';
     const rowBg=sp>=3?'background:#FCEBEB;':sp===2?'background:#FAEEDA;':'';
     return `<tr style="border-top:1px solid var(--border);${rowBg}">
+      ${sBadge(r.it.h)}
       <td onclick="cmpToggle('${r.it.no}')" style="padding:7px 8px;font-size:12px;cursor:pointer" title="แตะเพื่อดูเกณฑ์การให้คะแนน"><span id="cmpc-${r.it.no}" style="display:inline-block;width:12px;color:var(--muted);font-weight:700">▸</span> <b>ข้อ ${r.it.no}</b> · <span style="color:var(--muted)">${cmpEsc(r.it.t)}</span></td>
-      ${r.scores.map(cmpScCell).join('')}
+      ${r.scores.map((v,ri)=>cmpScCell(v,ri,r.it.no)).join('')}
       <td style="text-align:center;font-size:11px">${flag}</td></tr>
-      <tr id="cmpd-${r.it.no}" style="display:none"><td colspan="${raters.length+2}" style="padding:11px 14px;background:var(--bg);border-top:1px dashed var(--border)">${cmpCriteriaHtml(r.it.no)}</td></tr>`;
+      <tr id="cmpd-${r.it.no}" style="display:none"><td colspan="${raters.length+3}" style="padding:11px 14px;background:var(--bg);border-top:1px dashed var(--border)">${cmpCriteriaHtml(r.it.no)}</td></tr>`;
   }).join('');
   const reviewHtml=review.length?review.map(r=>{
     const mx=Math.max(...r.nums),mn=Math.min(...r.nums);
@@ -1382,7 +1391,7 @@ function cmpRender(){
     </div>
     <div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:10px">
       <table style="width:100%;border-collapse:collapse;font-size:12px">
-        <thead><tr style="background:var(--bg)"><th style="text-align:left;padding:7px 8px;font-weight:700;min-width:150px">หัวข้อ</th>${ths}<th style="padding:7px 6px;font-weight:700">ต่างกัน</th></tr></thead>
+        <thead><tr style="background:var(--bg)"><th style="text-align:center;padding:7px 6px;font-weight:700" title="หมวด 5ส">ส</th><th style="text-align:left;padding:7px 8px;font-weight:700;min-width:150px">หัวข้อ</th>${ths}<th style="padding:7px 6px;font-weight:700">ต่างกัน</th></tr></thead>
         <tbody>${totalRow}${trs}</tbody></table></div>
     <div style="font-size:11px;color:var(--muted);background:var(--bg);border-radius:8px;padding:9px 11px;margin-bottom:18px;line-height:1.7">
       <b>เกณฑ์ "ต่างกัน":</b> คะแนนสูงสุด − ต่ำสุด ของข้อนั้นในบรรดาผู้ตรวจ (ข้าม NA) → <span style="color:#0F6E56;font-weight:700">น้อย</span> = ต่าง 0–1 · <span style="color:#854F0B;font-weight:700">กลาง</span> = ต่าง 2 · <span style="color:#A32D2D;font-weight:700">สูง</span> = ต่าง 3–4<br>
@@ -1405,6 +1414,50 @@ function cmpToggle(no){
   const open=d.style.display==='none';
   d.style.display=open?'':'none';
   if(c)c.textContent=open?'▾':'▸';
+}
+// ป้ายหมวด 5ส (ส1–ส5) ตามลำดับใน HMVD
+function sBadge(h){
+  const i=HMVD.indexOf(h);
+  if(i<0)return '<td></td>';
+  const c=HC[h]||'#64748B';
+  return `<td style="text-align:center"><span style="display:inline-block;min-width:26px;padding:2px 6px;border-radius:6px;background:${c}1A;color:${c};font-weight:800;font-size:11px" title="${cmpEsc(h)}">ส${i+1}</span></td>`;
+}
+// Popup หลักฐาน: รูปแนบ + ใครให้ + กี่คะแนน + เกณฑ์ของคะแนนนั้น
+function cmpEvidence(ri,no){
+  if(!cmpLast||!cmpLast.raters)return;
+  const r=cmpLast.raters[ri]; if(!r)return;
+  const item=(r.items||[]).find(x=>x.no===no)||{};
+  const sc=item.sc;
+  const mit=(IT[cmpArea]||[]).find(x=>x.no===no)||{};
+  const scNum=(sc==='NA'||sc===''||sc==null)?null:Number(sc);
+  const COL={4:['#97C459','#173404'],3:['#C0DD97','#173404'],2:['#FAC775','#412402'],1:['#F7C1C1','#501313'],0:['#F09595','#501313']};
+  const badge=sc==='NA'?'<span style="background:#EEF1F5;color:#64748B;padding:3px 12px;border-radius:8px;font-weight:800">NA</span>'
+    :scNum==null?'<span style="color:#94A3B8">ยังไม่ให้คะแนน</span>'
+    :`<span style="background:${COL[scNum][0]};color:${COL[scNum][1]};padding:3px 12px;border-radius:8px;font-weight:800;font-size:15px">${scNum} คะแนน</span>`;
+  const crit=(scNum!=null&&mit.c)?mit.c[scNum]:'';
+  const photos=(item.ph||[]).filter(p=>typeof p==='string'&&p);
+  const phHtml=photos.length
+    ? `<div style="display:flex;flex-direction:column;gap:8px">${photos.map(p=>`<img class="df-photo" src="${cmpEsc(p)}" style="width:100%;border-radius:10px;cursor:zoom-in;border:1px solid var(--border)">`).join('')}</div>`
+    : '<div style="font-size:12px;color:var(--muted);background:var(--bg);border-radius:8px;padding:14px;text-align:center">— ไม่มีรูปแนบสำหรับข้อนี้ —</div>';
+  document.getElementById('cmp-ev-card').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:12px">
+      <div><div style="font-size:11px;color:var(--muted)">หลักฐานการให้คะแนน</div><div style="font-weight:800;font-size:15px;line-height:1.35">ข้อ ${no} · ${cmpEsc(mit.t||item.t||'')}</div></div>
+      <button onclick="cmpEvClose()" style="border:none;background:var(--bg);border-radius:8px;width:32px;height:32px;font-size:20px;cursor:pointer;flex:none;line-height:1">×</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;font-size:13px">
+      <span style="color:var(--muted)">ผู้ตรวจ</span> <b>${cmpEsc(r.insp||'—')}</b> <span style="color:var(--muted)">ให้</span> ${badge}
+    </div>
+    ${crit?`<div style="font-size:12px;background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:14px;line-height:1.6"><b>เกณฑ์คะแนน ${scNum}:</b> ${cmpEsc(crit)}</div>`:''}
+    <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">รูปหลักฐาน (${photos.length})</div>
+    ${phHtml}`;
+  document.getElementById('cmp-ev').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function cmpEvClose(e){
+  if(e&&e.target&&e.target.id!=='cmp-ev')return;
+  document.getElementById('cmp-ev').style.display='none';
+  document.getElementById('cmp-ev-card').innerHTML='';
+  document.body.style.overflow='';
 }
 function cmpExportExcel(){
   if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ยังไม่มีข้อมูลให้ Export');return;}
