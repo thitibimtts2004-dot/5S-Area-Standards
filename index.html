@@ -1258,7 +1258,7 @@ function cmpScCell(v){
   return `<td style="text-align:center;font-weight:700;background:${m[0]};color:${m[1]}">${n}</td>`;
 }
 const CMP_DEPTS=['BIM','WH','AS','DBD','RD'];
-let cmpArea='',cmpDept='',cmpRound='',cmpData=null;
+let cmpArea='',cmpDept='',cmpRound='',cmpData=null,cmpLast=null;
 function cmpFiltersHtml(rounds){
   const aopt=['<option value="">-- เลือกพื้นที่ --</option>'].concat(Object.keys(ANAME).map(k=>`<option value="${k}"${k===cmpArea?' selected':''}>${AICO[k]||''} ${cmpEsc(ANAME[k])}</option>`)).join('');
   const dopt=['<option value="">-- เลือกหน่วยงาน --</option>'].concat(CMP_DEPTS.map(d=>`<option${d===cmpDept?' selected':''}>${d}</option>`)).join('');
@@ -1340,6 +1340,11 @@ function cmpRender(){
   const overall=valid.length?Math.round(valid.reduce((a,r)=>a+(4-r.spread)/4,0)/valid.length*100):0;
   const review=rows.filter(r=>r.spread!=null&&r.spread>=2).sort((a,b)=>b.spread-a.spread);
   const oc=overall>=85?'#0F6E56':overall>=70?'#854F0B':'#A32D2D';
+  // % คะแนนรวมของผู้ตรวจแต่ละคน (ข้าม NA · เต็ม 4 ต่อข้อ) — เทียบคะแนนรวมกัน
+  const raterTotals=raters.map(r=>{let s=0,m=0;base.forEach(it=>{const f=(r.items||[]).find(x=>x.no===it.no);const v=f?f.sc:'';if(v==='NA'||v===''||v==null)return;m+=4;s+=Number(v);});return m?Math.round(s/m*100):null;});
+  const totColor=t=>t==null?'#94A3B8':t>=80?'#0F6E56':t>=60?'#854F0B':'#A32D2D';
+  const totalRow=`<tr style="border-top:2px solid var(--border);background:#EEF2F7"><td style="padding:8px;font-size:12px;font-weight:800">คะแนนรวม %</td>${raterTotals.map(t=>`<td style="text-align:center;font-weight:800;color:${totColor(t)}">${t==null?'–':t+'%'}</td>`).join('')}<td></td></tr>`;
+  cmpLast={raters,rows,raterTotals,overall,review};
   const ths=raters.map(r=>`<th style="padding:7px 3px;font-weight:600;font-size:11px;white-space:nowrap">${cmpEsc(r.insp||'—')}</th>`).join('');
   const trs=rows.map(r=>{
     const sp=r.spread;
@@ -1370,13 +1375,41 @@ function cmpRender(){
       <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--muted)">ความสอดคล้อง</div><div style="font-size:20px;font-weight:800;color:${oc}">${overall}%</div></div>
       <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--muted)">ข้อควรทบทวน</div><div style="font-size:20px;font-weight:800;color:${review.length?'#A32D2D':'#0F6E56'}">${review.length} ข้อ</div></div>
     </div>
-    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:7px">ตารางคะแนนรายข้อ × ผู้ตรวจ</div>
-    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:8px;flex-wrap:wrap">
+      <div style="font-size:12px;font-weight:700;color:var(--muted)">ตารางคะแนนรายข้อ × ผู้ตรวจ</div>
+      <button class="exp-btn" onclick="cmpExportExcel()">📊 Export Excel</button>
+    </div>
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:10px">
       <table style="width:100%;border-collapse:collapse;font-size:12px">
         <thead><tr style="background:var(--bg)"><th style="text-align:left;padding:7px 8px;font-weight:700;min-width:150px">หัวข้อ</th>${ths}<th style="padding:7px 6px;font-weight:700">ต่างกัน</th></tr></thead>
-        <tbody>${trs}</tbody></table></div>
+        <tbody>${totalRow}${trs}</tbody></table></div>
+    <div style="font-size:11px;color:var(--muted);background:var(--bg);border-radius:8px;padding:9px 11px;margin-bottom:18px;line-height:1.7">
+      <b>เกณฑ์ "ต่างกัน":</b> คะแนนสูงสุด − ต่ำสุด ของข้อนั้นในบรรดาผู้ตรวจ (ข้าม NA) → <span style="color:#0F6E56;font-weight:700">น้อย</span> = ต่าง 0–1 · <span style="color:#854F0B;font-weight:700">กลาง</span> = ต่าง 2 · <span style="color:#A32D2D;font-weight:700">สูง</span> = ต่าง 3–4<br>
+      <b>ความสอดคล้อง %:</b> เฉลี่ยของ (4 − ต่างกัน) ÷ 4 ทุกข้อ × 100 (100% = ให้ตรงกันทุกข้อ) · <b>ข้อควรทบทวน:</b> ข้อที่ต่างกัน ≥ 2 · <b>คะแนนรวม %:</b> คะแนนที่แต่ละคนให้ ÷ คะแนนเต็ม (เต็ม 4/ข้อ ข้าม NA)
+    </div>
     <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:7px">ข้อที่ควรทบทวนเกณฑ์ (เรียงตามความต่าง)</div>
     ${reviewHtml}`;
+}
+function cmpExportExcel(){
+  if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ยังไม่มีข้อมูลให้ Export');return;}
+  const {raters,rows,raterTotals,overall,review}=cmpLast;
+  const names=raters.map(r=>r.insp||'—');
+  const L=[];
+  L.push(['เทียบเกณฑ์ · คะแนนรายผู้ตรวจ']);
+  L.push(['พื้นที่',ANAME[cmpArea]||cmpArea,'หน่วยงาน',cmpDept,'รอบ',cmpRound||'ทุกรอบ (ล่าสุดของแต่ละคน)']);
+  L.push(['ความสอดคล้อง',overall+'%','ข้อควรทบทวน',review.length+' ข้อ','ผู้ตรวจ',raters.length+' คน']);
+  L.push([]);
+  L.push(['หัวข้อ',...names,'ต่างกัน(คะแนน)']);
+  L.push(['คะแนนรวม %',...raterTotals.map(t=>t==null?'-':t+'%'),'']);
+  rows.forEach(r=>{L.push(['ข้อ '+r.it.no+' · '+r.it.t,...r.scores.map(v=>v==='NA'?'NA':(v===''||v==null?'-':v)),r.spread==null?'-':r.spread]);});
+  const csv=L.map(row=>row.map(csvCell).join(',')).join('\r\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`เทียบเกณฑ์_${cmpArea}_${cmpDept}${cmpRound?'_'+cmpRound:''}.csv`;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+  showToast('✅ ดาวน์โหลดไฟล์ Excel (CSV) แล้ว');
 }
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 document.getElementById('f-round').selectedIndex=new Date().getMonth();
