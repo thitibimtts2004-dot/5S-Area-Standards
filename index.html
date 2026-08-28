@@ -1351,9 +1351,10 @@ function cmpRender(){
     const flag=sp==null?'<span style="color:#CBD5E1">–</span>':sp<=1?'<span style="color:#0F6E56">น้อย</span>':sp===2?'<span style="color:#854F0B;font-weight:700">กลาง</span>':'<span style="color:#A32D2D;font-weight:700">สูง</span>';
     const rowBg=sp>=3?'background:#FCEBEB;':sp===2?'background:#FAEEDA;':'';
     return `<tr style="border-top:1px solid var(--border);${rowBg}">
-      <td style="padding:7px 8px;font-size:12px"><b>ข้อ ${r.it.no}</b> · <span style="color:var(--muted)">${cmpEsc(r.it.t)}</span></td>
+      <td onclick="cmpToggle('${r.it.no}')" style="padding:7px 8px;font-size:12px;cursor:pointer" title="แตะเพื่อดูเกณฑ์การให้คะแนน"><span id="cmpc-${r.it.no}" style="display:inline-block;width:12px;color:var(--muted);font-weight:700">▸</span> <b>ข้อ ${r.it.no}</b> · <span style="color:var(--muted)">${cmpEsc(r.it.t)}</span></td>
       ${r.scores.map(cmpScCell).join('')}
-      <td style="text-align:center;font-size:11px">${flag}</td></tr>`;
+      <td style="text-align:center;font-size:11px">${flag}</td></tr>
+      <tr id="cmpd-${r.it.no}" style="display:none"><td colspan="${raters.length+2}" style="padding:11px 14px;background:var(--bg);border-top:1px dashed var(--border)">${cmpCriteriaHtml(r.it.no)}</td></tr>`;
   }).join('');
   const reviewHtml=review.length?review.map(r=>{
     const mx=Math.max(...r.nums),mn=Math.min(...r.nums);
@@ -1376,7 +1377,7 @@ function cmpRender(){
       <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--muted)">ข้อควรทบทวน</div><div style="font-size:20px;font-weight:800;color:${review.length?'#A32D2D':'#0F6E56'}">${review.length} ข้อ</div></div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:8px;flex-wrap:wrap">
-      <div style="font-size:12px;font-weight:700;color:var(--muted)">ตารางคะแนนรายข้อ × ผู้ตรวจ</div>
+      <div style="font-size:12px;font-weight:700;color:var(--muted)">ตารางคะแนนรายข้อ × ผู้ตรวจ <span style="font-weight:400">· แตะชื่อข้อเพื่อดูเกณฑ์ ▸</span></div>
       <button class="exp-btn" onclick="cmpExportExcel()">📊 Export Excel</button>
     </div>
     <div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:10px">
@@ -1389,6 +1390,21 @@ function cmpRender(){
     </div>
     <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:7px">ข้อที่ควรทบทวนเกณฑ์ (เรียงตามความต่าง)</div>
     ${reviewHtml}`;
+}
+// เกณฑ์การให้คะแนน 0–4 + คำอธิบายของข้อนั้น (ดึงจาก IT[พื้นที่])
+function cmpCriteriaHtml(no){
+  const mit=(IT[cmpArea]||[]).find(x=>x.no===no);
+  if(!mit)return '<div style="font-size:12px;color:var(--muted)">ไม่พบเกณฑ์ของข้อนี้</div>';
+  const COL={4:['#97C459','#173404'],3:['#C0DD97','#173404'],2:['#FAC775','#412402'],1:['#F7C1C1','#501313'],0:['#F09595','#501313']};
+  const levels=[4,3,2,1,0].map(s=>{const c=COL[s];return `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px"><span style="flex:none;width:22px;height:22px;border-radius:6px;background:${c[0]};color:${c[1]};font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center">${s}</span><span style="font-size:12px;color:var(--text);line-height:1.6">${cmpEsc((mit.c&&mit.c[s])||'-')}</span></div>`;}).join('');
+  return `${mit.d?`<div style="font-size:12px;color:var(--muted);margin-bottom:9px;line-height:1.6"><b style="color:var(--text)">คำอธิบาย:</b> ${cmpEsc(mit.d)}</div>`:''}<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">เกณฑ์การให้คะแนน</div>${levels}`;
+}
+function cmpToggle(no){
+  const d=document.getElementById('cmpd-'+no),c=document.getElementById('cmpc-'+no);
+  if(!d)return;
+  const open=d.style.display==='none';
+  d.style.display=open?'':'none';
+  if(c)c.textContent=open?'▾':'▸';
 }
 function cmpExportExcel(){
   if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ยังไม่มีข้อมูลให้ Export');return;}
