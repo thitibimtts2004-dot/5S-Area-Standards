@@ -29,7 +29,7 @@ function corsHeaders(origin) {
   const allow = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allow,
-    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type,x-upload-token,x-file-path',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin',
@@ -82,6 +82,31 @@ export default {
       await env.BUCKET.put(path, buf, { httpMetadata: { contentType: ct } });
       const fileUrl = `${url.origin}/file/${encodeURIComponent(path)}`;
       return new Response(JSON.stringify({ url: fileUrl }), {
+        status: 200,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // --- Delete all images for one inspection (called when an admin deletes it) ---
+    if (request.method === 'DELETE' && url.pathname.startsWith('/inspection/')) {
+      if (request.headers.get('x-upload-token') !== env.UPLOAD_TOKEN) {
+        return new Response('Unauthorized', { status: 401, headers: cors });
+      }
+      const id = decodeURIComponent(url.pathname.slice('/inspection/'.length));
+      if (!/^[\w-]+$/.test(id)) {
+        return new Response('Bad id', { status: 400, headers: cors });
+      }
+      const prefix = `inspections/${id}/`;
+      let deleted = 0, cursor;
+      do {
+        const listing = await env.BUCKET.list({ prefix, cursor });
+        if (listing.objects.length) {
+          await env.BUCKET.delete(listing.objects.map(o => o.key));
+          deleted += listing.objects.length;
+        }
+        cursor = listing.truncated ? listing.cursor : undefined;
+      } while (cursor);
+      return new Response(JSON.stringify({ deleted }), {
         status: 200,
         headers: { ...cors, 'Content-Type': 'application/json' },
       });

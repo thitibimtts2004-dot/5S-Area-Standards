@@ -235,7 +235,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 
 /* ===== PRINT REPORT (A4, 1 page) ===== */
 #print-report{position:fixed;left:-9999px;top:0;width:210mm;height:297mm;background:#fff;overflow:hidden;z-index:-1}
-.pr-page{width:210mm;box-sizing:border-box;padding:9mm 10mm;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1A202C;transform-origin:top left;
+.pr-page{width:210mm;box-sizing:border-box;padding:0 10mm;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1A202C;transform-origin:top left;
   -webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
 .pr-page *{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
 .pr-head{display:flex;align-items:stretch;gap:6mm;padding-bottom:3.5mm;margin-bottom:4mm;position:relative}
@@ -297,10 +297,11 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
   .fab-delete{left:calc(50% + 110px)}
 }
 @media print{
-  @page{size:A4;margin:0}
+  @page{size:A4;margin:9mm 0}
   html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;height:auto!important;min-height:0!important}
   .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-compare,#pg-admin,.modal-overlay,.pv-overlay,.toast,.fab-delete{display:none!important}
   #print-report{position:static!important;height:auto!important;overflow:visible!important;z-index:auto}
+  #pr-inner .pr-dcard,#pr-inner .pr-bar-row,#pr-inner .pr-lvbox,#pr-inner .pr-head,#pr-inner .pr-score,#pr-inner .pr-ok{break-inside:avoid;page-break-inside:avoid}
 }
 </style>
 </head>
@@ -547,6 +548,15 @@ async function r2Upload(path,src){
   if(!res.ok)throw new Error('R2 upload failed '+res.status);
   const j=await res.json();return j.url;
 }
+// ลบรูปทั้งหมดของ inspection หนึ่งใน R2 (best-effort — ล้มก็ไม่ขัดการลบ Firestore)
+async function r2DeleteInspection(id){
+  if(!R2_WORKER||!id)return null;
+  try{
+    const res=await fetch(R2_WORKER.replace(/\/$/,'')+'/inspection/'+encodeURIComponent(id),{method:'DELETE',headers:{'x-upload-token':R2_TOKEN}});
+    if(!res.ok){console.warn('[r2] delete failed',id,res.status);return null;}
+    return (await res.json()).deleted;
+  }catch(err){console.warn('[r2] delete error',id,err);return null;}
+}
 const HMVD=["สะสาง","สะดวก","สะอาด","สร้างมาตรฐาน","สร้างวินัย"];
 const HC={"สะสาง":"#0E8F6C","สะดวก":"#0D6EA6","สะอาด":"#7C3AED","สร้างมาตรฐาน":"#B8650A","สร้างวินัย":"#C2255C"};
 const HB={"สะสาง":"#E1F5EE","สะดวก":"#E3F1FA","สะอาด":"#F1E9FE","สร้างมาตรฐาน":"#FAEEDA","สร้างวินัย":"#FCE8EF"};
@@ -650,6 +660,37 @@ let area='Office',cur=0,sc={},nt={},ph={},photoIdx=-1,viewMode=false;
 let hist=JSON.parse(localStorage.getItem('5s_h')||'[]');
 
 function init(){sc={};nt={};ph={};for(let i=0;i<25;i++){sc[i]=-1;nt[i]='';ph[i]=[];}}
+// --- Autosave งานตรวจกลางคัน (กัน refresh/แครช/ปิดแท็บ แล้วข้อมูลหาย) ---
+const DRAFT_KEY='5s_draft';
+let inspecting=false,_draftT=null;
+function saveDraft(){
+  if(!inspecting||viewMode)return;
+  const form={};['f-dept','f-insp','f-area','f-custom','f-date','f-round'].forEach(id=>{const el=document.getElementById(id);if(el)form[id]=el.value;});
+  const base={area,cur,sc,nt,form,ts:Date.now()};
+  try{localStorage.setItem(DRAFT_KEY,JSON.stringify({...base,ph}));}
+  catch(e){try{localStorage.setItem(DRAFT_KEY,JSON.stringify({...base,ph:{},noPhotos:true}));}catch(e2){console.warn('[draft] save failed:',e2);}}
+}
+function saveDraftSoon(){clearTimeout(_draftT);_draftT=setTimeout(saveDraft,700);}
+function clearDraft(){inspecting=false;try{localStorage.removeItem(DRAFT_KEY);}catch(e){}}
+function restoreDraft(){
+  let d;try{d=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null');}catch(e){d=null;}
+  if(!d||!d.sc)return;
+  const chosen=Object.values(d.sc).filter(v=>v!==-1).length;
+  if(!chosen){clearDraft();return;}
+  const an=d.area&&ANAME[d.area]?ANAME[d.area]:(d.area||'พื้นที่');
+  if(!confirm('พบการตรวจที่ยังทำค้างไว้:\n'+an+' · เลือกไปแล้ว '+chosen+'/25 ข้อ\n\nกด "ตกลง" เพื่อทำต่อ · "ยกเลิก" เพื่อเริ่มใหม่')){clearDraft();return;}
+  area=IT[d.area]?d.area:'Office';
+  init();
+  Object.keys(d.sc).forEach(i=>{sc[i]=d.sc[i];});
+  if(d.nt)Object.keys(d.nt).forEach(i=>{nt[i]=d.nt[i];});
+  if(d.ph)Object.keys(d.ph).forEach(i=>{if(Array.isArray(d.ph[i]))ph[i]=d.ph[i];});
+  selArea(area);
+  const form=d.form||{};Object.keys(form).forEach(id=>{const el=document.getElementById(id);if(el)el.value=form[id];});
+  cur=Math.min(Math.max(parseInt(d.cur)||0,0),24);
+  inspecting=true;
+  goTab('inspect');showSt(1);rItem();setNbSub2();
+  showToast(d.noPhotos?'ℹ️ กู้คืนงานตรวจค้างแล้ว (รูปบางส่วนกู้ไม่ได้ เพราะพื้นที่เครื่องเต็มตอนนั้น)':'✅ กู้คืนงานตรวจที่ค้างไว้แล้ว — ทำต่อได้เลย');
+}
 init();
 
 function goTab(t){
@@ -674,7 +715,7 @@ function selArea(a){
   document.getElementById('custom-field').style.display=a==='Custom'?'block':'none';
   document.getElementById('fhead').style.background=ACOL[a];
 }
-function startInspect(){cur=0;init();showSt(0);goTab('inspect');setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
+function startInspect(){cur=0;init();inspecting=false;showSt(0);goTab('inspect');setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
 function startItems(){
   const req=[['f-dept','หน่วยงาน'],['f-insp','ผู้ตรวจ']];
   const miss=[];
@@ -689,7 +730,7 @@ function startItems(){
     document.getElementById(miss[0]==='หน่วยงาน'?'f-dept':'f-insp').focus();
     return;
   }
-  cur=0;showSt(1);rItem();setNbSub2();
+  cur=0;inspecting=true;showSt(1);rItem();setNbSub2();saveDraft();
 }
 function showSt(s){
   document.getElementById('st-info').style.display=s===0?'block':'none';
@@ -708,6 +749,7 @@ function getRawTotal(){return getScored().reduce((a,[,v])=>a+Number(v),0);}
 function getMaxPossible(){return getScored().length*4;}
 function getTotal(){const mx=getMaxPossible();return mx>0?Math.round(getRawTotal()/mx*100):0;}
 function getNACount(){return Object.values(sc).filter(v=>v==='NA').length;}
+function getUnscored(){const a=[];for(let i=0;i<25;i++){if(sc[i]===-1)a.push(i);}return a;}
 function rItem(){
   const items=IT[area],it=items[cur],s=sc[cur];
   const isNA=s==='NA',has=!isNA&&s>=0;
@@ -740,7 +782,7 @@ function rItem(){
       </div>
       <div class="ssec"><div class="slbl">เลือกระดับคะแนน</div><div class="srow">${sbtns}${nabtn}</div></div>
       ${!isNA?`<div class="nsec"><div class="nlbl">บันทึกจุดบกพร่องที่พบ</div>
-        <textarea class="ninp" id="ninp" placeholder="ระบุจุดที่พบ..." oninput="nt[${cur}]=this.value">${nt[cur]}</textarea></div>
+        <textarea class="ninp" id="ninp" placeholder="ระบุจุดที่พบ..." oninput="nt[${cur}]=this.value;saveDraftSoon()">${nt[cur]}</textarea></div>
       <div class="psec">
         <div class="pbtn" style="${needPhoto&&!hasPhoto?'border-color:#A32D2D;background:#FCEBEB':''}" onclick="openPh(${cur})"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>รูป</div>
         <div id="ph-list-${cur}" style="display:flex;gap:6px;flex-wrap:wrap">${pht}</div>
@@ -751,8 +793,8 @@ function rItem(){
   bn.innerHTML=cur<24?'ถัดไป →':'📋 ดูสรุปผล';
   uMini();uPb();
 }
-function setS(v){sc[cur]=v;rItem();}
-function setNA(){sc[cur]=sc[cur]==='NA'?-1:'NA';rItem();}
+function setS(v){sc[cur]=v;rItem();saveDraft();}
+function setNA(){sc[cur]=sc[cur]==='NA'?-1:'NA';rItem();saveDraft();}
 function openStdModal(){
   document.getElementById('std-img').src=STD_IMG_OFFICE;
   document.getElementById('std-modal').style.display='flex';
@@ -808,18 +850,26 @@ function handlePhoto(e){
     const compressed=await compressImage(ev.target.result,900,0.6);
     if(!ph[photoIdx])ph[photoIdx]=[];
     ph[photoIdx].push(compressed);
-    rItem();
+    rItem();saveDraft();
   };
   r.readAsDataURL(f);e.target.value='';
 }
-function delPh(i,pi){ph[i].splice(pi,1);rItem();}
+function delPh(i,pi){ph[i].splice(pi,1);rItem();saveDraft();}
 function nextItem(){
   const s=sc[cur];
   if(s>=0&&s<=2&&(!ph[cur]||!ph[cur].length)){
     showToast('📷 คะแนนข้อนี้ต่ำ (0-2) ต้องแนบรูปหลักฐานอย่างน้อย 1 รูปก่อนไปต่อ');
     return;
   }
-  if(cur<24){cur++;rItem();setNbSub2();}else{rSum();showSt(2);setNbSub('สรุปผลการตรวจ');}
+  if(cur<24){cur++;rItem();setNbSub2();}
+  else{
+    const un=getUnscored();
+    if(un.length){
+      showToast('⚠️ ยังประเมินไม่ครบ — เหลืออีก '+un.length+' ข้อ (เลือกคะแนน หรือกด N/A) พาไปที่ข้อ '+(un[0]+1)+' ให้แล้ว');
+      cur=un[0];rItem();setNbSub2();return;
+    }
+    rSum();showSt(2);setNbSub('สรุปผลการตรวจ');
+  }
 }
 function prevItem(){if(cur>0){cur--;rItem();setNbSub2();}else{showSt(0);setNbSub('กรอกข้อมูล');}}
 function uMini(){
@@ -844,11 +894,11 @@ function getReportData(){
   const ds=dv?new Date(dv).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'-';
   const round=document.getElementById('f-round').value;
   const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
-  items.forEach((it,i)=>{if(sc[i]!=='NA'){hM[it.h]+=4;if(sc[i]>=0)hS[it.h]+=sc[i];}});
+  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=4;hS[it.h]+=sc[i];}});
   const probs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2);
   const naItems=items.filter((_,i)=>sc[i]==='NA');
   const lvs=[{n:'<60',l:'ไม่ผ่าน',bg:'#F5E6E6',fg:'#7A1515',a:tot<60},{n:'60–69',l:'ต้องปรับ',bg:'#FAEEDA',fg:'#854F0B',a:tot>=60&&tot<70},{n:'70–79',l:'พอใช้',bg:'#FFF3CD',fg:'#6B4C00',a:tot>=70&&tot<80},{n:'80–89',l:'ผ่าน',bg:'#E1F5EE',fg:'#0F6E56',a:tot>=80&&tot<90},{n:'90+',l:'ดีมาก',bg:'#D0F0E4',fg:'#085041',a:tot>=90}];
-  return{items,tot,na,naItems,pass,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs};
+  return{items,tot,na,naItems,pass,lv,dept,aname:cmpEsc(aname),adet:cmpEsc(adet),insp:cmpEsc(insp),ds,round,hS,hM,probs,lvs};
 }
 function rSum(){
   const{items,tot,na,naItems,pass,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
@@ -857,7 +907,7 @@ function rSum(){
   const naHtml=naItems.length?naItems.map(it=>`<div style="padding:5px 0;font-size:12px;color:#185FA5">⊘ ข้อ ${it.no} — ${it.t}</div>`).join(''):'';
   const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||it.c[s];
     const pht=ph[i]&&ph[i].length?`<div class="df-photos">${ph[i].map(p=>`<img class="df-photo" src="${p}">`).join('')}</div>`:'';
-    return `<div class="df-item"><div class="df-hd"><div class="df-dot" style="background:${HC[it.h]}"></div><div class="df-ttl">ข้อ ${it.no} — ${it.t}</div><div class="df-badge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</div></div><div class="df-note">${note}</div>${pht}</div>`;}).join('')
+    return `<div class="df-item"><div class="df-hd"><div class="df-dot" style="background:${HC[it.h]}"></div><div class="df-ttl">ข้อ ${it.no} — ${it.t}</div><div class="df-badge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</div></div><div class="df-note">${cmpEsc(note)}</div>${pht}</div>`;}).join('')
     :`<div style="padding:14px;text-align:center;font-size:13px;color:var(--muted)">✅ ไม่พบจุดบกพร่อง</div>`;
   document.getElementById('sum-content').innerHTML=`
     <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:11px;color:var(--muted);margin-bottom:12px">
@@ -883,7 +933,7 @@ function buildPrintReport(){
   const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||it.c[s];
     const has=ph[i]&&ph[i].length;
     const pht=has?`<img class="pr-dph" src="${ph[i][0]}">`:'';
-    return `<div class="pr-dcard" style="--pr-cat:${HC[it.h]}"><div class="pr-dtxt"><div class="pr-dttl">ข้อ ${it.no} — ${it.t}<span class="pr-dbadge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</span></div><div class="pr-dnote">${note}</div></div>${pht}</div>`;}).join('')
+    return `<div class="pr-dcard" style="--pr-cat:${HC[it.h]}"><div class="pr-dtxt"><div class="pr-dttl">ข้อ ${it.no} — ${it.t}<span class="pr-dbadge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</span></div><div class="pr-dnote">${cmpEsc(note)}</div></div>${pht}</div>`;}).join('')
     :`<div class="pr-ok">✅ ผ่านทุกหัวข้อ ไม่พบจุดบกพร่อง</div>`;
   const accent=ACOL[area]||'#1A1A2E';
   document.getElementById('pr-inner').style.setProperty('--pr-accent',accent);
@@ -920,10 +970,12 @@ function fitPrintPage(){
   const inner=document.getElementById('pr-inner');
   inner.style.zoom=1;
   const pxPerMm=96/25.4;
-  const availPx=282*pxPerMm;
+  const availPx=279*pxPerMm;               // A4 (297mm) − 9mm บน/ล่าง
   const contentPx=inner.scrollHeight;
-  const scale=contentPx>availPx?Math.max(0.5,(availPx/contentPx)*0.96):1;
-  inner.style.zoom=scale;
+  if(contentPx<=availPx)return;            // พอดีหน้าเดียว — ไม่ต้องย่อ
+  const scale=(availPx/contentPx)*0.97;
+  // ย่อให้อยู่หน้าเดียวเฉพาะเมื่อย่อไม่มาก (ยังอ่านออก) · ถ้าเยอะเกินไป → ปล่อยไหลหลายหน้า (ไม่ตัดข้อมูลทิ้ง)
+  inner.style.zoom=scale>=0.7?scale:1;
 }
 function isInAppBrowser(){
   return /Line\/|FBAN|FBAV|Instagram|MicroMessenger|GSA\/[^\s]* Nebula/i.test(navigator.userAgent);
@@ -995,8 +1047,19 @@ function syncToFirestore(h){
     return batch.commit().then(()=>({ok:true})).catch(err=>{console.warn('[firestore] sync failed — บันทึกในเครื่องไว้แล้ว, อัปขึ้นคลาวด์ไม่สำเร็จ:',err);return{ok:false};});
   }catch(err){console.warn('[firestore] sync error:',err);return Promise.resolve({ok:false});}
 }
+function persistHist(){try{localStorage.setItem('5s_h',JSON.stringify(hist));return true;}catch(e){console.warn('[storage] บันทึกลงเครื่องไม่สำเร็จ (พื้นที่อาจเต็ม):',e);return false;}}
+async function resyncPending(){
+  if(!db||!navigator.onLine)return;
+  const pend=hist.filter(h=>h&&h.synced===false);
+  if(!pend.length)return;
+  let changed=false;
+  for(const h of pend){const r=await syncToFirestore(h);if(r&&r.ok){h.synced=true;changed=true;}}
+  if(changed){persistHist();if(typeof rHome==='function')rHome();}
+}
 async function saveResult(){
   if(viewMode)return;
+  const un=getUnscored();
+  if(un.length){showToast('⚠️ ยังประเมินไม่ครบ '+un.length+' ข้อ — ประเมินให้ครบก่อนบันทึก');cur=un[0];showSt(1);rItem();setNbSub2();return;}
   const btn=document.getElementById('btn-save');
   if(btn)btn.disabled=true;
   showSpinner(true,'กำลังบันทึกผล...');
@@ -1008,20 +1071,27 @@ async function saveResult(){
   const dv=document.getElementById('f-date').value||new Date().toISOString().split('T')[0];
   const round=document.getElementById('f-round').value;
   const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
-  items.forEach((it,i)=>{if(sc[i]!=='NA'){hM[it.h]+=4;if(sc[i]>=0)hS[it.h]+=sc[i];}});
+  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=4;hS[it.h]+=sc[i];}});
   const defs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2).map(it=>{const i=items.indexOf(it);return{no:it.no,t:it.t,sc:sc[i],nt:nt[i]};});
   const fullItems=items.map((it,i)=>({no:it.no,h:it.h,t:it.t,sc:sc[i]==='NA'?'NA':(sc[i]>=0?sc[i]:''),nt:nt[i]||'',ph:(ph[i]||[]).slice(0,3)}));
   const rec={id:Date.now(),date:dv,area,aname,adet,dept,insp,round,tot,hS,hM,defs,items:fullItems,saved:new Date().toISOString()};
   showSpinner(true,'กำลังอัปโหลดรูป...');
   for(const it of rec.items){it.ph=await uploadPhotos(rec.id,it.no,it.ph);}
+  rec.synced=false;
   hist.unshift(rec);
   if(hist.length>50)hist=hist.slice(0,50);
-  localStorage.setItem('5s_h',JSON.stringify(hist));
+  const stored=persistHist();
   const result=await syncToFirestore(rec);
+  rec.synced=!!(result&&result.ok);
+  if(stored&&rec.synced)persistHist();
+  clearDraft();
   rHome();
   showSpinner(false);
   if(btn)btn.disabled=false;
-  showToast(result.ok?'✅ บันทึกผลและซิงก์ขึ้นคลาวด์เรียบร้อยแล้ว':'⚠️ บันทึกผลในเครื่องแล้ว แต่ซิงก์ขึ้นคลาวด์ไม่สำเร็จ (ข้อมูลยังปลอดภัยอยู่ในเครื่องนี้)');
+  let msg;
+  if(rec.synced)msg=stored?'✅ บันทึกผลและซิงก์ขึ้นคลาวด์เรียบร้อยแล้ว':'✅ ซิงก์ขึ้นคลาวด์เรียบร้อย (พื้นที่ในเครื่องเต็ม แต่ข้อมูลอยู่บนคลาวด์แล้ว)';
+  else msg=stored?'⚠️ บันทึกในเครื่องแล้ว แต่ซิงก์คลาวด์ไม่สำเร็จ — ระบบจะซิงก์ให้อัตโนมัติเมื่อกลับมาออนไลน์':'❌ พื้นที่เก็บในเครื่องเต็มและซิงก์คลาวด์ไม่สำเร็จ — กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';
+  showToast(msg);
 }
 function csvCell(v){const s=String(v==null?'':v).replace(/"/g,'""');return/[",\n]/.test(s)?'"'+s+'"':s;}
 function exportCSV(){
@@ -1081,7 +1151,7 @@ function renderAdminList(){
     const rowsHtml=g.rows.map(r=>adminRowHtml(r)).join('');
     return `<div class="grp-card" style="border-left-color:${ACOL[g.area]||'#94A3B8'}">
       <div class="grp-head">
-        <div><div class="grp-date">📅 ${dateFmt}</div><div class="grp-area" style="color:${ACOL[g.area]||'#333'}">${AICO[g.area]||'📍'} ${g.areaName}</div></div>
+        <div><div class="grp-date">📅 ${dateFmt}</div><div class="grp-area" style="color:${ACOL[g.area]||'#333'}">${AICO[g.area]||'📍'} ${cmpEsc(g.areaName)}</div></div>
         <div style="text-align:right">
           <div class="grp-n">👥 ${g.rows.length} คนประเมิน</div>
           ${g.rows.length>1?`<div class="grp-spread" style="color:${spreadColor}">คะแนนต่างกัน ${spread} pts</div>`:''}
@@ -1100,8 +1170,8 @@ function adminRowHtml(r){
     <div class="insp-row-main">
       <input type="checkbox" class="insp-chk" ${checked} onchange="toggleAdminSel('${r.id}',this.checked)">
       <div class="insp-info" onclick="viewAdminReport('${r.id}')" style="cursor:pointer">
-        <div class="insp-name">${r.inspector}</div>
-        <div class="insp-meta">${r.dept||'—'}${time?' · '+time:''}${r.naCount?' · ข้าม '+r.naCount+' N/A':''}</div>
+        <div class="insp-name">${cmpEsc(r.inspector)}</div>
+        <div class="insp-meta">${cmpEsc(r.dept||'—')}${time?' · '+time:''}${r.naCount?' · ข้าม '+r.naCount+' N/A':''}</div>
       </div>
       <div class="insp-score" style="color:${c}">${r.totalScore}%</div>
     </div>
@@ -1132,7 +1202,7 @@ async function toggleAdminDetail(id){
   el.innerHTML=adminItemsCache[id].map(it=>{
     const val=it.isNA?'<span style="color:#185FA5">N/A</span>':(it.score??'-');
     const photos=it.photos&&it.photos.length?`<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap">${it.photos.map(p=>`<img src="${p}" style="width:44px;height:44px;border-radius:6px;object-fit:cover;border:1px solid var(--border)">`).join('')}</div>`:'';
-    return `<div class="detail-row"><span class="detail-no">${it.itemNo}</span><div class="detail-t">${it.title}${photos}</div><span class="detail-sc">${val}</span></div>`;
+    return `<div class="detail-row"><span class="detail-no">${it.itemNo}</span><div class="detail-t">${cmpEsc(it.title)}${photos}</div><span class="detail-sc">${val}</span></div>`;
   }).join('');
 }
 function setViewMode(on){
@@ -1200,6 +1270,7 @@ async function deleteSelectedAdmin(){
       itemsSnap.docs.forEach(d=>batch.delete(d.ref));
       batch.delete(db.collection('inspections').doc(id));
       await batch.commit();
+      await r2DeleteInspection(id);
       delete adminItemsCache[id];
     }catch(err){console.warn('[admin] delete failed for',id,err);}
   }
@@ -1208,7 +1279,7 @@ async function deleteSelectedAdmin(){
   showToast('🗑️ ลบข้อมูลที่เลือกแล้ว');
   loadAdminData();
 }
-function resetAll(){init();cur=0;showSt(0);setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
+function resetAll(){if(inspecting&&!confirm('⚠️ ล้างงานตรวจที่กำลังทำอยู่ใช่ไหม? ข้อมูลที่กรอกจะหายทั้งหมด'))return;clearDraft();init();cur=0;showSt(0);setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
 function rHome(){
   const total=hist.length,avg=total?Math.round(hist.reduce((a,h)=>a+h.tot,0)/total):0,pass=hist.filter(h=>h.tot>=80).length;
   document.getElementById('st-tot').textContent=total;
@@ -1337,7 +1408,10 @@ function cmpRender(){
   const multiRoundNote=(!cmpRound&&cmpData._rounds.length>1)?'<div style="font-size:11px;color:#854F0B;background:#FAEEDA;border-radius:8px;padding:7px 10px;margin-bottom:12px">ℹ️ กำลังเทียบครั้งล่าสุดของแต่ละคน (อาจคนละรอบกัน) — เลือก "รอบตรวจ" ด้านบนเพื่อเทียบเฉพาะรอบเดียว</div>':'';
   const noDept=raters.filter(r=>!r.dept).map(r=>r.insp||'—');
   const noDeptNote=noDept.length?`<div style="font-size:11px;color:#854F0B;background:#FAEEDA;border-radius:8px;padding:7px 10px;margin-bottom:12px">ℹ️ รวมผู้ตรวจที่ไม่ได้ระบุหน่วยงานไว้ด้วย: <b>${cmpEsc(noDept.join(', '))}</b> — ถ้าไม่ควรอยู่ในหน่วยงานนี้ ให้แก้หน่วยงานในประวัติการตรวจ</div>`:'';
-  const base=raters[0].items;
+  // union ของทุกข้อจากผู้ตรวจทุกคน (ไม่ยึดคนแรก) — เรียงตามเลขข้อ ข้อที่บางคนไม่มีจะเว้นว่างให้
+  const itemMap={};
+  raters.forEach(r=>(r.items||[]).forEach(it=>{if(it&&it.no!=null&&!itemMap[it.no])itemMap[it.no]={no:it.no,h:it.h,t:it.t};}));
+  const base=Object.values(itemMap).sort((a,b)=>{const pa=String(a.no).split('.').map(Number),pb=String(b.no).split('.').map(Number);for(let i=0;i<Math.max(pa.length,pb.length);i++){const d=(pa[i]||0)-(pb[i]||0);if(d)return d;}return 0;});
   const rows=base.map(it=>{
     const scores=raters.map(r=>{const f=(r.items||[]).find(x=>x.no===it.no);return f?f.sc:'';});
     const nums=scores.filter(v=>v!=='NA'&&v!==''&&v!=null).map(Number);
@@ -1484,5 +1558,5 @@ function cmpExportExcel(){
 }
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 document.getElementById('f-round').selectedIndex=new Date().getMonth();
-selArea('Office');rHome();
+selArea('Office');rHome();resyncPending();window.addEventListener('online',resyncPending);restoreDraft();
 </script></body></html>
