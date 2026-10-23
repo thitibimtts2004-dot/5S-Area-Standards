@@ -1,3 +1,8 @@
+# Build tooling (Vite migration)
+node_modules/
+app/node_modules/
+app/dist/
+
 # Internal AI-agent harness/config files — not part of the public app,
 # kept local-only. Remove lines here if you want any of these versioned too.
 .claude/

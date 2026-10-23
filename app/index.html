@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#1A1A2E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="5ส Pro">
+<link rel="manifest" href='data:application/manifest+json,{"name":"แบบตรวจ 5ส Pro","short_name":"5ส Pro","start_url":".","display":"standalone","background_color":"%23F1F4F8","theme_color":"%231A1A2E","icons":[]}'>
+<title>แบบตรวจ 5ส Pro</title>
+<style>
+:root{
+  --green:#0F6E56;--gm:#1D9E75;--gl:#E1F5EE;--gd:#085041;
+  --blue:#185FA5;--bl:#E6F1FB;--purple:#534AB7;--pl:#EEEDFE;
+  --amber:#854F0B;--al:#FAEEDA;--pink:#993556;
+  --red:#A32D2D;--rl:#FCEBEB;
+  --hdr:#1A1A2E;--white:#fff;--bg:#F1F4F8;--card:#fff;
+  --border:#DDE3EC;--text:#1A202C;--muted:#64748B;--light:#94A3B8;
+  --r:12px;--rs:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;min-height:100vh}
+.navbar{background:var(--hdr);padding:env(safe-area-inset-top,0) 0 0;position:sticky;top:0;z-index:200}
+.nb-inner{max-width:520px;margin:0 auto;padding:12px 16px 0}
+.nb-row{display:flex;align-items:center;gap:10px;padding-bottom:10px}
+.nb-logo{width:34px;height:34px;border-radius:9px;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.nb-title{font-size:17px;font-weight:700;color:#fff;flex:1}
+.nb-ver{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
+.nb-sub{font-size:11px;color:rgba(255,255,255,.6);margin-bottom:8px}
+.pb-wrap{display:flex;align-items:center;gap:8px;padding-bottom:10px}
+.pb-track{flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
+.pb-fill{height:100%;background:#fff;border-radius:2px;transition:width .4s}
+.pb-lbl{font-size:11px;color:rgba(255,255,255,.75);min-width:38px;text-align:right}
+.tab-bar{background:var(--hdr);border-top:1px solid rgba(255,255,255,.07)}
+.tab-inner{max-width:520px;margin:0 auto;display:flex}
+.tb{flex:1;padding:9px 4px 11px;text-align:center;border:none;background:transparent;color:rgba(255,255,255,.45);font-size:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit;transition:color .15s}
+.tb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tb.on{color:#fff}.tb.on svg{stroke:#6EE7B7}
+.wrap{max-width:520px;margin:0 auto;padding:14px}
+.pg{display:none}.pg.on{display:block}
+
+/* HOME */
+.hero-card{background:linear-gradient(135deg,#0a5240,#0F6E56);border-radius:var(--r);padding:18px;margin-bottom:14px;color:#fff}
+.hero-title{font-size:19px;font-weight:700;margin-bottom:3px}
+.hero-sub{font-size:12px;opacity:.7}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stat-box{background:rgba(255,255,255,.15);border-radius:9px;padding:9px;text-align:center}
+.stat-n{font-size:22px;font-weight:700;color:#fff}
+.stat-l{font-size:10px;color:rgba(255,255,255,.7);margin-top:1px}
+.area-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.area-card{background:var(--card);border:2px solid var(--border);border-radius:var(--r);padding:15px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.area-card:active{transform:scale(.97)}
+.area-icon{font-size:26px;margin-bottom:7px}
+.area-name{font-size:14px;font-weight:700;margin-bottom:2px}
+.area-desc{font-size:11px;color:var(--muted)}
+.area-cnt{font-size:11px;color:var(--muted);margin-top:5px}
+.area-badge{position:absolute;top:9px;right:9px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:9px}
+.area-card.sel{box-shadow:0 4px 14px -4px rgba(0,0,0,.22)}
+.area-check{position:absolute;top:9px;left:9px;width:19px;height:19px;border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
+.area-card.sel .area-check{display:flex}
+.exp-btn{font-size:11px;font-weight:700;padding:6px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--green);cursor:pointer;white-space:nowrap}
+.exp-btn:active{transform:scale(.96)}
+.spinner{width:36px;height:36px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);opacity:0;transition:opacity .25s,transform .25s;background:#1A1A2E;color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px -6px rgba(0,0,0,.4);z-index:1200;max-width:90%;text-align:center;display:none;line-height:1.5}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ADMIN */
+.grp-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);border-left:4px solid #94A3B8;padding:14px 15px;margin-bottom:12px;box-shadow:0 2px 10px -6px rgba(0,0,0,.1)}
+.grp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+.grp-date{font-size:13px;font-weight:700}
+.grp-area{font-size:12px;font-weight:600;margin-top:2px}
+.grp-n{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap}
+.grp-spread{font-size:11px;font-weight:700;margin-top:3px;white-space:nowrap}
+.grp-rows{border-top:1px solid var(--border);margin-top:6px}
+.insp-row{border-bottom:1px solid var(--border);padding:9px 0}
+.insp-row:last-child{border-bottom:none}
+.insp-row-main{display:flex;align-items:center;gap:10px}
+.insp-chk{width:18px;height:18px;flex-shrink:0;accent-color:#0F6E56;cursor:pointer}
+.insp-info{flex:1;cursor:pointer;min-width:0}
+.insp-name{font-size:13px;font-weight:600}
+.insp-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.insp-score{font-size:15px;font-weight:700;white-space:nowrap}
+.insp-detail{margin-top:8px;padding-top:8px;padding-left:28px;border-top:1px dashed var(--border)}
+.detail-row{display:flex;gap:8px;font-size:11px;padding:3px 0;color:var(--muted)}
+.detail-no{width:28px;flex-shrink:0;font-weight:600;color:var(--text)}
+.detail-t{flex:1}
+.detail-sc{width:28px;text-align:right;font-weight:700;color:var(--text)}
+.fab-delete{position:fixed;left:50%;bottom:72px;transform:translateX(-50%);background:#A32D2D;color:#fff;border:none;padding:12px 22px;border-radius:30px;font-size:13px;font-weight:700;box-shadow:0 8px 20px -4px rgba(163,45,45,.5);cursor:pointer;z-index:150;display:flex;align-items:center;gap:6px}
+.fab-delete:active{transform:translateX(-50%) scale(.96)}
+.recent-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:13px;margin-bottom:13px}
+.recent-title{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:9px}
+.recent-empty{text-align:center;padding:12px 0;font-size:12px;color:var(--light)}
+
+/* FORM */
+.fcard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:12px}
+.fhead{padding:12px 15px}
+.fhead-title{font-size:14px;font-weight:600;color:#fff}
+.fbody{padding:13px;display:flex;flex-direction:column;gap:11px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:4px}
+.flbl{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+.inp{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;color:var(--text);background:#fff;outline:none;transition:border-color .15s;-webkit-appearance:none;font-family:inherit}
+.inp:focus{border-color:var(--green)}
+.inp.inp-err{border-color:#A32D2D;box-shadow:0 0 0 2px rgba(163,45,45,.15)}
+select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:30px}
+.tip-box{padding:10px 12px;background:var(--gl);border-radius:var(--rs);border-left:3px solid var(--green);font-size:12px;color:var(--gd);line-height:1.6}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;display:flex;align-items:flex-end;justify-content:center;padding:0}
+.modal-box{background:var(--card);border-radius:16px 16px 0 0;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:16px;padding-bottom:env(safe-area-inset-bottom,16px)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.modal-title{font-size:15px;font-weight:700}
+.modal-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--bg);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.modal-img{width:100%;border-radius:var(--rs);margin-bottom:10px;display:block}
+.modal-caption{font-size:12px;color:var(--muted);line-height:1.6;background:var(--gl);padding:10px 12px;border-radius:var(--rs);border-left:3px solid var(--green)}
+.pv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1002;display:none;align-items:center;justify-content:center;padding:16px}
+.pv-overlay img{max-width:100%;max-height:88vh;border-radius:8px;object-fit:contain;box-shadow:0 6px 30px rgba(0,0,0,.5)}
+.pv-close{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;width:42px;height:42px;border-radius:50%;border:none;background:rgba(255,255,255,.16);color:#fff;font-size:24px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pv-hint{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:0;right:0;text-align:center;color:rgba(255,255,255,.7);font-size:12px}
+
+/* INSPECT */
+.hmvd-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:10px}
+.icard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:11px}
+.ihead{padding:13px 15px}
+.itop{display:flex;align-items:flex-start;gap:9px}
+.ino{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px}
+.ititle{font-size:14px;font-weight:700;line-height:1.4;flex:1}
+.idetail{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6;padding-left:36px}
+.std-btn-wrap{padding:6px 15px 0;display:flex;justify-content:flex-end}
+.std-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;background:#E6F1FB;color:#185FA5;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+.crit{margin:8px 15px 0;padding:9px 11px;border-radius:var(--rs);font-size:12px;line-height:1.6;border:1px solid transparent}
+.ssec{padding:11px 15px;border-top:1px solid var(--border);background:#FAFBFC}
+.slbl{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:7px}
+.srow{display:grid;grid-template-columns:repeat(5,1fr) 1.1fr;gap:5px}
+.sc{padding:9px 2px;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:16px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .12s;text-align:center;line-height:1}
+.sc span{font-size:9px;font-weight:400;margin-top:3px;display:block}
+.sc.v0{background:#F5E6E6;border-color:#DDA0A0;color:#7A1515}
+.sc.v1{background:#FCEBEB;border-color:#F09595;color:#A32D2D}
+.sc.v2{background:#FAEEDA;border-color:#EF9F27;color:#854F0B}
+.sc.v3{background:#E1F5EE;border-color:#5DCAA5;color:#0F6E56}
+.sc.v4{background:#D0F0E4;border-color:#1D9E75;color:#085041}
+.sc.vna{background:#E6F1FB;border-color:#378ADD;color:#185FA5;font-size:13px}
+.na-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;background:#E6F1FB;color:#185FA5;font-size:11px;font-weight:700;margin-top:6px}
+.nsec{padding:9px 15px}
+.nlbl{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.ninp{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--text);resize:none;height:52px;outline:none;font-family:inherit;line-height:1.5}
+.ninp:focus{border-color:var(--green)}
+.psec{padding:0 15px 12px;display:flex;gap:7px;align-items:flex-start;flex-wrap:wrap}
+.pbtn{width:50px;height:50px;border-radius:var(--rs);border:1.5px dashed var(--border);background:#FAFBFC;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:9px;gap:2px;cursor:pointer;flex-shrink:0}
+.pbtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.pthumb-wrap{position:relative}
+.pthumb{width:50px;height:50px;border-radius:var(--rs);object-fit:cover;border:1px solid var(--border);display:block;cursor:zoom-in}
+.pdel{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.mini{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:11px 15px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.mini-n{font-size:25px;font-weight:800;line-height:1}
+.mini-mx{font-size:11px;color:var(--muted);margin-top:1px}
+.mini-r{flex:1}
+.mini-track{height:7px;background:#EEF2F7;border-radius:4px;overflow:hidden;margin-bottom:4px}
+.mini-fill{height:100%;border-radius:4px;transition:width .4s}
+.mini-bot{display:flex;justify-content:space-between;align-items:baseline}
+.mini-hint{font-size:11px;color:var(--muted)}
+.mini-pct{font-size:14px;font-weight:800}
+.botnav{display:flex;gap:8px;padding-bottom:env(safe-area-inset-bottom,8px);margin-top:4px}
+.btnback{padding:12px 15px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.btnnext{flex:1;padding:12px;background:var(--green);color:#fff;border:none;border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.btnnext:active{background:var(--gd)}
+.btnfull{width:100%;padding:13px;border:none;border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:8px}
+.bg{background:var(--green);color:#fff}.bg:active{background:var(--gd)}
+.bo{background:#fff;border:1.5px solid var(--border);color:var(--muted)}
+
+/* SUMMARY */
+.sum-hero{background:linear-gradient(135deg,#0a5240,#0F6E56);border-radius:var(--r);padding:17px;display:flex;align-items:center;gap:14px;margin-bottom:13px}
+.hring{width:78px;height:78px;border-radius:50%;border:3px solid rgba(255,255,255,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,.12)}
+.hn{font-size:26px;font-weight:800;color:#fff;line-height:1}
+.hmx{font-size:10px;color:rgba(255,255,255,.65);margin-top:1px}
+.hr{flex:1}
+.hpct{font-size:36px;font-weight:800;color:#fff;line-height:1}
+.hlbl{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px}
+.hbadge{margin-top:7px;display:inline-flex;align-items:center;gap:4px;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(255,255,255,.2);color:#fff}
+.scard{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:11px}
+.shd{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:#FAFBFC}
+.sico{width:27px;height:27px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.sttl{font-size:13px;font-weight:700;flex:1}
+.sbd{padding:13px 15px}
+.br-row{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.br-row:last-child{margin-bottom:0}
+.br-n{font-size:11px;width:70px;flex-shrink:0;font-weight:600}
+.br-track{flex:1;height:8px;background:#EEF2F7;border-radius:4px;overflow:hidden}
+.br-fill{height:100%;border-radius:4px}
+.br-v{font-size:13px;font-weight:700}
+.br-p{font-size:10px;color:var(--muted)}
+.lvstrip{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:13px}
+.lvbox{text-align:center;padding:7px 3px;border-radius:var(--rs);border:2px solid transparent}
+.lvn{font-size:10px;font-weight:800}
+.lvl{font-size:9px;margin-top:1px}
+.df-item{border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;margin-bottom:7px}
+.df-item:last-child{margin-bottom:0}
+.df-hd{display:flex;align-items:center;gap:7px;padding:8px 11px;background:#FAFBFC}
+.df-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.df-ttl{font-size:12px;font-weight:700;flex:1;line-height:1.4}
+.df-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;flex-shrink:0}
+.df-note{padding:7px 11px;font-size:12px;color:var(--muted);line-height:1.6}
+.df-photos{padding:0 11px 8px;display:flex;gap:5px;flex-wrap:wrap}
+.df-photo{width:58px;height:58px;border-radius:var(--rs);object-fit:cover;border:1px solid var(--border);cursor:zoom-in}
+.sigrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.sigbox{border:1px solid var(--border);border-radius:var(--rs);padding:9px;text-align:center}
+.sigline{height:1px;background:var(--border);margin:17px 0 5px}
+.siglbl{font-size:10px;color:var(--muted)}
+
+/* HISTORY / RANKING */
+.hitem{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:11px}
+.hico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.hinfo{flex:1}
+.htitle{font-size:13px;font-weight:700}
+.hmeta{font-size:11px;color:var(--muted);margin-top:2px}
+.hscore{text-align:right;flex-shrink:0}
+.hpct{font-size:18px;font-weight:800}
+.hlv{font-size:10px;color:var(--muted);margin-top:1px}
+.ritem{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.rnum{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.rinfo{flex:1}
+.rname{font-size:13px;font-weight:700}
+.rmeta{font-size:11px;color:var(--muted);margin-top:2px}
+.rtrack{margin-top:5px;height:6px;background:#EEF2F7;border-radius:3px;overflow:hidden}
+.rfill{height:100%;border-radius:3px}
+.rpct{font-size:17px;font-weight:800;text-align:right;min-width:48px}
+.empty-state{text-align:center;padding:40px 16px;color:var(--muted)}
+.empty-icon{font-size:46px;margin-bottom:10px}
+.empty-title{font-size:15px;font-weight:600;margin-bottom:5px}
+.empty-desc{font-size:13px;line-height:1.6}
+.sec-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);letter-spacing:.04em}
+
+/* ===== PRINT REPORT (A4, 1 page) ===== */
+#print-report{position:fixed;left:-9999px;top:0;width:210mm;height:297mm;background:#fff;overflow:hidden;z-index:-1}
+.pr-page{width:210mm;box-sizing:border-box;padding:0 10mm;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1A202C;transform-origin:top left;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
+.pr-page *{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
+.pr-head{display:flex;align-items:stretch;gap:6mm;padding-bottom:3.5mm;margin-bottom:4mm;position:relative}
+.pr-head::after{content:'';position:absolute;left:0;right:0;bottom:0;height:.9mm;border-radius:1mm;background:var(--pr-accent,#1A1A2E)}
+.pr-brand{display:flex;align-items:center;gap:3mm;flex-shrink:0}
+.pr-logo{width:11mm;height:11mm;border-radius:3mm;background:var(--pr-accent,#1A1A2E);color:#fff;display:flex;align-items:center;justify-content:center;font-size:6mm}
+.pr-h1{font-size:4.6mm;font-weight:800;line-height:1.2}
+.pr-h2{font-size:2.6mm;color:#64748B;margin-top:.5mm}
+.pr-meta{flex:1;display:flex;flex-wrap:wrap;align-content:center;gap:1.5mm 4mm;font-size:2.7mm;color:#334155;padding:0 3mm}
+.pr-meta b{color:#1A202C}
+.pr-score{flex-shrink:0;width:36mm;border-radius:3mm;padding:2.2mm 3mm;text-align:center;color:#fff;display:flex;flex-direction:column;justify-content:center;
+  background-color:var(--pr-g2,#0F6E56);background-image:linear-gradient(135deg,var(--pr-g1,#0a5240),var(--pr-g2,#0F6E56));box-shadow:0 1mm 2.5mm rgba(0,0,0,.18)}
+.pr-score-n{font-size:8.2mm;font-weight:800;line-height:1;letter-spacing:-.02em}
+.pr-score-mx{font-size:2.3mm;opacity:.85}
+.pr-score-lv{margin-top:1.2mm;font-size:2.6mm;font-weight:700;background:rgba(255,255,255,.24);border-radius:8mm;padding:.9mm 2mm;display:inline-block}
+.pr-sec-ttl{font-size:3mm;font-weight:800;color:#1A1A2E;margin:3.2mm 0 2mm;letter-spacing:.02em;display:flex;align-items:center;gap:1.6mm}
+.pr-sec-ttl::before{content:'';width:1.4mm;height:1.4mm;border-radius:50%;background:var(--pr-accent,#1A1A2E);flex-shrink:0}
+.pr-bars{display:flex;flex-direction:column;gap:2mm}
+.pr-bar-row{display:flex;align-items:center;gap:2.5mm}
+.pr-bar-n{width:20mm;flex-shrink:0;font-size:2.7mm;font-weight:700}
+.pr-bar-track{flex:1;height:3.2mm;background:#EEF2F7;border-radius:1.6mm;overflow:hidden}
+.pr-bar-fill{height:100%;border-radius:1.6mm}
+.pr-bar-v{width:19mm;flex-shrink:0;text-align:right;font-size:2.7mm}
+.pr-bar-v b{font-size:2.7mm;font-weight:700}
+.pr-bar-pct{font-size:2.1mm;color:#94A3B8;margin-left:.8mm}
+.pr-levels{display:grid;grid-template-columns:repeat(5,1fr);gap:1.5mm;margin:3.2mm 0}
+.pr-lvbox{text-align:center;padding:1.4mm 1mm;border-radius:1.5mm;border:.4mm solid transparent}
+.pr-lvn{font-size:2.5mm;font-weight:800}
+.pr-lvl{font-size:2.1mm;margin-top:.3mm}
+.pr-defects{column-count:2;column-gap:4mm}
+.pr-dcard{break-inside:avoid;background:#FAFBFC;border:.2mm solid #E7ECF2;border-left:1mm solid var(--pr-cat,#94A3B8);border-radius:0 1.5mm 1.5mm 0;padding:1.8mm 2.2mm;margin-bottom:2mm;display:flex;gap:2mm;align-items:flex-start}
+.pr-dtxt{flex:1;min-width:0}
+.pr-dttl{font-size:2.7mm;font-weight:700;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pr-dbadge{font-size:2.2mm;font-weight:700;padding:.4mm 1.4mm;border-radius:1.5mm;margin-left:1.2mm;white-space:nowrap}
+.pr-dnote{font-size:2.3mm;color:#64748B;line-height:1.35;margin-top:.6mm;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pr-dph{width:13mm;height:13mm;object-fit:cover;border-radius:1mm;border:.25mm solid #DDE3EC;flex-shrink:0}
+.pr-ok{text-align:center;padding:6mm;color:#0F6E56;font-size:3.2mm;font-weight:700;border:.3mm dashed #5DCAA5;border-radius:2mm;background:#E1F5EE}
+.pr-sig{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm;margin-top:6mm;padding-top:5mm}
+.pr-sigline{border-top:.3mm solid #94A3B8;margin-bottom:1.3mm}
+.pr-siglbl{font-size:2.5mm;color:#64748B;text-align:center}
+.pr-foot{margin-top:2mm;font-size:2mm;color:#94A3B8;text-align:center}
+/* ===== DESKTOP (Sidebar + Dashboard) ===== */
+@media (min-width:1000px){
+  .tab-bar{position:fixed;left:0;top:0;bottom:0;width:220px;border-top:none;border-right:1px solid rgba(255,255,255,.08);z-index:210;overflow-y:auto}
+  .tab-bar::before{content:'🏭  5ส Pro';position:absolute;top:0;left:0;right:0;height:60px;display:flex;align-items:center;gap:8px;padding:0 20px;font-size:16px;font-weight:700;color:#fff;border-bottom:1px solid rgba(255,255,255,.08);background:var(--hdr)}
+  .tab-inner{max-width:none;flex-direction:column;align-items:stretch;padding:74px 12px 20px;gap:4px}
+  .tb{flex:none;flex-direction:row;justify-content:flex-start;gap:13px;padding:11px 16px;font-size:14px;border-radius:10px}
+  .tb svg{width:22px;height:22px}
+  .tb.on{background:rgba(255,255,255,.08)}
+  .navbar{margin-left:220px}
+  .pg{margin-left:220px}
+  .nb-inner{max-width:1120px;padding:14px 34px 0}
+  .wrap{max-width:1120px;padding:24px 34px}
+  .area-grid{grid-template-columns:repeat(4,1fr)}
+  #hist-list,#rank-list,#admin-list{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start}
+  #hist-list>.empty-state,#rank-list>.empty-state,#admin-list>.empty-state,#rank-list>.sec-title{grid-column:1/-1}
+  .modal-overlay{align-items:center}
+  .modal-box{border-radius:16px;max-width:560px}
+  .fab-delete{left:calc(50% + 110px)}
+}
+@media print{
+  @page{size:A4;margin:9mm 0}
+  html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;height:auto!important;min-height:0!important}
+  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-compare,#pg-admin,.modal-overlay,.pv-overlay,.toast,.fab-delete{display:none!important}
+  #print-report{position:static!important;height:auto!important;overflow:visible!important;z-index:auto}
+  #pr-inner .pr-dcard,#pr-inner .pr-bar-row,#pr-inner .pr-lvbox,#pr-inner .pr-head,#pr-inner .pr-score,#pr-inner .pr-ok{break-inside:avoid;page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="navbar">
+  <div class="nb-inner">
+    <div class="nb-row">
+      <div class="nb-logo">🏭</div>
+      <div style="flex:1">
+        <div class="nb-title">แบบตรวจ 5ส Pro</div>
+      </div>
+      <div class="nb-ver">v3.0</div>
+    </div>
+    <div class="nb-sub" id="nb-sub">เลือกพื้นที่เพื่อเริ่มตรวจ</div>
+    <div class="pb-wrap">
+      <div class="pb-track"><div class="pb-fill" id="pb" style="width:0%"></div></div>
+      <div class="pb-lbl" id="pb-lbl">0/25</div>
+    </div>
+  </div>
+</div>
+<div class="tab-bar">
+  <div class="tab-inner">
+    <button class="tb on" onclick="goTab('home')" id="t-home">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>หน้าหลัก
+    </button>
+    <button class="tb" onclick="goTab('inspect')" id="t-inspect">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>ตรวจ
+    </button>
+    <button class="tb" onclick="goTab('history')" id="t-history">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>ประวัติ
+    </button>
+    <button class="tb" onclick="goTab('ranking')" id="t-ranking">
+      <svg viewBox="0 0 24 24"><polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/></svg>Ranking
+    </button>
+    <button class="tb" onclick="goTab('compare')" id="t-compare">
+      <svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M6 8h12"/><path d="M6 8l-3 6a3 3 0 0 0 6 0z"/><path d="M18 8l-3 6a3 3 0 0 0 6 0z"/><path d="M8 21h8"/></svg>เทียบเกณฑ์
+    </button>
+    <button class="tb" onclick="goTab('admin')" id="t-admin">
+      <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>ข้อมูลรวม
+    </button>
+  </div>
+</div>
+
+<div class="pg on" id="pg-home"><div class="wrap">
+  <div class="hero-card">
+    <div class="hero-title">ระบบตรวจ 5ส Pro</div>
+    <div class="hero-sub">Office · Store · โรงแบบอลูมิเนียม · พื้นที่อื่นๆ</div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-n" id="st-tot">0</div><div class="stat-l">ครั้งที่ตรวจ</div></div>
+      <div class="stat-box"><div class="stat-n" id="st-avg">—</div><div class="stat-l">คะแนนเฉลี่ย</div></div>
+      <div class="stat-box"><div class="stat-n" id="st-pass">0</div><div class="stat-l">ผ่านเกณฑ์</div></div>
+    </div>
+  </div>
+  <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:9px;letter-spacing:.04em">เลือกพื้นที่ตรวจ</div>
+  <div class="area-grid">
+    <div class="area-card" onclick="selArea('Office')" id="ac-Office" style="border-color:#0E8F6C">
+      <div class="area-check">✓</div>
+      <div class="area-icon">🏢</div><div class="area-name" style="color:#0E8F6C">Office</div>
+      <div class="area-desc">สำนักงาน</div><div class="area-cnt">25 หัวข้อ · 100 คะแนน</div>
+      <div class="area-badge" style="background:#E1F5EE;color:#0E8F6C">พร้อม</div>
+    </div>
+    <div class="area-card" onclick="selArea('Store')" id="ac-Store" style="border-color:#0D6EA6">
+      <div class="area-check">✓</div>
+      <div class="area-icon">🏭</div><div class="area-name" style="color:#0D6EA6">Store</div>
+      <div class="area-desc">คลังสินค้า</div><div class="area-cnt">25 หัวข้อ · 100 คะแนน</div>
+      <div class="area-badge" style="background:#E3F1FA;color:#0D6EA6">พร้อม</div>
+    </div>
+    <div class="area-card" onclick="selArea('Alu')" id="ac-Alu" style="border-color:#7C3AED">
+      <div class="area-check">✓</div>
+      <div class="area-icon">🔧</div><div class="area-name" style="color:#7C3AED">โรงแบบอลูมิเนียม</div>
+      <div class="area-desc">โรงงานผลิต</div><div class="area-cnt">25 หัวข้อ · 100 คะแนน</div>
+      <div class="area-badge" style="background:#F1E9FE;color:#7C3AED">พร้อม</div>
+    </div>
+    <div class="area-card" onclick="selArea('Custom')" id="ac-Custom" style="border-color:#B8650A">
+      <div class="area-check">✓</div>
+      <div class="area-icon">➕</div><div class="area-name" style="color:#B8650A">พื้นที่อื่นๆ</div>
+      <div class="area-desc">กำหนดเอง</div><div class="area-cnt">25 หัวข้อ · 100 คะแนน</div>
+      <div class="area-badge" style="background:#FAEEDA;color:#B8650A">กำหนดเอง</div>
+    </div>
+  </div>
+  <div class="recent-card">
+    <div class="recent-title">⏱ ล่าสุด</div>
+    <div id="recent-list"><div class="recent-empty">ยังไม่มีประวัติ</div></div>
+  </div>
+  <button class="btnfull bg" onclick="startInspect()">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>เริ่มตรวจ
+  </button>
+</div></div>
+
+<div class="pg" id="pg-inspect"><div class="wrap">
+  <div id="st-info">
+    <div class="fcard">
+      <div class="fhead" id="fhead" style="background:var(--hdr)"><div class="fhead-title" id="fhead-title">ข้อมูลการตรวจ</div></div>
+      <div class="fbody">
+        <div id="custom-field" style="display:none">
+          <div class="field"><div class="flbl">ชื่อพื้นที่ (กำหนดเอง)</div>
+            <input class="inp" id="f-custom" placeholder="เช่น ห้องน้ำ, ที่จอดรถ"></div>
+        </div>
+        <div class="frow">
+          <div class="field"><div class="flbl">หน่วยงาน <span style="color:#A32D2D">*</span></div>
+            <select class="inp" id="f-dept" onchange="this.classList.remove('inp-err')"><option value="">-- เลือก --</option>
+              <option>BIM</option><option>WHS</option><option>AS</option><option>DBD</option><option>RD</option></select></div>
+          <div class="field"><div class="flbl">วันที่ตรวจ</div><input class="inp" type="date" id="f-date"></div>
+        </div>
+        <div class="field"><div class="flbl">พื้นที่ตรวจ</div><input class="inp" id="f-area" placeholder="เช่น ชั้น 3 โซน A"></div>
+        <div class="frow">
+          <div class="field"><div class="flbl">ผู้ตรวจ <span style="color:#A32D2D">*</span></div><input class="inp" id="f-insp" placeholder="ชื่อ-นามสกุล" oninput="this.classList.remove('inp-err')"></div>
+          <div class="field"><div class="flbl">รอบการตรวจ</div>
+            <select class="inp" id="f-round">
+              <option>มกราคม</option><option>กุมภาพันธ์</option><option>มีนาคม</option>
+              <option>เมษายน</option><option>พฤษภาคม</option><option>มิถุนายน</option>
+              <option>กรกฎาคม</option><option>สิงหาคม</option><option>กันยายน</option>
+              <option>ตุลาคม</option><option>พฤศจิกายน</option><option>ธันวาคม</option>
+            </select></div>
+        </div>
+        <div class="tip-box"><b>เกณฑ์ 0–4</b> &nbsp;|&nbsp; 4=ดีมาก · 3=ดี · 2=พอใช้ · 1=ต้องปรับปรุง · 0=ไม่ผ่าน<br>25 หัวข้อ × 4 = <b>100 คะแนนเต็ม</b> · ผ่านเกณฑ์ ≥ 80 คะแนน</div>
+      </div>
+    </div>
+    <div class="botnav">
+      <button class="btnback" onclick="goTab('home')">← หน้าหลัก</button>
+      <button class="btnnext" onclick="startItems()">เริ่มตรวจ <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+    </div>
+  </div>
+  <div id="st-items" style="display:none">
+    <div id="item-area"></div>
+    <div class="mini">
+      <div><div class="mini-n" id="ms-n">0</div><div class="mini-mx">/100</div></div>
+      <div class="mini-r">
+        <div class="mini-track"><div class="mini-fill" id="ms-bar" style="width:0%"></div></div>
+        <div class="mini-bot"><div class="mini-hint">คะแนนสะสม</div><div class="mini-pct" id="ms-pct">0%</div></div>
+      </div>
+    </div>
+    <div class="botnav">
+      <button class="btnback" onclick="prevItem()">← ย้อนกลับ</button>
+      <button class="btnnext" id="btn-next" onclick="nextItem()">ถัดไป →</button>
+    </div>
+  </div>
+  <div id="st-sum" style="display:none">
+    <div id="sum-content"></div>
+    <div class="sigrow">
+      <div class="sigbox"><div class="sigline"></div><div class="siglbl">ผู้ตรวจ</div></div>
+      <div class="sigbox"><div class="sigline"></div><div class="siglbl">ผู้รับผิดชอบ</div></div>
+      <div class="sigbox"><div class="sigline"></div><div class="siglbl">ผู้อนุมัติ</div></div>
+    </div>
+    <button class="btnfull bg" id="btn-back-admin" style="display:none" onclick="goTab('admin')">← กลับข้อมูลรวม</button>
+    <button class="btnfull bg" id="btn-save" onclick="saveResult()">💾 บันทึกผลการตรวจ</button>
+    <button class="btnfull bo" onclick="printReport()">🖨️ พิมพ์รายงาน PDF</button>
+    <button class="btnfull bo" id="btn-reset" onclick="resetAll()">🔄 เริ่มตรวจใหม่</button>
+    <div style="height:14px"></div>
+  </div>
+</div></div>
+
+<div class="pg" id="pg-history"><div class="wrap">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+    <div class="sec-title" style="margin:0;padding:0;border:none">ประวัติการตรวจทั้งหมด</div>
+    <button class="exp-btn" onclick="exportCSV()">📥 Export CSV</button>
+  </div>
+  <div id="hist-list"></div>
+</div></div>
+
+<div class="pg" id="pg-ranking"><div class="wrap">
+  <div class="sec-title">Ranking คะแนนแต่ละพื้นที่</div>
+  <div id="rank-list"></div>
+</div></div>
+
+<div class="pg" id="pg-compare"><div class="wrap">
+  <div class="sec-title">เทียบเกณฑ์ · คะแนนรายผู้ตรวจ</div>
+  <div style="font-size:12px;color:var(--muted);margin:-4px 0 12px">ดูว่าเกณฑ์แต่ละข้อ เมื่อหลายคนตรวจที่เดียวกัน ให้คะแนนตรงกันไหม</div>
+  <div id="cmp-filters"></div>
+  <div id="cmp-body"></div>
+</div></div>
+
+<div class="pg" id="pg-admin"><div class="wrap">
+  <div id="admin-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+      <div class="sec-title" style="margin:0;padding:0;border:none">ข้อมูลรวมทุกคนประเมิน (<span id="admin-count">0</span>)</div>
+      <div style="display:flex;gap:6px">
+        <button class="exp-btn" onclick="loadAdminData()">🔄 รีเฟรช</button>
+      </div>
+    </div>
+    <div id="admin-list"></div>
+  </div>
+</div></div>
+<button class="fab-delete" id="admin-fab" style="display:none" onclick="deleteSelectedAdmin()">🗑️ ลบที่เลือก (<span id="admin-fab-n">0</span>)</button>
+
+<div id="print-report"><div class="pr-page" id="pr-inner"></div></div>
+<!-- MODAL รูปมาตรฐาน -->
+<div class="modal-overlay" id="std-modal" style="display:none" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">📐 รูปมาตรฐาน Office</div>
+      <button class="modal-close" onclick="closeStdModal()">×</button>
+    </div>
+    <div id="std-gallery" style="display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:70vh"></div>
+    <div class="modal-caption" id="std-caption"></div>
+  </div>
+</div>
+
+<!-- PHOTO LIGHTBOX -->
+<div class="pv-overlay" id="photo-viewer" onclick="closePhoto(event)">
+  <button class="pv-close" onclick="closePhoto()" aria-label="ปิด">×</button>
+  <img id="pv-img" src="" alt="รูปที่แนบมา">
+  <div class="pv-hint">แตะพื้นที่ว่างเพื่อปิด</div>
+</div>
+
+<!-- EVIDENCE POPUP (คะแนน + รูป + เกณฑ์) -->
+<div class="pv-overlay" id="cmp-ev" style="z-index:1001;background:rgba(0,0,0,.55);align-items:flex-start;padding:24px 14px;overflow:auto" onclick="cmpEvClose(event)">
+  <div id="cmp-ev-card" onclick="event.stopPropagation()" style="background:var(--card);border-radius:16px;max-width:560px;width:100%;margin:auto;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.3)"></div>
+</div>
+
+<!-- SAVE SPINNER -->
+<div class="modal-overlay" id="save-spinner" style="display:none;align-items:center;background:rgba(15,20,30,.6)">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+    <div class="spinner"></div>
+    <div id="save-spinner-lbl" style="color:#fff;font-size:13px;font-weight:600">กำลังบันทึกผล...</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<input type="file" id="photo-inp" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyDS06AiH5y1XRQyRrIZuuqZTGt1QpgKzeU",authDomain:"fir-area-standards.firebaseapp.com",projectId:"fir-area-standards",storageBucket:"fir-area-standards.firebasestorage.app",messagingSenderId:"635164427514",appId:"1:635164427514:web:aec1a0f7947cf4b87af543"};
+let db=null,storage=null;
+try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();storage=firebase.storage();}catch(e){console.warn('[firebase] init failed — จะบันทึกลงเครื่องอย่างเดียว',e);}
+// ── Cloudflare R2 (ที่เก็บรูป) ──
+// R2_WORKER = URL ของ Worker หลัง deploy (เช่น https://s5-photos.<subdomain>.workers.dev). เว้นว่าง = เก็บ base64 อย่างเดียว
+// R2_TOKEN  = ต้องตรงกับ secret UPLOAD_TOKEN ของ Worker. เป็น public โดยดีไซน์ (ดู worker/src/index.js)
+const R2_WORKER='https://s5-photos.maildbd2004.workers.dev';
+const R2_TOKEN='s5tok_326c616de8295e77b6242db1';
+// แปลง data: URL เป็น Blob เพื่ออัปโหลด
+function dataUrlToBlob(dataUrl){const parts=dataUrl.split(',');const mime=(parts[0].match(/data:([^;]+)/)||[,'image/jpeg'])[1];const bin=atob(parts[1]);const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime});}
+// อัปโหลดรูป 1 ใบ (data: URL หรือ URL ปลายทาง) ขึ้น R2 ผ่าน Worker → คืน URL ของไฟล์บน R2 (ไม่สำเร็จ = throw)
+async function r2Upload(path,src){
+  let blob;
+  if(typeof src==='string'&&src.startsWith('data:'))blob=dataUrlToBlob(src);
+  else{const r=await fetch(src);if(!r.ok)throw new Error('fetch source failed '+r.status);blob=await r.blob();}
+  const res=await fetch(R2_WORKER.replace(/\/$/,'')+'/upload',{method:'POST',headers:{'Content-Type':blob.type||'image/jpeg','x-upload-token':R2_TOKEN,'x-file-path':path},body:blob});
+  if(!res.ok)throw new Error('R2 upload failed '+res.status);
+  const j=await res.json();return j.url;
+}
+// ลบรูปทั้งหมดของ inspection หนึ่งใน R2 (best-effort — ล้มก็ไม่ขัดการลบ Firestore)
+async function r2DeleteInspection(id){
+  if(!R2_WORKER||!id)return null;
+  try{
+    const res=await fetch(R2_WORKER.replace(/\/$/,'')+'/inspection/'+encodeURIComponent(id),{method:'DELETE',headers:{'x-upload-token':R2_TOKEN}});
+    if(!res.ok){console.warn('[r2] delete failed',id,res.status);return null;}
+    return (await res.json()).deleted;
+  }catch(err){console.warn('[r2] delete error',id,err);return null;}
+}
+const HMVD=["สะสาง","สะดวก","สะอาด","สร้างมาตรฐาน","สร้างวินัย"];
+const HC={"สะสาง":"#0E8F6C","สะดวก":"#0D6EA6","สะอาด":"#7C3AED","สร้างมาตรฐาน":"#B8650A","สร้างวินัย":"#C2255C"};
+const HB={"สะสาง":"#E1F5EE","สะดวก":"#E3F1FA","สะอาด":"#F1E9FE","สร้างมาตรฐาน":"#FAEEDA","สร้างวินัย":"#FCE8EF"};
+const SL=["ไม่ผ่าน","ต้องปรับ","พอใช้","ดี","ดีมาก"];
+const SBG=["#F5E6E6","#FCEBEB","#FAEEDA","#E1F5EE","#D0F0E4"];
+const SFG=["#7A1515","#A32D2D","#854F0B","#0F6E56","#085041"];
+const SBC=["#DDA0A0","#F09595","#EF9F27","#5DCAA5","#1D9E75"];
+const AICO={"Office":"🏢","Store":"🏭","Alu":"🔧","Custom":"📍"};
+const ACOL={"Office":"#0E8F6C","Store":"#0D6EA6","Alu":"#7C3AED","Custom":"#B8650A"};
+const ATINT={"Office":"#E1F5EE","Store":"#E3F1FA","Alu":"#F1E9FE","Custom":"#FAEEDA"};
+const ABG={"Office":"#E1F5EE","Store":"#E3F1FA","Alu":"#F1E9FE","Custom":"#FAEEDA"};
+const ANAME={"Office":"Office (สำนักงาน)","Store":"Store (คลังสินค้า)","Alu":"โรงแบบอลูมิเนียม","Custom":"พื้นที่อื่นๆ"};
+const STD_IMG_OFFICE_ZONES={desk:['std/desk_1.jpg','std/desk_2.jpg'],drawer:['std/drawer_1.jpg','std/drawer_2.jpg','std/drawer_3.jpg'],supply_personal:[],supply_central:['std/supply_central_1.jpg','std/supply_central_2.jpg'],cabinet:['std/cabinet.jpg'],files:[],central_storage:['std/central_storage.jpg'],walkway:[],board:['std/board.jpg'],water:['std/water.jpg'],toilet:['std/toilet_1.jpg','std/toilet_2.jpg']};
+const STD_ZONE_NAME={desk:'โต๊ะทำงาน',drawer:'ลิ้นชัก',supply_personal:'อุปกรณ์สำนักงาน (ส่วนบุคคล)',supply_central:'อุปกรณ์สำนักงาน (ส่วนกลาง)',cabinet:'ตู้เอกสาร',files:'แฟ้มและเอกสาร',central_storage:'ตู้เก็บของส่วนกลาง',walkway:'พื้นที่ทำงานและทางเดิน',board:'บอร์ดประชาสัมพันธ์',water:'จุดน้ำดื่ม/ตู้เย็น',toilet:'ห้องน้ำ'};
+
+const OFFICE_V1=[
+  {no:"1.1",h:"สะสาง",t:"การควบคุมเอกสารและงานค้าง",d:"บนโต๊ะให้มีเฉพาะเอกสารที่อยู่ระหว่างดำเนินการและจัดวางเป็นระเบียบ เอกสารรอดำเนินการและดำเนินการเสร็จแล้วต้องจัดเก็บในพื้นที่ที่กำหนด",c:["ไม่มีการจัดการเอกสาร หรือมีเอกสารสะสมจนรบกวนพื้นที่ทำงาน","มีการจัดการแต่พบเอกสารไม่เป็นไปตามเกณฑ์มากกว่า 5 ฉบับ","พบเอกสารไม่เป็นไปตามเกณฑ์ 3-5 ฉบับ","พบเอกสารไม่เป็นไปตามเกณฑ์1- 2 ฉบับ","ไม่พบเอกสารไม่เป็นไปตามเกณฑ์ และจัดเก็บตามสถานะที่กำหนดครบถ้วน"]},
+  {no:"1.2",h:"สะสาง",t:"การคัดแยกของชำรุด / เสื่อมสภาพ",d:"อุปกรณ์ IT เฟอร์นิเจอร์ เครื่องใช้สำนักงาน หรือทรัพย์สินที่ชำรุดต้องแยกออกจากของพร้อมใช้ และระบุสถานะให้ชัดเจน",c:["ไม่มีการแยกของชำรุดออกจากของพร้อมใช้งาน เสี่ยงนำไปใช้งานผิด","พบของชำรุด/เสื่อมสภาพที่ไม่ได้แยกหรือระบุสถานะ มากกว่า 5 รายการ","พบของชำรุด/เสื่อมสภาพที่ไม่ได้แยกหรือระบุสถานะ 3–5 รายการ","พบของชำรุด/เสื่อมสภาพที่ไม่ได้แยกหรือระบุสถานะ 1–2 รายการ","ไม่พบของชำรุดที่ไม่ได้แยกหรือระบุสถานะ"]},
+  {no:"1.3",h:"สะสาง",t:"การควบคุมของใช้ส่วนตัว",d:"โต๊ะทำงาน ต้องจัดเก็บของใช้ส่วนตัวไว้ในลิ้นชักส่วนตัว และไม่ให้วางบนโต๊ะรบกวนพื้นที่ทำงาน",c:["ไม่มีการกำหนดหรือควบคุมพื้นที่สำหรับของใช้ส่วนตัว/ของตกแต่ง จนรบกวนพื้นที่ทำงาน","พบของใช้ส่วนตัวที่ไม่เป็นไปตามเกณฑ์ มากกว่า 5 รายการ","พบของใช้ส่วนตัวที่ไม่เป็นไปตามเกณฑ์ 3–5 รายการ","พบของใช้ส่วนตัวที่ไม่เป็นไปตามเกณฑ์ 1–2 รายการ","ไม่พบรายการที่ไม่เป็นไปตามเกณฑ์"]},
+  {no:"1.4",h:"สะสาง",t:"การควบคุมของไม่จำเป็นในพื้นที่ส่วนกลาง",d:"ห้องประชุม มุมพักผ่อน ห้องครัว ทางเดิน และพื้นที่ส่วนกลางต้องไม่มีวัสดุอุปกรณ์ที่ไม่เกี่ยวข้องกับพื้นที่นั้นๆ",c:["ไม่มีการควบคุมพื้นที่ส่วนกลาง จนกระทบการใช้งาน","พบของไม่จำเป็น มากกว่า 5 รายการ/จุด","พบของไม่จำเป็น 3–5 รายการ/จุด","พบของไม่จำเป็น 1–2 รายการ/จุด","ไม่พบของไม่จำเป็นในพื้นที่ส่วนกลาง"]},
+  {no:"1.5",h:"สะสาง",t:"การแยกประเภทและการจัดเก็บสิ่งของ",d:"สิ่งของ เครื่องมือ อุปกรณ์ และวัสดุต้องแยกประเภท จัดเก็บตามตำแหน่งป้ายที่กำหนด",c:["ไม่มีการแยกประเภทหรือไม่มีพื้นที่จัดเก็บที่ชัดเจน","พบสิ่งของที่จัดเก็บไม่เป็นไปตามเกณฑ์ มากกว่า 5 รายการ","พบสิ่งของที่จัดเก็บไม่เป็นไปตามเกณฑ์ 3–5 รายการ","พบสิ่งของที่จัดเก็บไม่เป็นไปตามเกณฑ์ 1–2 รายการ","ไม่พบรายการจัดเก็บผิดเกณฑ์"]},
+  {no:"2.1",h:"สะดวก",t:"การจัดเก็บเอกสาร อุปกรณ์ และของใช้ส่วนกลาง",d:"เอกสาร เครื่องเขียน อุปกรณ์สำนักงาน และของใช้ที่จำเป็นต้องมีตำแหน่งจัดเก็บชัดเจน แยกประเภท และหยิบใช้/เก็บคืนได้สะดวก",c:["ไม่มีการกำหนดจุดจัดเก็บ หรือจัดเก็บปะปนจนค้นหา/หยิบใช้ได้ยาก","พบการจัดเก็บไม่เป็นไปตามเกณฑ์ มากกว่า 5 รายการ","พบการจัดเก็บไม่เป็นไปตามเกณฑ์ 3–5 รายการ","พบการจัดเก็บไม่เป็นไปตามเกณฑ์ 1–2 รายการ","ไม่พบรายการที่จัดเก็บไม่เป็นไปตามเกณฑ์"]},
+  {no:"2.2",h:"สะดวก",t:"ป้ายบ่งชี้ตำแหน่งจัดเก็บและประเภทสิ่งของ",d:"ตู้เอกสาร ชั้นวาง จุดวางอุปกรณ์ และพื้นที่จัดเก็บต้องมีป้ายบ่งชี้ที่อ่านง่าย ตรงกับสิ่งของ",c:["ไม่มีการกำหนดป้ายบ่งชี้ ทำให้ไม่สามารถระบุตำแหน่งจัดเก็บได้","พบป้ายหาย/ไม่ชัด/ไม่ตรงกับสิ่งของ มากกว่า 5 จุด","พบป้ายหาย/ไม่ชัด/ไม่ตรงกับสิ่งของ 3–5 จุด","พบป้ายหาย/ไม่ชัด/ไม่ตรงกับสิ่งของ 1–2 จุด","ไม่พบจุดที่ป้ายบ่งชี้ไม่เป็นไปตามเกณฑ์"]},
+  {no:"2.3",h:"สะดวก",t:"ทางเดิน ทางเข้า–ออก ทางหนีไฟ และพื้นที่ใช้งานต้องไม่ถูกกีดขวาง",d:"ทางเดิน ประตู ทางเข้า–ออก ประตูหนีไฟ/ทางหนีไฟ จุดใช้งานร่วม และทางเข้าถึงอุปกรณ์ต้องโล่ง ใช้งานและเข้าถึงได้สะดวก",c:["พบการกีดขวางประตูหนีไฟ/ทางหนีไฟ หรือกีดขวางจนไม่สามารถใช้งานได้ตามปกติและเกิดความเสี่ยงต่อความปลอดภัย","พบทางเดิน ทางเข้า–ออก หรือการเข้าถึงอุปกรณ์ถูกกีดขวางมากกว่า 5 จุด","พบทางเดิน ทางเข้า–ออก หรือการเข้าถึงอุปกรณ์ ถูกกีดขวาง 3-5 จุด","พบทางเดิน ทางเข้า–ออก หรือการเข้าถึงอุปกรณ์ ถูกกีดขวาง 1-2 จุด","ไม่พบสิ่งกีดขวาง ประตูหนีไฟ/ทางหนีไฟโล่ง และทางเดิน ทางเข้า–ออก จุดใช้งานร่วม และทางเข้าถึงอุปกรณ์พร้อมใช้งานทุกจุด"]},
+  {no:"2.4",h:"สะดวก",t:"การจัดวางอุปกรณ์ IT / สายไฟ / อุปกรณ์ใต้โต๊ะ",d:"คอมพิวเตอร์ โน๊ตบุ๊ค ปลั๊กพ่วง สายไฟ สายสัญญาณ และอุปกรณ์ใต้โต๊ะต้องจัดเป็นระเบียบ ไม่พันกัน ไม่กีดขวาง และไม่เสี่ยงสะดุดล้ม",c:["ไม่มีการจัดระเบียบ อุปกรณ์หรือสายไฟกีดขวาง/เสี่ยงต่อการใช้งาน","พบจุดจัดวางไม่เป็นไปตามเกณฑ์ มากกว่า 5 จุด","พบจุดจัดวางไม่เป็นไปตามเกณฑ์ 3–5 จุด","พบจุดจัดวางไม่เป็นไปตามเกณฑ์ 1–2 จุด","ไม่พบจุดจัดวางไม่เป็นไปตามเกณฑ์"]},
+  {no:"2.5",h:"สะดวก",t:"การจัดวางพื้นที่และอุปกรณ์ส่วนกลาง",d:"ห้องประชุม จุดถ่ายเอกสาร  และพื้นที่ใช้งานร่วมต้องกำหนดตำแหน่งอุปกรณ์ชัดเจน จัดวางเป็นระเบียบ และคืนเข้าที่หลังใช้งาน",c:["ไม่มีการจัดเตรียมหรือควบคุมพื้นที่/อุปกรณ์ส่วนกลางจนไม่สามารถใช้งานได้ตามวัตถุประสงค์","พบการจัดวางไม่เป็นไปตามเกณฑ์ มากกว่า 5 รายการ/จุด","พบการจัดวางไม่เป็นไปตามเกณฑ์ 3–5 รายการ/จุด","พบการจัดวางไม่เป็นไปตามเกณฑ์ 1–2 รายการ/จุด","ไม่พบรายการ/จุดที่จัดวางไม่เป็นไปตามเกณฑ์"]},
+  {no:"3.1",h:"สะอาด",t:"ความสะอาดพื้นที่สำนักงาน โต๊ะทำงาน เฟอร์นิเจอร์",d:"โต๊ะ พื้น เก้าอี้ ตู้ ชั้นวาง และอุปกรณ์ต้องไม่มีฝุ่น คราบ หรือขยะสะสม",c:["ไม่มีการดูแลความสะอาด หรือมีสภาพสกปรกจนกระทบการใช้งาน/สุขอนามัย","พบมากกว่า 5 จุด/รายการ","พบ 3–5 จุด/รายการ","พบ 1–2 จุด/รายการ","ไม่พบข้อบกพร่อง"]},
+  {no:"3.2",h:"สะอาด",t:"ความสะอาดห้องครัวและมุมพักผ่อน",d:"เคาน์เตอร์ อ่างล้างจาน โต๊ะ ตู้เย็น ไมโครเวฟ และพื้นต้องสะอาด ไม่มีเศษอาหาร ภาชนะค้าง หรือกลิ่น",c:["ไม่มีการดูแลความสะอาด หรือมีฝุ่น/คราบ/ขยะสะสมมากจนกระทบการใช้งานหรือสุขอนามัย","พบพื้นที่หรืออุปกรณ์ไม่สะอาด มากกว่า 5 จุด/รายการ","พบ 3–5 จุด/รายการ","พบ 1–2 จุด/รายการ","ไม่พบฝุ่น คราบ หรือขยะสะสม พื้นที่และอุปกรณ์สะอาด"]},
+  {no:"3.3",h:"สะอาด",t:"ความสะอาดและสุขลักษณะของห้องน้ำ",d:"สุขภัณฑ์ อ่างล้างมือ กระจก และพื้นต้องสะอาด ไม่มีกลิ่น น้ำขัง หรือขยะสะสม",c:["ไม่มีการดูแลความสะอาด หรือมีสภาพสกปรก กลิ่นรุนแรง พื้นลื่น หรือขยะสะสมจนกระทบสุขอนามัย/การใช้งาน","พบข้อบกพร่องด้านความสะอาด มากกว่า 5 จุด/รายการ","พบ 3–5 จุด/รายการ","พบ 1–2 จุด/รายการ","ไม่พบข้อบกพร่อง ห้องน้ำสะอาด ไม่มีกลิ่นผิดปกติ พื้นไม่ลื่น"]},
+  {no:"3.4",h:"สะอาด",t:"ความสะอาดห้องประชุม ห้องถ่ายเอกสาร พื้นที่รับแขก",d:"โต๊ะ เก้าอี้ อุปกรณ์ และพื้นต้องสะอาด ไม่มีฝุ่น คราบ ขยะ หรือสิ่งตกค้าง",c:["ไม่มีการดูแลความสะอาด หรือมีฝุ่น คราบ ขยะ หรือของเสียสะสม","พบพื้นที่/อุปกรณ์ไม่สะอาด มากกว่า 5 จุด/รายการ","พบ 3–5 จุด/รายการ","พบ 1–2 จุด/รายการ","ไม่พบข้อบกพร่อง พื้นที่และอุปกรณ์สะอาด"]},
+  {no:"3.5",h:"สะอาด",t:"การจัดการขยะและถังขยะในสำนักงาน",d:"ถังขยะต้องไม่ล้น ไม่มีขยะตกค้างหรือกลิ่น และแยกประเภทตามที่กำหนด",c:["ไม่มีระบบจัดการขยะ หรือมีขยะล้น กระจาย ส่งกลิ่น หรือเกิดสภาพไม่ถูกสุขลักษณะ","พบการจัดการขยะไม่เป็นไปตามเกณฑ์ มากกว่า 5 จุด/รายการ","พบ 3–5 จุด/รายการ","พบ 1–2 จุด/รายการ","ไม่พบข้อบกพร่อง ถังขยะไม่ล้น แยกตามที่กำหนด ไม่มีขยะตกค้างหรือกลิ่นรบกวน"]},
+  {no:"4.1",h:"สร้างมาตรฐาน",t:"มาตรฐานการจัดวางโต๊ะทำงานและเอกสาร",d:"มีรูปแบบ/มาตรฐานการจัดวางที่ชัดเจนและปฏิบัติได้",c:["ไม่มีมาตรฐานหรือรูปแบบกำหนด","พบไม่เป็นไปตามมาตรฐาน มากกว่า 5 จุด","พบ 3–5 จุด","พบ 1–2 จุด","ไม่พบข้อผิดพลาด ปฏิบัติตามมาตรฐานครบ"]},
+  {no:"4.2",h:"สร้างมาตรฐาน",t:"มาตรฐานป้ายและจุดจัดเก็บ",d:"ป้าย ชื่อพื้นที่ และตำแหน่งจัดเก็บกำหนดชัดเจนและตรงกับการใช้งาน",c:["ไม่มีมาตรฐานป้าย/จุดจัดเก็บ","พบไม่เป็นไปตามมาตรฐาน มากกว่า 5 จุด","พบ 3–5 จุด","พบ 1–2 จุด","ป้ายและจุดจัดเก็บถูกต้องครบทุกจุด"]},
+  {no:"4.3",h:"สร้างมาตรฐาน",t:"มาตรฐานการจัดวางสายไฟและอุปกรณ์ไฟฟ้า",d:"สายไฟ ปลั๊ก และอุปกรณ์ไฟฟ้าจัดวางตามมาตรฐาน ไม่กีดขวางหรือเสี่ยงอันตราย",c:["ไม่มีการกำหนดมาตรฐาน หรือพบสภาพที่เสี่ยงอันตรายชัดเจน","พบไม่เป็นไปตามมาตรฐาน มากกว่า 5 จุด","พบ 3–5 จุด","พบ 1–2 จุด","ไม่พบข้อผิดพลาด จัดวางตามมาตรฐาน"]},
+  {no:"4.4",h:"สร้างมาตรฐาน",t:"มาตรฐานการตรวจและดูแลพื้นที่",d:"มีการกำหนดผู้รับผิดชอบ จุดตรวจ และวิธีดูแลพื้นที่อย่างชัดเจน",c:["ไม่มีการกำหนดผู้รับผิดชอบหรือวิธีตรวจพื้นที่","พบไม่เป็นไปตามมาตรฐานมากกว่า 5 จุด/รายการ","พบ 3–5 จุด/รายการ","พบ 1–2 จุด/รายการ","มีมาตรฐานและปฏิบัติครบถ้วน"]},
+  {no:"4.5",h:"สร้างมาตรฐาน",t:"มาตรฐานการคืนสภาพหลังใช้งานพื้นที่ส่วนกลาง",d:"มีการกำหนดให้คืนอุปกรณ์และพื้นที่สู่สภาพมาตรฐานหลังใช้งาน",c:["ไม่มีมาตรฐานการคืนสภาพ","พบไม่เป็นไปตามมาตรฐาน มากกว่า 5 จุด/รายการ","พบ 3–5 จุด/รายการ","พบ 1–2 จุด/รายการ","คืนสภาพตามมาตรฐานครบทุกจุด"]},
+  {no:"5.1",h:"สร้างวินัย",t:"การคืนสภาพหลังใช้งานพื้นที่ส่วนกลาง",d:"หลังใช้งานต้องเก็บของเข้าที่ ปิดไฟ/แอร์/น้ำ และคืนพื้นที่ให้พร้อมใช้",c:["ไม่มีการคืนสภาพ หรือปล่อยพื้นที่/อุปกรณ์จนไม่พร้อมใช้งาน","พบไม่คืนสภาพมากกว่า 5 จุด/รายการ","พบไม่คืนสภาพ 3–5 จุด/รายการ","พบไม่คืนสภาพ 1–2 จุด/รายการ","ไม่พบข้อบกพร่อง คืนสภาพครบและพร้อมใช้งาน"]},
+  {no:"5.2",h:"สร้างวินัย",t:"การปฏิบัติตามมาตรฐาน Clean Desk",d:"โต๊ะทำงานต้องปฏิบัติตามมาตรฐาน Clean Desk ที่กำหนดอย่างสม่ำเสมอ",c:["ไม่มีการปฏิบัติตามมาตรฐาน หรือไม่สามารถตรวจเทียบมาตรฐานได้","พบไม่เป็นไปตามมาตรฐานมากกว่า 5 จุด/รายการ","พบ 3–5 จุด/รายการ","พบ 1–2 จุด/รายการ","ไม่พบข้อบกพร่อง ปฏิบัติตามมาตรฐานครบ"]},
+  {no:"5.3",h:"สร้างวินัย",t:"การแจ้งซ่อมและติดตามข้อบกพร่อง",d:"ข้อบกพร่องต้องมีการแจ้งซ่อม ระบุผู้รับผิดชอบ และติดตามสถานะจนแล้วเสร็จ",c:["ไม่มีระบบแจ้ง/ติดตาม หรือพบปัญหาเดิมซ้ำโดยไม่มีการดำเนินการ","พบรายการไม่แจ้ง/ไม่ติดตามมากกว่า 5 รายการ","พบ 3–5 รายการ","พบ 1–2 รายการ","ไม่พบรายการที่ไม่ได้แจ้ง/ติดตาม และมีหลักฐานครบ"]},
+  {no:"5.4",h:"สร้างวินัย",t:"การใช้งานพื้นที่ส่วนกลางอย่างรับผิดชอบ",d:"ผู้ใช้งานต้องเก็บของ ทิ้งขยะ และรักษาความสะอาดหลังใช้งาน",c:["ไม่มีการควบคุมพฤติกรรม หรือมีการใช้งานจนพื้นที่ไม่พร้อมใช้ซ้ำ","พบพฤติกรรม/จุดไม่เป็นไปตามเกณฑ์มากกว่า 5 ครั้ง/จุด","พบ 3–5 ครั้ง/จุด","พบ 1–2 ครั้ง/จุด","ไม่พบข้อบกพร่อง ใช้งานและคืนพื้นที่ตามมาตรฐาน"]},
+  {no:"5.5",h:"สร้างวินัย",t:"การตรวจ 5ส ประจำพื้นที่ตามรอบ",d:"มีการตรวจ 5ส ตามรอบที่กำหนด บันทึกผล และระบุผู้รับผิดชอบอย่างต่อเนื่อง",c:["ไม่มีการตรวจตามรอบ หรือไม่มีหลักฐานการตรวจ","ขาดการตรวจ/บันทึกผลมากกว่า 5 ครั้ง/รายการ","ขาดการตรวจ/บันทึกผล 3–5 ครั้ง/รายการ","ขาดการตรวจ/บันทึกผล 1–2 ครั้ง/รายการ","ตรวจครบตามรอบ มีบันทึกผลและผู้รับผิดชอบครบถ้วน"]},
+];
+const OFFICE_V2=[
+  {no:"1.1",h:"สะสาง",t:"โต๊ะทำงาน ความสะอาดและของที่จำเป็น",d:"บนโต๊ะสะอาดไม่มีคราบสกปรก ฝุ่น หรือขยะ มีเฉพาะอุปกรณ์ที่จำเป็นต่อการปฏิบัติงาน",c:["มีสิ่งของไม่จำเป็น/ขยะวางเกลื่อนโต๊ะ หรือมีคราบ/ฝุ่นชัดเจนหลายจุด และไม่มีการควบคุม","พบข้อบกพร่อง 3 จุดขึ้นไป เช่น ของไม่จำเป็น คราบ ฝุ่น หรือขยะ","พบข้อบกพร่อง 2 จุด","พบข้อบกพร่อง 1 จุด","ไม่พบข้อบกพร่อง โต๊ะสะอาด มีเฉพาะของจำเป็นและจัดวางเป็นระเบียบ"],std:"desk"},
+  {no:"1.2",h:"สะดวก",t:"โต๊ะทำงาน การจัดวางอุปกรณ์",d:"คีย์บอร์ด เมาส์ วางในตำแหน่งที่เหมาะสม เก้าอี้จัดชิดโต๊ะ กระเป๋าวางด้านใน สายไฟรวบชิดแนวโต๊ะ",c:["จัดวางไม่มีระบบอย่างชัดเจน สายไฟรกรุงรัง หรือมีของกีดขวางหลายจุด","พบการจัดวางผิดมาตรฐาน 3 จุด","พบการจัดวางผิดมาตรฐาน 2 จุด","พบการจัดวางผิดมาตรฐาน 1 จุด","คีย์บอร์ด เมาส์ เก้าอี้ กระเป๋า และสายไฟอยู่ในตำแหน่งตามมาตรฐานครบ"],std:"desk"},
+  {no:"1.3",h:"สร้างมาตรฐาน",t:"โต๊ะทำงาน มาตรฐานและบรรยากาศ",d:"น้ำดื่มวางในตำแหน่งที่กำหนด ของตกแต่งไม่เกะกะ เอกสาร/ของส่วนตัวจัดเก็บในลิ้นชัก เมื่อเลิกงานโต๊ะสะอาด",c:["ไม่มีการปฏิบัติตามมาตรฐาน น้ำดื่ม/ของตกแต่ง/ของส่วนตัววางไม่เป็นระเบียบหลายจุด","พบการไม่ปฏิบัติตามมาตรฐาน 3 จุด","พบการไม่ปฏิบัติตามมาตรฐาน 2 จุด","พบการไม่ปฏิบัติตามมาตรฐาน 1 จุด","ปฏิบัติตามมาตรฐานครบ น้ำดื่ม/ของตกแต่งอยู่ถูกตำแหน่ง และหลังเลิกงานโต๊ะเรียบร้อย"],std:"desk"},
+  {no:"2.1",h:"สะสาง",t:"ลิ้นชัก การคัดแยกสิ่งของ",d:"จัดเก็บเฉพาะอุปกรณ์ เอกสาร หรือของส่วนตัวที่จำเป็น ไม่สะสมถุง/วัสดุไม่จำเป็น อุปกรณ์ชำรุดต้องแยกออก",c:["ลิ้นชักรกมาก มีของไม่จำเป็นสะสมจำนวนมาก หรือมีของชำรุดปะปนโดยไม่มีการคัดแยก","พบของไม่จำเป็น/ของชำรุด 5 ชิ้น","พบของไม่จำเป็น/ของชำรุด 3–4 ชิ้น","พบของไม่จำเป็น/ของชำรุด 1–2 ชิ้น","ไม่พบของไม่จำเป็นหรือของชำรุด มีเฉพาะของที่จำเป็น"],std:"drawer"},
+  {no:"2.2",h:"สะดวก",t:"ลิ้นชัก การจัดหมวดหมู่และหยิบใช้",d:"ลิ้นชัก 1=อุปกรณ์สำนักงาน, 2=เอกสารงาน, 3=ของส่วนตัว หยิบใช้สะดวก หลังใช้คืนตำแหน่งและปิดลิ้นชัก",c:["ไม่มีการจัดหมวดหมู่ ของปะปนกันมาก และหยิบใช้/ค้นหาได้ยาก","พบของวางผิดหมวด/ผิดลิ้นชัก 5 ชิ้น","พบของวางผิดหมวด/ผิดลิ้นชัก 3–4 ชิ้น","พบของวางผิดหมวด/ผิดลิ้นชัก 1–2 ชิ้น","จัดหมวดหมู่ตามมาตรฐาน หยิบใช้สะดวก และคืนตำแหน่งครบ"],std:"drawer"},
+  {no:"3.1",h:"สะสาง",t:"อุปกรณ์สำนักงาน (ส่วนบุคคล) ปริมาณที่เหมาะสม",d:"ปากกาแต่ละสีไม่เกิน 2 ด้าม ไม่สะสมอุปกรณ์เกินความจำเป็น ของใช้ที่ไม่เกี่ยวกับงานไม่ปะปน",c:["สะสมอุปกรณ์จำนวนมากเกินความจำเป็น หรือมีของที่ไม่เกี่ยวข้องกับงานปะปนโดยไม่มีการควบคุม","พบอุปกรณ์เกินเกณฑ์/ของไม่เกี่ยวกับงาน 5 ชิ้น","พบอุปกรณ์เกินเกณฑ์/ของไม่เกี่ยวกับงาน 3–4 ชิ้น","พบอุปกรณ์เกินเกณฑ์/ของไม่เกี่ยวกับงาน 1–2 ชิ้น","ปริมาณเป็นไปตามมาตรฐาน เช่น ปากกาแต่ละสีไม่เกิน 2 ด้าม และไม่มีของไม่เกี่ยวกับงานปะปน"],std:"supply_personal"},
+  {no:"3.2",h:"สะดวก",t:"อุปกรณ์สำนักงาน (ส่วนกลาง) ตำแหน่งและการจัดวาง",d:"เครื่องคิดเลข ที่เจาะ ที่เย็บกระดาษ กำหนดจุดวางชัดเจน หลังใช้จัดคืนตำแหน่งเดิม",c:["ไม่มีการกำหนดจุดวาง อุปกรณ์ส่วนใหญ่ไม่มีตำแหน่งชัดเจน","พบอุปกรณ์วางผิด/ไม่มีจุดวาง 5 ชิ้น","พบอุปกรณ์วางผิด/ไม่มีจุดวาง 3–4 ชิ้น","พบอุปกรณ์วางผิด/ไม่มีจุดวาง 1–2 ชิ้น","อุปกรณ์ทุกชิ้นมีจุดวางชัดเจนและจัดคืนตำแหน่งเดิม"],std:"supply_central"},
+  {no:"4.1",h:"สะดวก",t:"อุปกรณ์สำนักงาน (ส่วนกลาง) การจัดหมวดหมู่",d:"กำหนดพื้นที่จัดเก็บชัดเจน จัดเป็นหมวดหมู่ มีป้ายบ่งชี้ กำหนดผู้รับผิดชอบ ควบคุมปริมาณ min-max",c:["ไม่มีพื้นที่จัดเก็บ/ไม่มีการจัดหมวดหมู่ และไม่มีผู้รับผิดชอบ","ขาดองค์ประกอบควบคุม 3 เรื่อง","ขาดองค์ประกอบควบคุม 2 เรื่อง","ขาดองค์ประกอบควบคุม 1 เรื่อง","มีพื้นที่จัดเก็บ หมวดหมู่ ป้ายบ่งชี้ ผู้รับผิดชอบ และการควบคุม Min-Max ครบตามที่กำหนด"],std:"supply_central"},
+  {no:"4.2",h:"สะอาด",t:"อุปกรณ์สำนักงาน (ส่วนกลาง) ความสะอาดและการแยกประเภท",d:"พื้นที่จัดเก็บสะอาดไม่มีฝุ่น กระดาษใหม่/ใช้ซ้ำและวัสดุต้องแยกพื้นที่ ไม่จัดเก็บเกินความจำเป็น",c:["พื้นที่สกปรกชัดเจน วัสดุปะปน และไม่มีการแยกกระดาษใหม่/ใช้ซ้ำ","พบข้อบกพร่อง 3 จุด","พบข้อบกพร่อง 2 จุด","พบข้อบกพร่อง 1 จุด","พื้นที่สะอาด แยกประเภทกระดาษ/วัสดุชัดเจน และไม่จัดเก็บเกินความจำเป็น"],std:"supply_central"},
+  {no:"6.1",h:"สะอาด",t:"ตู้เอกสาร ความสะอาดและป้ายบ่งชี้",d:"ตู้และบริเวณโดยรอบสะอาดไม่มีฝุ่น มีป้ายแสดงประเภทเอกสาร ป้ายหน้าตู้/ลิ้นชักตรงกับรายการจัดเก็บจริง",c:["ตู้/บริเวณโดยรอบสกปรกมาก และไม่มีป้ายบ่งชี้หรือป้ายไม่ตรงกับของจริงหลายตู้","พบตู้ที่ไม่เป็นไปตามมาตรฐาน 3 ตู้","พบตู้ที่ไม่เป็นไปตามมาตรฐาน 2 ตู้","พบตู้ที่ไม่เป็นไปตามมาตรฐาน 1 ตู้","ทุกตู้สะอาด มีป้ายชัดเจน และป้ายตรงกับรายการจัดเก็บจริง"],std:"cabinet"},
+  {no:"7.1",h:"สะดวก",t:"แฟ้มและเอกสาร ป้ายบ่งชี้และการจัดระบบ",d:"แฟ้มมีชื่อ/ป้ายบ่งชี้อ่านได้ชัดเจน เอกสารภายในสอดคล้องกับชื่อแฟ้ม จัดเรียงเป็นระบบ ค้นหาสะดวก",c:["แฟ้มส่วนใหญ่ไม่มีป้าย หรือเอกสารภายในไม่ตรงกับชื่อแฟ้มจนค้นหาได้ยาก","พบแฟ้มไม่เป็นไปตามมาตรฐาน 5 แฟ้ม","พบแฟ้มไม่เป็นไปตามมาตรฐาน 3–4 แฟ้ม","พบแฟ้มไม่เป็นไปตามมาตรฐาน 1–2 แฟ้ม","แฟ้มมีป้ายชัดเจน เอกสารตรงกับชื่อแฟ้ม และจัดเรียงเป็นระบบครบ"],std:"files"},
+  {no:"6.2",h:"สะดวก",t:"ตู้เก็บของส่วนกลาง การจัดเก็บและความปลอดภัย",d:"จัดเก็บเอกสาร/อุปกรณ์เป็นหมวดหมู่ ค้นหาและหยิบใช้ได้สะดวก ไม่วางของบนหลังตู้เสี่ยงตก ของหนักอยู่ระดับเหมาะสม",c:["ไม่มีการจัดหมวดหมู่ หรือพบการจัดเก็บที่เสี่ยงต่อการตกหล่น/ของหนักวางไม่ปลอดภัยหลายจุด","พบข้อบกพร่องด้านการจัดเก็บ/ความปลอดภัย 3 จุด","พบข้อบกพร่อง 2 จุด","พบข้อบกพร่อง 1 จุด","จัดเก็บเป็นหมวดหมู่ ค้นหาได้สะดวก และไม่พบการจัดเก็บที่ไม่ปลอดภัย"],std:"central_storage"},
+  {no:"7.2",h:"สะสาง",t:"แฟ้มและเอกสาร สภาพและการจัดการเอกสาร",d:"แฟ้มอยู่ในสภาพดีสะอาดไม่ชำรุด มีชื่อแฟ้มตามมาตรฐานแฟ้ม",c:["มีแฟ้มชำรุด/สกปรกจำนวนมาก หรือมีเอกสารที่ไม่ดำเนินการตามระบบจำนวนมาก","พบแฟ้มหรือเอกสารไม่เป็นไปตามมาตรฐาน 5 รายการ","พบ 3–4 รายการ","พบ 1–2 รายการ","ไม่พบแฟ้มชำรุด/สกปรก และเอกสารได้รับการดำเนินการตามระบบครบ"],std:"files"},
+  {no:"8.1",h:"สะสาง",t:"พื้นที่ทำงานและทางเดิน การคัดแยกสิ่งของ",d:"ไม่มีสิ่งของไม่จำเป็นวางบนพื้น ทางเดินโล่งสะดวก ไม่สะสมกล่องหรือวัสดุกีดขวาง ขยะทิ้งในถังที่กำหนด",c:["ทางเดินมีสิ่งกีดขวางชัดเจนจนกระทบการสัญจร หรือมีสิ่งของ/ขยะวางสะสมหลายจุด","พบสิ่งของ/จุดกีดขวาง 3 จุด","พบสิ่งของ/จุดกีดขวาง 2 จุด","พบสิ่งของ/จุดกีดขวาง 1 จุด","ทางเดินโล่ง ไม่มีสิ่งกีดขวาง พื้นสะอาด และถังขยะไม่ล้น"],std:"walkway"},
+  {no:"12.1",h:"สร้างมาตรฐาน",t:"บอร์ดประชาสัมพันธ์ ข้อมูลและการจัดระเบียบ",d:"ข้อมูลบนบอร์ดเกี่ยวข้องกับพื้นที่และเป็นปัจจุบัน ติดอย่างเป็นระเบียบ จัดแนวและแบ่งหมวดหมู่ชัดเจน มีผู้รับผิดชอบ",c:["ข้อมูลล้าสมัยหลายรายการ ติดไม่เป็นระเบียบ และไม่มีผู้รับผิดชอบ","พบเอกสาร/รายการบนบอร์ดที่ไม่เป็นไปตามมาตรฐาน 5 รายการ","พบ 3–4 รายการ","พบ 1–2 รายการ","ข้อมูลเป็นปัจจุบัน จัดเป็นระเบียบ แบ่งหมวดชัดเจน และมีผู้รับผิดชอบ"],std:"board"},
+  {no:"12.2",h:"สร้างวินัย",t:"บอร์ดประชาสัมพันธ์ การทบทวนและป้ายบ่งชี้",d:"ข้อมูลหมดอายุนำออกตามรอบทบทวนอย่างน้อยเดือนละ 1 ครั้ง ป้ายชื่อ/ป้ายสถานะอยู่ในสภาพดีมองเห็นชัดเจน",c:["ไม่มีการทบทวนตามรอบ และมีข้อมูลหมดอายุ/ป้ายชำรุดโดยไม่มีการควบคุม","ขาดการทบทวนเกินกำหนด และพบข้อบกพร่อง 2 ประเด็น","ทบทวนไม่เป็นไปตามรอบ หรือมีป้าย/ข้อมูลไม่เป็นปัจจุบันหลายรายการ","ทบทวนตามรอบ แต่พบข้อบกพร่อง 1 ประเด็น","ทบทวนอย่างน้อยเดือนละ 1 ครั้ง ป้ายอยู่ในสภาพดี และมีหลักฐาน/บันทึกการทบทวน"],std:"board"},
+  {no:"13.1",h:"สะอาด",t:"จุดน้ำดื่ม/ตู้เย็น ความสะอาดและสภาพพร้อมใช้",d:"พื้นที่สะอาดไม่มีน้ำหกหรือขัง อุปกรณ์พร้อมใช้งาน ตู้เย็นสะอาดไม่มีอาหาร/เครื่องดื่มหมดอายุ",c:["พื้นที่สกปรก มีน้ำขัง/อุปกรณ์ไม่พร้อมใช้ หรือพบอาหาร/เครื่องดื่มหมดอายุหลายรายการ","พบข้อบกพร่อง 3 จุด/ชิ้น","พบข้อบกพร่อง 2 จุด/ชิ้น","พบข้อบกพร่อง 1 จุด/ชิ้น","พื้นที่สะอาด ไม่มีน้ำขัง อุปกรณ์พร้อมใช้ และไม่พบของหมดอายุ"],std:"water"},
+  {no:"13.2",h:"สะดวก",t:"จุดน้ำดื่ม/ตู้เย็น การจัดเก็บและความปลอดภัย",d:"ภาชนะและของใช้จัดเก็บในพื้นที่กำหนด ไม่สะสมของส่วนตัวรบกวนพื้นที่ส่วนกลาง สายไฟ/ปลั๊กอยู่ในสภาพปลอดภัย",c:["ของส่วนตัวสะสมกีดขวางพื้นที่ หรือพบสายไฟ/ปลั๊กอยู่ในสภาพไม่ปลอดภัย","พบข้อบกพร่อง 3 จุด","พบข้อบกพร่อง 2 จุด","พบข้อบกพร่อง 1 จุด","จัดเก็บของในพื้นที่กำหนด ไม่มีของส่วนตัวรบกวน และสายไฟ/ปลั๊กปลอดภัย"],std:"water"},
+  {no:"14.1",h:"สะอาด",t:"ห้องน้ำ ความสะอาดและสุขภัณฑ์",d:"ห้องน้ำสะอาดไม่มีกลิ่นผิดปกติ สุขภัณฑ์พร้อมใช้ไม่มีการรั่วซึม ถังขยะไม่ล้น มีแสงสว่างและการระบายอากาศ",c:["ห้องน้ำสกปรกมาก/มีกลิ่นผิดปกติชัดเจน หรือมีสุขภัณฑ์ชำรุดจนใช้งานไม่ได้","พบข้อบกพร่อง 3 จุด","พบข้อบกพร่อง 2 จุด","พบข้อบกพร่อง 1 จุด","ไม่พบข้อบกพร่อง ห้องน้ำสะอาด ไม่มีกลิ่น สุขภัณฑ์พร้อมใช้ ถังขยะไม่ล้น แสงและการระบายอากาศเหมาะสม"],std:"toilet"},
+  {no:"14.2",h:"สร้างวินัย",t:"ห้องน้ำ การดูแลรักษาและบันทึก",d:"กระดาษชำระ สบู่ อุปกรณ์ที่กำหนดมีพร้อมใช้ อุปกรณ์ทำความสะอาดจัดเก็บในพื้นที่กำหนด มีรอบทำความสะอาดชัดเจนและบันทึกเป็นปัจจุบัน",c:["ไม่มีวัสดุที่จำเป็น ไม่มีรอบทำความสะอาด หรือไม่มีการบันทึกควบคุม","ขาด/ไม่เป็นไปตามมาตรฐาน 3 ประเด็น","ขาด/ไม่เป็นไปตามมาตรฐาน 2 ประเด็น","ขาด/ไม่เป็นไปตามมาตรฐาน 1 ประเด็น","วัสดุพร้อมใช้ อุปกรณ์ทำความสะอาดจัดเก็บถูกที่ มีรอบชัดเจน และบันทึกเป็นปัจจุบัน"],std:"toilet"}
+];
+const IT={
+Office:OFFICE_V2,
+Store:[
+  {no:"1.1",h:"สะสาง",t:"การคัดแยกวัสดุใช้งาน / ไม่ใช้งาน / ชำรุด",d:"วัสดุทุกประเภทต้องแยกชัดเจน ของชำรุดไม่ปะปนกับของพร้อมใช้",c:["ไม่มีการแยกประเภท หรือของชำรุดปะปนของพร้อมใช้","พบปะปนมากกว่า 5 รายการ","พบปะปน 3–5 รายการ","พบปะปน 1–2 รายการ","แยกครบทุกประเภท ชัดเจน 100%"]},
+  {no:"1.2",h:"สะสาง",t:"ไม่มีของไม่เกี่ยวข้องในพื้นที่จัดเก็บ",d:"พื้นที่จัดเก็บต้องไม่มีของไม่เกี่ยวข้อง เช่น ขยะ กล่องเก่า หรือของส่วนตัว",c:["มีของไม่เกี่ยวข้องจำนวนมาก กระทบพื้นที่","พบมากกว่า 6 ชิ้น หรือวางผิดพื้นที่","พบ 4–6 ชิ้น หรือเริ่มกีดขวาง","พบ 2–3 ชิ้น แต่ไม่กีดขวาง","ไม่พบ หรือพบไม่เกิน 1 ชิ้น"]},
+  {no:"1.3",h:"สะสาง",t:"วัสดุหมดอายุ / เสื่อมสภาพ / รอจำหน่าย",d:"วัสดุหมดอายุหรือเสื่อมสภาพต้องแยกและติดป้ายสถานะครบถ้วน",c:["ไม่มีการควบคุมวัสดุหมดอายุ/เสื่อมสภาพ","พบมากกว่า 5 รายการ หรือปะปนของใช้งาน","พบผิด 3–5 รายการ หรือป้ายไม่ครบ","พบผิด 1–2 รายการ","แยกและติดป้ายสถานะครบถ้วน"]},
+  {no:"1.4",h:"สะสาง",t:"เศษวัสดุ / ขยะ / ของเสีย",d:"เศษวัสดุและขยะต้องจัดการทันที ไม่ปะปนกับวัสดุใช้งาน",c:["ขยะสะสมมาก ไม่มีการจัดการ","พบมากกว่า 10 ชิ้น หรือปะปนกับวัสดุใช้งาน","พบ 6–10 ชิ้น หรือมีจุดสะสม","พบ 3–5 ชิ้น","พบขยะหรือเศษวัสดุ 0–2 ชิ้น"]},
+  {no:"1.5",h:"สะสาง",t:"การใช้พื้นที่ตรงตามวัตถุประสงค์",d:"ทุกพื้นที่ต้องใช้ตรงตามป้ายและเส้นที่กำหนด",c:["ผิดประเภทจนกระทบทางเดิน/ความปลอดภัย","ผิดมากกว่า 3 จุด หรือวางล้ำพื้นที่","ผิด 2–3 จุด แต่ยังควบคุมได้","ผิดวัตถุประสงค์ 1 จุดเล็กน้อย","ใช้พื้นที่ถูกต้องตามป้าย/เส้น 100%"]},
+  {no:"2.1",h:"สะดวก",t:"การจัดเก็บตามหมวดหมู่ / ประเภทวัสดุ",d:"วัสดุทุกชิ้นต้องจัดเก็บตามหมวดหมู่ที่กำหนดอย่างถูกต้อง",c:["ไม่มีการแยกหมวด วัสดุปะปนจำนวนมาก","พบผิดหมวดมากกว่า 5 รายการ","พบผิดหมวด 3–5 รายการ","พบผิดหมวด 1–2 รายการ","แยกหมวดหมู่ถูกต้องครบถ้วน"]},
+  {no:"2.2",h:"สะดวก",t:"ป้าย Location / Rack / Bin",d:"ทุกตำแหน่งจัดเก็บต้องมีป้ายครบ ชัดเจน อ่านง่าย ตรงของจริง",c:["ไม่มีป้ายระบุตำแหน่งจัดเก็บ","ขาด/ไม่ชัดมากกว่า 5 จุด","ขาด/ไม่ชัด/ไม่ตรงของจริง 3–5 จุด","ป้ายขาด/ไม่ชัด 1–2 จุด","ป้ายครบ ชัดเจน อ่านง่าย ตรงของจริง"]},
+  {no:"2.3",h:"สะดวก",t:"การวางของไม่กีดขวางทางเดิน",d:"ทางเดินต้องไม่มีของล้ำเส้นหรือกีดขวาง รถเข็นและคนต้องผ่านได้สะดวก",c:["ทางเดินถูกกีดขวาง รถเข็น/คนผ่านไม่ได้","ล้ำเส้นมากกว่า 3 จุด หรือทางเดินแคบลง","ล้ำเส้น 2–3 จุด หรือกีดขวางบางส่วน","ล้ำเส้น 1 จุดเล็กน้อย ยังผ่านได้","ไม่พบของล้ำเส้นหรือกีดขวาง"]},
+  {no:"2.4",h:"สะดวก",t:"การจัดวางตามน้ำหนักและความถี่ใช้งาน",d:"ของหนักอยู่ล่าง ใช้บ่อยหยิบง่าย ของเบาอยู่บน ไม่เสี่ยงของหล่น",c:["เสี่ยงของหล่น ทับ หรือหยิบยากชัดเจน","พบมากกว่า 5 รายการ หรือของหนักอยู่สูง","พบไม่เหมาะสม 3–5 รายการ","พบไม่เหมาะสม 1–2 รายการ","ของหนักอยู่ล่าง ใช้บ่อยหยิบง่าย ของเบาอยู่บน"]},
+  {no:"2.5",h:"สะดวก",t:"อุปกรณ์ช่วยหยิบ-ยก / รถเข็น / บันได",d:"อุปกรณ์ช่วยหยิบยกต้องพร้อมใช้และมีจุดเก็บที่ชัดเจน",c:["ไม่มีอุปกรณ์จำเป็น หรือชำรุดเสี่ยงอันตราย","ไม่พร้อมใช้หลายรายการ หรือจุดเก็บไม่ชัด","ไม่เข้าที่/ชำรุดเล็กน้อย 2–3 รายการ","ไม่เข้าที่ 1 รายการ","พร้อมใช้ มีจุดเก็บชัดเจน"]},
+  {no:"3.1",h:"สะอาด",t:"ความสะอาดพื้นทางเดิน / พื้นที่จัดเก็บ",d:"พื้นทางเดินและพื้นที่จัดเก็บต้องสะอาด ไม่มีขยะ คราบ หรือสิ่งกีดขวาง",c:["สกปรกมาก เสี่ยงลื่น/สะดุด","พบมากกว่า 10 ชิ้น หรือมีคราบน้ำ/น้ำมัน","พบขยะ 6–10 ชิ้น หรือสกปรกหลายจุด","พบขยะ 3–5 ชิ้น หรือฝุ่นเล็กน้อย","พบขยะ 0–2 ชิ้น ไม่มีคราบ"]},
+  {no:"3.2",h:"สะอาด",t:"ความสะอาดชั้นวาง / Rack / พาเลท",d:"ชั้นวาง Rack และพาเลทต้องสะอาด ไม่มีฝุ่นหนา คราบ หรือพาเลทชำรุด",c:["สกปรก/ชำรุดมาก เสี่ยงสินค้าเสียหาย","พบมากกว่า 5 จุด หรือพาเลทชำรุดยังใช้งาน","พบฝุ่น/คราบ/พาเลทชำรุด 3–5 จุด","พบฝุ่น/คราบ 1–2 จุด","สะอาด ไม่พบฝุ่นหนา/พาเลทชำรุด"]},
+  {no:"3.3",h:"สะอาด",t:"การจัดการขยะและเศษวัสดุ",d:"มีจุดทิ้งขยะที่ชัดเจน ขยะไม่ล้น แยกประเภทถูกต้อง",c:["ไม่มีจุดทิ้งเหมาะสม หรือขยะกระจัดกระจาย","ขยะล้น หรือผิดประเภทมากกว่า 5 ชิ้น","ขยะเต็ม 70–90% หรือผิดประเภท 3–5 ชิ้น","ขยะเต็มไม่เกิน 70% หรือผิดประเภท 1–2 ชิ้น","มีจุดทิ้งชัดเจน ขยะไม่ล้น แยกถูกต้อง"]},
+  {no:"3.4",h:"สะอาด",t:"คราบหก รั่ว ซึม เช่น สี น้ำมัน สารเคมี",d:"ต้องไม่พบคราบหกรั่วซึม หากพบต้องจัดการทันที มีป้ายเตือน",c:["รั่วไหลโดยไม่มีการควบคุม","พบมากกว่า 3 จุด หรือเสี่ยงลื่น/ปนเปื้อน","พบ 2–3 จุด หรือไม่มีป้ายเตือน","พบคราบเล็กน้อย 1 จุด ไม่เสี่ยงลื่น","ไม่พบ หรือพบแล้วจัดการทันที"]},
+  {no:"3.5",h:"สะอาด",t:"อุปกรณ์ทำความสะอาดพร้อมใช้งาน",d:"อุปกรณ์ทำความสะอาดต้องครบ พร้อมใช้ มีจุดเก็บที่ชัดเจน",c:["ไม่มีอุปกรณ์ทำความสะอาดที่จำเป็น","ไม่พร้อมใช้มากกว่า 3 รายการ หรือจุดเก็บไม่ชัด","ไม่เข้าที่/ไม่พร้อมใช้ 2–3 รายการ","ไม่เข้าที่/ชำรุดเล็กน้อย 1 รายการ","ครบ พร้อมใช้ มีจุดเก็บชัดเจน"]},
+  {no:"4.1",h:"สร้างมาตรฐาน",t:"เส้นตีพื้นและขอบเขตพื้นที่",d:"เส้นตีพื้นต้องชัดเจนครบทุกจุด กำหนดขอบเขตพื้นที่ชัดเจน",c:["ไม่มีเส้นควบคุมพื้นที่","ลบเลือนมากกว่า 5 จุด หรือบางพื้นที่ไม่มีเส้น","ลบเลือน/ขาดหาย 3–5 จุด","เส้นลบเลือน 1–2 จุด แต่ยังเข้าใจได้","เส้นชัดเจนครบทุกจุด"]},
+  {no:"4.2",h:"สร้างมาตรฐาน",t:"ป้ายบ่งชี้ / ป้ายเตือน / ป้าย PPE",d:"ป้ายบ่งชี้ ป้ายเตือน และป้าย PPE ต้องครบ ชัดเจน ถูกต้องตามพื้นที่",c:["ไม่มีป้ายสำคัญ เช่น สารเคมี ห้ามสูบบุหรี่ PPE","ขาดมากกว่า 5 จุด หรือป้ายสำคัญไม่ชัด","ขาด/ไม่ชัด/ไม่ตรงพื้นที่ 3–5 จุด","ขาด/ไม่ชัด 1–2 จุด","ป้ายครบ ชัดเจน ถูกต้อง"]},
+  {no:"4.3",h:"สร้างมาตรฐาน",t:"มาตรฐานการจัดเก็บวัสดุ",d:"วางบนชั้น/พาเลทถูกต้อง ไม่วางพื้น ไม่ซ้อนสูงเกินกำหนด",c:["ไม่มีมาตรฐาน วางปะปน/วางพื้น/เสี่ยงพังทลาย","ผิดมากกว่า 5 จุด หรือเสี่ยงของหล่น","ผิด 3–5 จุด หรือซ้อนสูงบางจุด","ผิดมาตรฐาน 1–2 จุด ไม่เสี่ยง","วางบนชั้น/พาเลทถูกต้อง ไม่วางพื้น ไม่สูงเกินกำหนด"]},
+  {no:"4.4",h:"สร้างมาตรฐาน",t:"การแยกสี / สารเคมี / วัสดุอันตราย",d:"สารเคมีและวัสดุอันตรายต้องแยกโซน มีฉลาก SDS และข้อมูลความปลอดภัยครบ",c:["ไม่มีการแยกสารเคมี/วัสดุอันตราย","มากกว่า 5 รายการ หรือปะปนวัสดุทั่วไป","ไม่ครบ 3–5 รายการ หรือแยกโซนไม่ชัด","ฉลาก/SDS ไม่ครบ 1–2 รายการ","แยกโซน มีฉลาก และ SDS/ข้อมูลความปลอดภัยครบ"]},
+  {no:"4.5",h:"สร้างมาตรฐาน",t:"อุปกรณ์ฉุกเฉิน / ถังดับเพลิง / ตู้ไฟ",d:"อุปกรณ์ฉุกเฉินต้องเข้าถึงได้ทันที ไม่มีของบัง",c:["ถูกบัง ใช้งานไม่ได้ หรือเข้าถึงไม่ได้ทันที","บังชัดเจน เข้าถึงยาก","กีดขวางบางส่วน 2–3 จุด","มีของใกล้ 1 จุด แต่ยังเข้าถึงได้","เข้าถึงได้ ไม่มีของบัง"]},
+  {no:"5.1",h:"สร้างวินัย",t:"การรับเข้า-เบิกจ่ายตามขั้นตอน",d:"การรับเข้าและเบิกจ่ายทุกรายการต้องมีเอกสาร/บันทึกครบถูกต้อง",c:["ไม่มีการควบคุมเอกสาร/บันทึก","ผิดมากกว่า 5 รายการ หรือเบิกจ่ายไม่ตามขั้นตอน","ผิดพลาด 3–5 รายการ หรือบันทึกไม่ครบ","ผิดพลาด 1–2 รายการ","เอกสาร/บันทึกครบถูกต้อง"]},
+  {no:"5.2",h:"สร้างวินัย",t:"การเก็บของคืนที่เดิมหลังใช้งาน",d:"วัสดุและอุปกรณ์ต้องคืนที่เดิมหลังใช้งานทุกครั้ง",c:["ของกระจัดกระจาย ไม่คืนที่เดิม","พบมากกว่า 6 รายการ หรือวางค้างข้ามวัน","พบ 4–6 รายการ หรือวางค้างหลายจุด","พบ 2–3 รายการ","ไม่พบ หรือพบผิดที่ไม่เกิน 1 รายการ"]},
+  {no:"5.3",h:"สร้างวินัย",t:"การใช้หลัก FIFO / FEFO",d:"ต้องเบิกใช้ของเก่าก่อนเสมอ มีป้ายวันที่ชัดเจน",c:["ไม่มีการควบคุม FIFO/FEFO","ผิดมากกว่า 5 รายการ หรือของเก่าค้างหลังชั้น","ผิด 3–5 รายการ หรือไม่มีป้ายวันที่","ผิด 1–2 รายการ","ปฏิบัติครบ มีป้ายวันที่ชัดเจน"]},
+  {no:"5.4",h:"สร้างวินัย",t:"การปฏิบัติตามกฎความปลอดภัย",d:"ต้องไม่พบพฤติกรรมเสี่ยงหรือฝ่าฝืนกฎความปลอดภัย",c:["พบการกระทำไม่ปลอดภัยรุนแรง","พบมากกว่า 3 ครั้ง/จุด หรือพฤติกรรมเสี่ยง","พบ 2–3 ครั้ง/จุด","พบไม่ปฏิบัติ 1 ครั้ง/จุด ไม่รุนแรง","ปฏิบัติครบ ไม่พบพฤติกรรมเสี่ยง"]},
+  {no:"5.5",h:"สร้างวินัย",t:"การแก้ไขข้อบกพร่องครั้งก่อน",d:"ข้อบกพร่องที่พบในรอบก่อนต้องได้รับการแก้ไขครบ มีหลักฐาน",c:["ไม่แก้ไข หรือพบปัญหาเดิมซ้ำ","แก้ไขน้อยกว่า 50%","แก้ไข 50–79%","แก้ไข 80–99%","แก้ไขครบ 100% มีหลักฐาน"]},
+],
+Alu:[
+  {no:"1.1",h:"สะสาง",t:"การแยกของจำเป็น / ไม่จำเป็น",d:"แยกวัสดุที่ใช้งานได้ออกจากของชำรุด รอซ่อม หรือรอทิ้ง ชัดเจน 100%",c:["ไม่มีการแยกเลย ของชำรุดปะปนของพร้อมใช้","พบปะปนมากกว่า 5 รายการ ไม่มีป้ายบ่งชี้","พบปะปน 3–5 รายการ หรือป้ายไม่ครบ","พบปะปน 1–2 รายการ ป้ายบ่งชี้บางส่วน","มีการแยกชัดเจน ป้ายบ่งชี้ครบทุกรายการ"]},
+  {no:"1.2",h:"สะสาง",t:"ไม่มีของที่ไม่เกี่ยวข้องในพื้นที่",d:"พื้นที่โรงแบบต้องไม่มีของไม่เกี่ยวข้องวางค้าง เช่น อุปกรณ์ส่วนตัว ขยะ",c:["มีของไม่เกี่ยวข้องจำนวนมาก กระทบพื้นที่","พบมากกว่า 6 รายการ หรือวางผิดพื้นที่","พบ 4–6 รายการ หรือเริ่มกีดขวาง","พบ 2–3 รายการ แต่ไม่กีดขวาง","ไม่พบ หรือพบไม่เกิน 1 รายการ"]},
+  {no:"1.3",h:"สะสาง",t:"การจัดการเศษวัสดุอลูมิเนียม",d:"เศษอลูมิเนียมและเศษวัสดุต้องแยกเก็บในจุดที่กำหนด ไม่วางกระจัดกระจาย",c:["เศษวัสดุกระจัดกระจายทั่วพื้นที่ เสี่ยงอันตราย","เศษวัสดุสะสมมาก ไม่มีการจัดเก็บ","มีเศษวัสดุหลายจุด แต่ไม่เสี่ยงอันตราย","มีเศษวัสดุเล็กน้อย 1–2 จุด","เศษวัสดุอยู่ในจุดที่กำหนด แยกประเภทครบ"]},
+  {no:"1.4",h:"สะสาง",t:"การจัดการของชำรุด เสียหาย หรือไม่พร้อมใช้งาน",d:"แม่พิมพ์ อุปกรณ์ชำรุดต้องแยกออกจากของพร้อมใช้ มีป้ายสถานะชัดเจน",c:["ไม่มีการแยก เสี่ยงนำไปใช้งานผิด","พบชำรุดปะปนมากกว่า 5 ชิ้น","พบ 3–5 ชิ้น หรือไม่มีป้ายสถานะ","พบ 1–2 ชิ้น มีป้ายสถานะบางส่วน","แยกครบ มีป้ายสถานะและแจ้งซ่อมชัดเจน"]},
+  {no:"1.5",h:"สะสาง",t:"ไม่ใช้พื้นที่เป็นที่ฝากของ",d:"พื้นที่โรงแบบต้องใช้ตรงตามวัตถุประสงค์ ไม่นำของส่วนตัวหรือของไม่เกี่ยวข้องมาวาง",c:["พื้นที่ถูกใช้เป็นที่ฝากของจนกระทบการทำงาน","ผิดวัตถุประสงค์มากกว่า 3 จุด ชัดเจน","ผิด 2–3 จุด แต่ยังควบคุมได้","ผิดวัตถุประสงค์ 1 จุดเล็กน้อย","ใช้พื้นที่ตรงตามวัตถุประสงค์ 100%"]},
+  {no:"2.1",h:"สะดวก",t:"การจัดเก็บแบบอลูมิเนียมเป็นหมวดหมู่",d:"แม่พิมพ์และแบบอลูมิเนียมต้องจัดเก็บตามหมวดหมู่ที่กำหนด ค้นหาได้ง่าย",c:["ไม่มีการจัดหมวดหมู่ ค้นหาไม่ได้","พบผิดหมวดมากกว่า 5 รายการ","พบผิดหมวด 3–5 รายการ","พบผิดหมวด 1–2 รายการ","จัดหมวดหมู่ครบ ค้นหาและหยิบใช้ได้เร็ว"]},
+  {no:"2.2",h:"สะดวก",t:"ป้ายบ่งชี้ชั้นวาง / Location",d:"ทุกตำแหน่งจัดเก็บต้องมีป้าย Location ชัดเจน อ่านง่าย ตรงกับของจริง",c:["ไม่มีป้ายระบุตำแหน่ง","ขาดมากกว่า 5 จุด หรือป้ายไม่ตรงของจริง","ขาด/ไม่ชัด 3–5 จุด","ป้ายขาด/ไม่ชัด 1–2 จุด","ป้ายครบ ชัดเจน ตรงของจริงทุกจุด"]},
+  {no:"2.3",h:"สะดวก",t:"ทางเดินหลักและทางเดินระหว่างชั้นวาง",d:"ทางเดินต้องโล่ง ไม่มีของวางล้ำเส้น รถเข็นและรถยกผ่านได้สะดวก",c:["ทางเดินถูกกีดขวาง รถยก/คนผ่านไม่ได้","ล้ำเส้นมากกว่า 3 จุด ทางเดินแคบลง","ล้ำเส้น 2–3 จุด กีดขวางบางส่วน","ล้ำเส้น 1 จุดเล็กน้อย ยังผ่านได้","ทางเดินโล่ง รถยก/คนผ่านได้สะดวก"]},
+  {no:"2.4",h:"สะดวก",t:"ช่องทางไฟล์คลิฟท์",d:"ช่องทางรถยกต้องชัดเจน มีเส้นแบ่ง ไม่มีของวางกีดขวาง",c:["ช่องทางรถยกถูกกีดขวาง เสี่ยงอุบัติเหตุ","กีดขวางชัดเจน รถยกผ่านลำบาก","กีดขวางบางส่วน 2–3 จุด","กีดขวางเล็กน้อย 1 จุด","ช่องทางชัดเจน ปลอดโล่ง ไม่มีของกีดขวาง"]},
+  {no:"2.5",h:"สะดวก",t:"การวางพาเลทและแบบบนพื้น",d:"พาเลทและแม่พิมพ์ต้องวางในพื้นที่ที่กำหนด ไม่ล้ำเส้น ไม่กีดขวาง",c:["วางพาเลทสุ่ม กีดขวางทางเดิน เสี่ยงอันตราย","ล้ำเส้นมากกว่า 3 จุด ชัดเจน","ล้ำเส้น 2–3 จุด พอควบคุมได้","ล้ำเส้น 1 จุดเล็กน้อย","วางในพื้นที่ที่กำหนด ไม่ล้ำเส้น"]},
+  {no:"3.1",h:"สะอาด",t:"ความสะอาดพื้นทางเดิน",d:"พื้นทางเดินทุกจุดต้องสะอาด ไม่มีเศษวัสดุ น้ำมัน หรือสิ่งอื่นสะสม",c:["สกปรกมาก เสี่ยงลื่น/สะดุด/อุบัติเหตุ","พบสกปรกมากกว่า 10 จุด หรือมีคราบน้ำมัน","พบสกปรก 6–10 จุด หรือสกปรกหลายจุด","พบสกปรก 3–5 จุด","พื้นสะอาด ไม่มีเศษวัสดุหรือคราบ"]},
+  {no:"3.2",h:"สะอาด",t:"ความสะอาดบริเวณเครื่องจักร",d:"เครื่องจักรและอุปกรณ์การผลิตต้องสะอาด ไม่มีเศษวัสดุ คราบน้ำมัน สะสม",c:["เครื่องจักรสกปรกมาก มีคราบน้ำมันสะสมหนา","สกปรกชัดเจน มีเศษวัสดุและคราบน้ำมัน","สกปรกบางส่วน 3–5 จุด","สกปรกเล็กน้อย 1–2 จุด","เครื่องจักรสะอาด ไม่มีเศษวัสดุหรือคราบน้ำมัน"]},
+  {no:"3.3",h:"สะอาด",t:"ความสะอาดของชั้นวาง Rack",d:"ชั้นวาง Rack ต้องสะอาด ไม่มีฝุ่น เศษวัสดุ หรือคราบสกปรกสะสม",c:["ชั้นวางสกปรกมาก เสี่ยงสินค้าเสียหาย","สกปรกหลายจุด พบเศษวัสดุและฝุ่น","สกปรก 3–5 จุด","สกปรกเล็กน้อย 1–2 จุด","ชั้นวางสะอาด ไม่มีฝุ่นหรือเศษวัสดุ"]},
+  {no:"3.4",h:"สะอาด",t:"การจัดเก็บอุปกรณ์ทำความสะอาด",d:"อุปกรณ์ทำความสะอาดต้องอยู่ในจุดที่กำหนด พร้อมใช้งาน",c:["ไม่มีอุปกรณ์ทำความสะอาดเลย","ขาดหลายรายการ จุดเก็บไม่ชัดเจน","ขาด/ไม่พร้อมใช้ 2–3 รายการ","ขาด/ไม่เข้าที่ 1 รายการ","ครบ พร้อมใช้ อยู่ในจุดที่กำหนด"]},
+  {no:"3.5",h:"สะอาด",t:"ถังขยะและจุดทิ้งเศษวัสดุ",d:"มีถังขยะและจุดทิ้งเศษวัสดุที่เหมาะสม ไม่ล้น แยกประเภทถูกต้อง",c:["ไม่มีจุดทิ้งที่เหมาะสม เศษวัสดุกระจัดกระจาย","ถังขยะล้น เศษวัสดุสะสมมาก","ถังขยะเต็ม 70–90% หรือแยกประเภทไม่ครบ","ถังขยะเริ่มเต็ม หรือผิดประเภท 1–2 ชิ้น","ถังขยะไม่ล้น แยกประเภทครบ จุดทิ้งชัดเจน"]},
+  {no:"4.1",h:"สร้างมาตรฐาน",t:"เส้นดีพื้นและกรอบพื้นที่",d:"เส้นตีพื้นกำหนดขอบเขตพื้นที่ต้องชัดเจนครบทุกจุด ไม่ลบเลือน",c:["ไม่มีเส้นกำหนดพื้นที่เลย","เส้นลบเลือนมากกว่า 5 จุด หรือบางพื้นที่ไม่มี","ลบเลือน/ขาดหาย 3–5 จุด","เส้นลบเลือน 1–2 จุด ยังเข้าใจได้","เส้นชัดเจนครบทุกจุด ไม่ลบเลือน"]},
+  {no:"4.2",h:"สร้างมาตรฐาน",t:"ป้ายเตือนความปลอดภัย",d:"ป้ายเตือน PPE ป้ายความปลอดภัย ต้องครบ ชัดเจน ถูกต้อง",c:["ไม่มีป้ายเตือนความปลอดภัยสำคัญ","ขาดมากกว่า 5 จุด หรือป้ายไม่ชัด","ขาด/ไม่ชัด 3–5 จุด","ขาด/ไม่ชัด 1–2 จุด","ป้ายเตือนครบ ชัดเจน ถูกต้อง"]},
+  {no:"4.3",h:"สร้างมาตรฐาน",t:"มาตรฐานการซ้อนเก็บแบบ",d:"การซ้อนเก็บแม่พิมพ์และแบบต้องไม่เสี่ยงล้ม ไม่สูงเกินกำหนด มีที่กั้น",c:["ซ้อนสูงเสี่ยงล้ม ไม่มีที่กั้น เสี่ยงอันตราย","ซ้อนเกินกำหนดหลายจุด หรือไม่มีที่กั้น","ซ้อนเกินกำหนด 2–3 จุด","ซ้อนเกินกำหนดเล็กน้อย 1 จุด","ซ้อนเก็บถูกต้อง ไม่สูงเกินกำหนด มีที่กั้นครบ"]},
+  {no:"4.4",h:"สร้างมาตรฐาน",t:"อุปกรณ์ดับเพลิง/ทางออกฉุกเฉิน",d:"ถังดับเพลิง ตู้ไฟ และทางออกฉุกเฉินต้องเข้าถึงได้ทันที ไม่มีของบัง",c:["ถูกบัง ใช้งานไม่ได้ เสี่ยงอันตรายรุนแรง","บังชัดเจน เข้าถึงยาก","กีดขวางบางส่วน 2–3 จุด","มีของใกล้ 1 จุด แต่ยังเข้าถึงได้","เข้าถึงได้ทันที ไม่มีของบัง"]},
+  {no:"4.5",h:"สร้างมาตรฐาน",t:"เอกสาร/ป้าย Location มาตรฐาน",d:"เอกสารแม่พิมพ์และป้าย Location ต้องอัปเดตตรงกับสภาพจริงเสมอ",c:["เอกสารและป้ายไม่ตรงกับสภาพจริงเลย","ไม่ตรงมากกว่า 5 รายการ","ไม่ตรง 3–5 รายการ","ไม่ตรง 1–2 รายการ","เอกสารและป้าย Location ตรงกับสภาพจริง 100%"]},
+  {no:"5.1",h:"สร้างวินัย",t:"การปฏิบัติตามที่จัดเก็บทุกครั้ง",d:"หลังใช้งานทุกครั้งต้องคืนแม่พิมพ์และอุปกรณ์กลับที่เดิม",c:["ไม่คืนที่เดิมเป็นประจำ ของกระจัดกระจาย","ไม่คืนที่เดิมมากกว่า 5 รายการ","ไม่คืนที่เดิม 3–5 รายการ","ไม่คืนที่เดิม 1–2 รายการ","คืนที่เดิมครบทุกครั้ง ไม่พบของวางผิดที่"]},
+  {no:"5.2",h:"สร้างวินัย",t:"การสวม PPE และปฏิบัติตามกฎ",d:"พนักงานทุกคนต้องสวม PPE และปฏิบัติตามกฎความปลอดภัยโรงแบบเสมอ",c:["พบการไม่สวม PPE หรือฝ่าฝืนกฎรุนแรง","พบมากกว่า 3 ครั้ง หรือพฤติกรรมเสี่ยง","พบ 2–3 ครั้ง","พบ 1 ครั้ง ไม่รุนแรง","ปฏิบัติครบ สวม PPE ถูกต้องทุกคน"]},
+  {no:"5.3",h:"สร้างวินัย",t:"การตรวจประจำวัน",d:"มีการตรวจสอบพื้นที่โรงแบบประจำวัน มีบันทึกและหลักฐาน",c:["ไม่มีการตรวจประจำวันเลย","ตรวจน้อยกว่า 50% ของวันที่กำหนด","ตรวจ 50–75% ของวันที่กำหนด","ตรวจ 76–95% ของวันที่กำหนด","ตรวจประจำวันครบ 100% มีบันทึกครบ"]},
+  {no:"5.4",h:"สร้างวินัย",t:"การแก้ไขข้อบกพร่องต่อเนื่อง",d:"ปัญหาที่พบต้องได้รับการแก้ไขทันที และไม่ซ้ำจากรอบก่อน",c:["ไม่แก้ไขปัญหา หรือพบซ้ำทุกรอบ","แก้ไขน้อยกว่า 50%","แก้ไข 50–75%","แก้ไข 76–95%","แก้ไขครบ 100% ปัญหาไม่ซ้ำจากรอบก่อน"]},
+  {no:"5.5",h:"สร้างวินัย",t:"ความร่วมมือของพนักงาน",d:"พนักงานมีส่วนร่วมในกิจกรรม 5ส รู้หน้าที่ และปฏิบัติได้โดยไม่ต้องสั่ง",c:["ไม่มีการมีส่วนร่วม ไม่รู้หน้าที่","รู้หน้าที่แต่ต้องสั่งเสมอ","บางคนมีส่วนร่วม ส่วนใหญ่ต้องสั่ง","ส่วนใหญ่มีส่วนร่วม บางคนต้องสั่ง","มีส่วนร่วมครบทุกคน ปฏิบัติได้โดยไม่ต้องสั่ง"]},
+]
+};
+IT.Custom=[...IT.Office];
+
+let area='Office',cur=0,sc={},nt={},ph={},photoIdx=-1,viewMode=false;
+let hist=JSON.parse(localStorage.getItem('5s_h')||'[]');
+let viewCrit=null;
+function detectOfficeVer(nos){const v2=new Set(OFFICE_V2.map(x=>String(x.no))),v1=new Set(OFFICE_V1.map(x=>String(x.no)));let c2=0,c1=0;(nos||[]).forEach(n=>{const s=String(n);if(v2.has(s))c2++;if(v1.has(s))c1++;});return c2>c1?'v2':(c1>c2?'v1':'v2');}
+function critFor(a,nos){if(a==='Office')return detectOfficeVer(nos)==='v1'?OFFICE_V1:OFFICE_V2;return IT[a]||[];}
+
+function AN(){return (IT[area]||[]).length||25;}
+function init(){sc={};nt={};ph={};for(let i=0;i<AN();i++){sc[i]=-1;nt[i]='';ph[i]=[];}}
+// --- Autosave งานตรวจกลางคัน (กัน refresh/แครช/ปิดแท็บ แล้วข้อมูลหาย) ---
+const DRAFT_KEY='5s_draft';
+let inspecting=false,_draftT=null;
+function saveDraft(){
+  if(!inspecting||viewMode)return;
+  const form={};['f-dept','f-insp','f-area','f-custom','f-date','f-round'].forEach(id=>{const el=document.getElementById(id);if(el)form[id]=el.value;});
+  const base={area,cur,sc,nt,form,ts:Date.now()};
+  try{localStorage.setItem(DRAFT_KEY,JSON.stringify({...base,ph}));}
+  catch(e){try{localStorage.setItem(DRAFT_KEY,JSON.stringify({...base,ph:{},noPhotos:true}));}catch(e2){console.warn('[draft] save failed:',e2);}}
+}
+function saveDraftSoon(){clearTimeout(_draftT);_draftT=setTimeout(saveDraft,700);}
+function clearDraft(){inspecting=false;try{localStorage.removeItem(DRAFT_KEY);}catch(e){}}
+function restoreDraft(){
+  let d;try{d=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null');}catch(e){d=null;}
+  if(!d||!d.sc)return;
+  const chosen=Object.values(d.sc).filter(v=>v!==-1).length;
+  if(!chosen){clearDraft();return;}
+  const an=d.area&&ANAME[d.area]?ANAME[d.area]:(d.area||'พื้นที่');
+  if(!confirm('พบการตรวจที่ยังทำค้างไว้:\n'+an+' · เลือกไปแล้ว '+chosen+'/'+(IT[d.area]?IT[d.area].length:25)+' ข้อ\n\nกด "ตกลง" เพื่อทำต่อ · "ยกเลิก" เพื่อเริ่มใหม่')){clearDraft();return;}
+  area=IT[d.area]?d.area:'Office';
+  init();
+  Object.keys(d.sc).forEach(i=>{sc[i]=d.sc[i];});
+  if(d.nt)Object.keys(d.nt).forEach(i=>{nt[i]=d.nt[i];});
+  if(d.ph)Object.keys(d.ph).forEach(i=>{if(Array.isArray(d.ph[i]))ph[i]=d.ph[i];});
+  selArea(area);
+  const form=d.form||{};Object.keys(form).forEach(id=>{const el=document.getElementById(id);if(el)el.value=form[id];});
+  cur=Math.min(Math.max(parseInt(d.cur)||0,0),AN()-1);
+  inspecting=true;
+  goTab('inspect');showSt(1);rItem();setNbSub2();
+  showToast(d.noPhotos?'ℹ️ กู้คืนงานตรวจค้างแล้ว (รูปบางส่วนกู้ไม่ได้ เพราะพื้นที่เครื่องเต็มตอนนั้น)':'✅ กู้คืนงานตรวจที่ค้างไว้แล้ว — ทำต่อได้เลย');
+}
+init();
+
+function goTab(t){
+  if(viewMode)exitViewMode();
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+t).classList.add('on');
+  document.getElementById('t-'+t).classList.add('on');
+  if(t==='history')rHist();if(t==='ranking')rRank();if(t==='home')rHome();if(t==='admin')rAdmin();if(t==='compare')rCompare();
+}
+function selArea(a){
+  area=a;
+  document.querySelectorAll('.area-card').forEach(c=>{
+    c.classList.remove('sel');c.style.borderWidth='2px';c.style.background='';
+    const chk=c.querySelector('.area-check');if(chk)chk.style.background='';
+  });
+  const el=document.getElementById('ac-'+a);
+  if(el){
+    el.classList.add('sel');el.style.borderWidth='3px';el.style.background=ATINT[a];
+    const chk=el.querySelector('.area-check');if(chk)chk.style.background=ACOL[a];
+  }
+  document.getElementById('custom-field').style.display=a==='Custom'?'block':'none';
+  document.getElementById('fhead').style.background=ACOL[a];
+}
+function startInspect(){cur=0;init();inspecting=false;showSt(0);goTab('inspect');setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
+function startItems(){
+  const req=[['f-dept','หน่วยงาน'],['f-insp','ผู้ตรวจ']];
+  const miss=[];
+  req.forEach(([id,label])=>{
+    const el=document.getElementById(id);
+    const empty=!(el.value||'').trim();
+    el.classList.toggle('inp-err',empty);
+    if(empty)miss.push(label);
+  });
+  if(miss.length){
+    showToast('⚠️ กรุณากรอก '+miss.join(' และ ')+' ก่อนเริ่มตรวจ');
+    document.getElementById(miss[0]==='หน่วยงาน'?'f-dept':'f-insp').focus();
+    return;
+  }
+  cur=0;inspecting=true;showSt(1);rItem();setNbSub2();saveDraft();
+}
+function showSt(s){
+  document.getElementById('st-info').style.display=s===0?'block':'none';
+  document.getElementById('st-items').style.display=s===1?'block':'none';
+  document.getElementById('st-sum').style.display=s===2?'block':'none';
+}
+function setNbSub(t){document.getElementById('nb-sub').textContent=t;}
+function setNbSub2(){setNbSub('ข้อ '+(cur+1)+'/'+AN()+' — '+IT[area][cur].h);}
+function setPb(done,tot){
+  const n=AN();
+  document.getElementById('pb').style.width=(done/n*100)+'%';
+  document.getElementById('pb-lbl').textContent=done+'/'+n;
+}
+// NA-aware คำนวณคะแนน (getTotal ยังคืนค่าเป็น % 0-100 เหมือนเดิม เพื่อไม่กระทบ history/ranking/print)
+function getScored(){return Object.entries(sc).filter(([i,v])=>v!==-1&&v!=='NA');}
+function getRawTotal(){return getScored().reduce((a,[,v])=>a+Number(v),0);}
+function getMaxPossible(){return getScored().length*4;}
+function getTotal(){const mx=getMaxPossible();return mx>0?Math.round(getRawTotal()/mx*100):0;}
+function getNACount(){return Object.values(sc).filter(v=>v==='NA').length;}
+function getUnscored(){const a=[];for(let i=0;i<AN();i++){if(sc[i]===-1)a.push(i);}return a;}
+function rItem(){
+  const items=IT[area],it=items[cur],s=sc[cur];
+  const isNA=s==='NA',has=!isNA&&s>=0;
+  const col=ACOL[area],bg=ABG[area];
+  const zimgs=(area==='Office'&&it.std&&typeof STD_IMG_OFFICE_ZONES!=='undefined')?(STD_IMG_OFFICE_ZONES[it.std]||[]):[];
+  const hasStd=zimgs.length>0;
+  let crit;
+  if(isNA){
+    crit=`<div class="crit" style="background:#E6F1FB;color:#185FA5;border-color:#378ADD">N/A — ข้ามหัวข้อนี้ ไม่นำมาคิดคะแนน</div>`;
+  }else if(has){
+    crit=`<div class="crit" style="background:${SBG[s]};color:${SFG[s]};border-color:${SBC[s]}">${it.c[s]}</div>`;
+  }else{
+    crit=`<div class="crit" style="background:#F7F9FC;color:#94A3B8;border-color:#DDE3EC">กดเลือกคะแนนเพื่อดูเกณฑ์ หรือกด N/A หากไม่เกี่ยวข้อง</div>`;
+  }
+  const sbtns=[0,1,2,3,4].map(v=>`<button class="sc${s===v?' v'+v:''}" onclick="setS(${v})">${v}<span>${SL[v]}</span></button>`).join('');
+  const nabtn=`<button class="sc${isNA?' vna':''}" onclick="setNA()">N/A<span>ข้ามหัวข้อ</span></button>`;
+  const stdBtnHtml=hasStd?`<div class="std-btn-wrap"><button class="std-btn" onclick="openStdModal('${it.std}')">📐 ดูรูปมาตรฐาน</button></div>`:'';
+  const pht=ph[cur]&&ph[cur].length?ph[cur].map((p,i)=>`<div class="pthumb-wrap"><img class="pthumb" src="${p}"><button class="pdel" onclick="delPh(${cur},${i})">×</button></div>`).join(''):'';
+  const needPhoto=has&&s<=2;
+  const hasPhoto=ph[cur]&&ph[cur].length>0;
+  const photoHint=needPhoto?(hasPhoto?'<div style="width:100%;font-size:11px;color:#0F6E56;font-weight:700;margin-top:4px">✓ แนบรูปหลักฐานแล้ว</div>':'<div style="width:100%;font-size:11px;color:#A32D2D;font-weight:700;margin-top:4px">* คะแนนนี้ต้องแนบรูปหลักฐานอย่างน้อย 1 รูป</div>'):'';
+  document.getElementById('item-area').innerHTML=`
+    <div class="hmvd-tag" style="background:${HB[it.h]};color:${HC[it.h]}">${it.h} · ข้อ ${it.no} (${cur+1}/${items.length})</div>
+    ${isNA?'<div class="na-badge">⊘ N/A — ข้ามหัวข้อนี้</div>':''}
+    <div class="icard" style="${isNA?'opacity:.6':''}">
+      <div class="ihead">
+        <div class="itop"><div class="ino" style="background:${bg};color:${col}">${cur+1}</div><div class="ititle">${it.t}</div></div>
+        <div class="idetail">${it.d}</div>
+        ${stdBtnHtml}
+        ${crit}
+      </div>
+      <div class="ssec"><div class="slbl">เลือกระดับคะแนน</div><div class="srow">${sbtns}${nabtn}</div></div>
+      ${!isNA?`<div class="nsec"><div class="nlbl">บันทึกจุดบกพร่องที่พบ</div>
+        <textarea class="ninp" id="ninp" placeholder="ระบุจุดที่พบ..." oninput="nt[${cur}]=this.value;saveDraftSoon()">${nt[cur]}</textarea></div>
+      <div class="psec">
+        <div class="pbtn" style="${needPhoto&&!hasPhoto?'border-color:#A32D2D;background:#FCEBEB':''}" onclick="openPh(${cur})"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>รูป</div>
+        <div id="ph-list-${cur}" style="display:flex;gap:6px;flex-wrap:wrap">${pht}</div>
+        ${photoHint}
+      </div>`:'<div style="padding:10px 15px 12px;font-size:12px;color:#185FA5;text-align:center">หัวข้อนี้ถูกข้ามไป (N/A) ไม่นำมาคิดคะแนน</div>'}
+    </div>`;
+  const bn=document.getElementById('btn-next');
+  bn.innerHTML=cur<items.length-1?'ถัดไป →':'📋 ดูสรุปผล';
+  uMini();uPb();
+}
+function setS(v){sc[cur]=v;rItem();saveDraft();}
+function setNA(){sc[cur]=sc[cur]==='NA'?-1:'NA';rItem();saveDraft();}
+function openStdModal(slug){
+  const imgs=(typeof STD_IMG_OFFICE_ZONES!=='undefined'&&slug)?(STD_IMG_OFFICE_ZONES[slug]||[]):[];
+  const g=document.getElementById('std-gallery');
+  g.innerHTML=imgs.length?imgs.map(src=>`<img class="modal-img" src="${src}" alt="รูปมาตรฐาน" style="width:100%;border-radius:8px">`).join(''):'<div style="padding:24px;text-align:center;color:#94A3B8">ยังไม่มีรูปมาตรฐานสำหรับโซนนี้</div>';
+  const cap=document.getElementById('std-caption');
+  if(cap)cap.textContent='ตัวอย่างมาตรฐาน'+(typeof STD_ZONE_NAME!=='undefined'&&STD_ZONE_NAME[slug]?' — '+STD_ZONE_NAME[slug]:'')+' ตามหลัก 5ส';
+  document.getElementById('std-modal').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closeStdModal(){
+  document.getElementById('std-modal').style.display='none';
+  document.body.style.overflow='';
+}
+function closeModal(e){if(e.target===document.getElementById('std-modal'))closeStdModal();}
+function openPhoto(src){
+  if(!src)return;
+  document.getElementById('pv-img').src=src;
+  document.getElementById('photo-viewer').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closePhoto(e){
+  if(e&&e.target&&e.target.id==='pv-img')return;
+  document.getElementById('photo-viewer').style.display='none';
+  document.getElementById('pv-img').src='';
+  document.body.style.overflow='';
+}
+document.addEventListener('click',function(e){
+  const t=e.target;
+  if(t&&t.tagName==='IMG'&&(t.classList.contains('df-photo')||t.classList.contains('pthumb'))){
+    openPhoto(t.getAttribute('src'));
+  }
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&document.getElementById('photo-viewer').style.display==='flex')closePhoto();
+});
+function openPh(i){photoIdx=i;document.getElementById('photo-inp').click();}
+function compressImage(dataUrl,maxDim,quality){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>h&&w>maxDim){h=Math.round(h*maxDim/w);w=maxDim;}
+      else if(h>=w&&h>maxDim){w=Math.round(w*maxDim/h);h=maxDim;}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+function handlePhoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=async ev=>{
+    const compressed=await compressImage(ev.target.result,900,0.6);
+    if(!ph[photoIdx])ph[photoIdx]=[];
+    ph[photoIdx].push(compressed);
+    rItem();saveDraft();
+  };
+  r.readAsDataURL(f);e.target.value='';
+}
+function delPh(i,pi){ph[i].splice(pi,1);rItem();saveDraft();}
+function nextItem(){
+  const s=sc[cur];
+  if(s>=0&&s<=2&&(!ph[cur]||!ph[cur].length)){
+    showToast('📷 คะแนนข้อนี้ต่ำ (0-2) ต้องแนบรูปหลักฐานอย่างน้อย 1 รูปก่อนไปต่อ');
+    return;
+  }
+  if(cur<AN()-1){cur++;rItem();setNbSub2();}
+  else{
+    const un=getUnscored();
+    if(un.length){
+      showToast('⚠️ ยังประเมินไม่ครบ — เหลืออีก '+un.length+' ข้อ (เลือกคะแนน หรือกด N/A) พาไปที่ข้อ '+(un[0]+1)+' ให้แล้ว');
+      cur=un[0];rItem();setNbSub2();return;
+    }
+    rSum();showSt(2);setNbSub('สรุปผลการตรวจ');
+  }
+}
+function prevItem(){if(cur>0){cur--;rItem();setNbSub2();}else{showSt(0);setNbSub('กรอกข้อมูล');}}
+function uMini(){
+  const t=getTotal(),c=t>=80?'#0F6E56':t>=60?'#854F0B':'#A32D2D';
+  document.getElementById('ms-n').textContent=t;document.getElementById('ms-n').style.color=c;
+  document.getElementById('ms-bar').style.width=t+'%';document.getElementById('ms-bar').style.background=c;
+  document.getElementById('ms-pct').textContent=t+'%';document.getElementById('ms-pct').style.color=c;
+}
+function uPb(){
+  const d=Object.values(sc).filter(v=>v!==-1).length,n=AN();
+  document.getElementById('pb').style.width=(d/n*100)+'%';
+  document.getElementById('pb-lbl').textContent=d+'/'+n;
+}
+function getReportData(){
+  const items=viewCrit||IT[area],tot=getTotal(),na=getNACount(),pass=tot>=80;
+  const lv=tot>=90?'ดีมาก':tot>=80?'ผ่านเกณฑ์':tot>=70?'พอใช้':tot>=60?'ต้องปรับปรุง':'ไม่ผ่านเกณฑ์';
+  const dept=document.getElementById('f-dept').value||'—';
+  const aname=area==='Custom'?(document.getElementById('f-custom').value||'พื้นที่อื่น'):ANAME[area];
+  const adet=document.getElementById('f-area').value;
+  const insp=document.getElementById('f-insp').value||'—';
+  const dv=document.getElementById('f-date').value;
+  const ds=dv?new Date(dv).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'-';
+  const round=document.getElementById('f-round').value;
+  const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
+  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=4;hS[it.h]+=sc[i];}});
+  const probs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2);
+  const naItems=items.filter((_,i)=>sc[i]==='NA');
+  const lvs=[{n:'<60',l:'ไม่ผ่าน',bg:'#F5E6E6',fg:'#7A1515',a:tot<60},{n:'60–69',l:'ต้องปรับ',bg:'#FAEEDA',fg:'#854F0B',a:tot>=60&&tot<70},{n:'70–79',l:'พอใช้',bg:'#FFF3CD',fg:'#6B4C00',a:tot>=70&&tot<80},{n:'80–89',l:'ผ่าน',bg:'#E1F5EE',fg:'#0F6E56',a:tot>=80&&tot<90},{n:'90+',l:'ดีมาก',bg:'#D0F0E4',fg:'#085041',a:tot>=90}];
+  return{items,tot,na,naItems,pass,lv,dept,aname:cmpEsc(aname),adet:cmpEsc(adet),insp:cmpEsc(insp),ds,round,hS,hM,probs,lvs};
+}
+function rSum(){
+  const{items,tot,na,naItems,pass,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
+  const bars=HMVD.map(h=>{const s=hS[h],m=hM[h],p=m>0?Math.round(s/m*100):0,c=HC[h];
+    return `<div class="br-row"><div class="br-n" style="color:${c}">${h}</div><div class="br-track"><div class="br-fill" style="width:${p}%;background:${c}"></div></div><div style="display:flex;align-items:baseline;gap:2px;min-width:42px;justify-content:flex-end"><div class="br-v" style="color:${c}">${m>0?s:'—'}</div><div class="br-p">/${m>0?m:'N/A'}</div></div></div>`;}).join('');
+  const naHtml=naItems.length?naItems.map(it=>`<div style="padding:5px 0;font-size:12px;color:#185FA5">⊘ ข้อ ${it.no} — ${it.t}</div>`).join(''):'';
+  const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||it.c[s];
+    const pht=ph[i]&&ph[i].length?`<div class="df-photos">${ph[i].map(p=>`<img class="df-photo" src="${p}">`).join('')}</div>`:'';
+    return `<div class="df-item"><div class="df-hd"><div class="df-dot" style="background:${HC[it.h]}"></div><div class="df-ttl">ข้อ ${it.no} — ${it.t}</div><div class="df-badge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</div></div><div class="df-note">${cmpEsc(note)}</div>${pht}</div>`;}).join('')
+    :`<div style="padding:14px;text-align:center;font-size:13px;color:var(--muted)">✅ ไม่พบจุดบกพร่อง</div>`;
+  document.getElementById('sum-content').innerHTML=`
+    <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:11px;color:var(--muted);margin-bottom:12px">
+      <span>${AICO[area]||'📍'} ${aname}</span>${adet?`<span>📍 ${adet}</span>`:''}<span>🏢 ${dept}</span><span>📅 ${ds}</span><span>👤 ${insp}</span><span>🔄 ${round}</span>
+    </div>
+    <div class="sum-hero"><div class="hring"><div class="hn">${tot}</div><div class="hmx">/100</div></div>
+      <div class="hr"><div class="hpct">${tot}%</div><div class="hlbl">${items.length-na} หัวข้อ${na>0?' (ข้าม '+na+' N/A)':''}</div><div class="hbadge">${pass?'✓':'!'} ${lv}</div></div></div>
+    <div class="scard"><div class="shd"><div class="sico" style="background:#E1F5EE">📊</div><div class="sttl">คะแนนแยกรายหมวด</div></div><div class="sbd">${bars}</div></div>
+    <div class="lvstrip">${lvs.map(l=>`<div class="lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg+';':'border-color:transparent'}"><div class="lvn" style="color:${l.fg}">${l.n}</div><div class="lvl" style="color:${l.fg}">${l.l}</div></div>`).join('')}</div>
+    ${naItems.length?`<div class="scard"><div class="shd"><div class="sico" style="background:#E6F1FB">⊘</div><div class="sttl" style="color:#185FA5">หัวข้อ N/A — ข้ามไป (${naItems.length} หัวข้อ)</div></div><div class="sbd" style="padding:10px 15px">${naHtml}</div></div>`:''}
+    <div class="scard"><div class="shd"><div class="sico" style="background:${probs.length?'#FCEBEB':'#E1F5EE'}">${probs.length?'⚠️':'✅'}</div>
+      <div class="sttl" style="color:${probs.length?'#A32D2D':'#0F6E56'}">${probs.length?'จุดต้องแก้ไข ('+probs.length+' หัวข้อ)':'ผ่านทุกหัวข้อ'}</div></div>
+      <div class="sbd" style="padding:${probs.length?'12px 15px':'0'}">${dfHtml}</div></div>`;
+  buildPrintReport();
+}
+function tierGrad(tot){return tot>=80?['#0a5240','#0F6E56']:tot>=60?['#6b3d09','#854F0B']:['#7a1515','#A32D2D'];}
+function buildPrintReport(){
+  const{items,tot,na,pass,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
+  const [g1,g2]=tierGrad(tot);
+  const bars=HMVD.map(h=>{const s=hS[h],m=hM[h],p=m>0?Math.round(s/m*100):0,c=HC[h];
+    return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v"><b style="color:${c}">${m>0?s:'—'}/${m>0?m:'N/A'}</b><span class="pr-bar-pct">${p}%</span></div></div>`;}).join('');
+  const lvHtml=lvs.map(l=>`<div class="pr-lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg:''}"><div class="pr-lvn" style="color:${l.fg}">${l.n}</div><div class="pr-lvl" style="color:${l.fg}">${l.l}</div></div>`).join('');
+  const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||it.c[s];
+    const has=ph[i]&&ph[i].length;
+    const pht=has?`<img class="pr-dph" src="${ph[i][0]}">`:'';
+    return `<div class="pr-dcard" style="--pr-cat:${HC[it.h]}"><div class="pr-dtxt"><div class="pr-dttl">ข้อ ${it.no} — ${it.t}<span class="pr-dbadge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</span></div><div class="pr-dnote">${cmpEsc(note)}</div></div>${pht}</div>`;}).join('')
+    :`<div class="pr-ok">✅ ผ่านทุกหัวข้อ ไม่พบจุดบกพร่อง</div>`;
+  const accent=ACOL[area]||'#1A1A2E';
+  document.getElementById('pr-inner').style.setProperty('--pr-accent',accent);
+  document.getElementById('pr-inner').innerHTML=`
+    <div class="pr-head">
+      <div class="pr-brand"><div class="pr-logo">🏭</div><div><div class="pr-h1">รายงานผลการตรวจ 5ส</div><div class="pr-h2">แบบตรวจ 5ส Pro · v3.0</div></div></div>
+      <div class="pr-meta">
+        <span>${AICO[area]||'📍'} <b>${aname}</b>${adet?' ('+adet+')':''}</span>
+        <span>🏢 หน่วยงาน <b>${dept}</b></span>
+        <span>📅 <b>${ds}</b></span>
+        <span>👤 ผู้ตรวจ <b>${insp}</b></span>
+        <span>🔄 รอบ <b>${round}</b></span>
+      </div>
+      <div class="pr-score" style="background-color:${g2};background-image:linear-gradient(135deg,${g1},${g2})">
+        <div class="pr-score-n">${tot}<span class="pr-score-mx">/100</span></div>
+        <div class="pr-score-mx">${items.length-na} หัวข้อ × 4 คะแนน${na>0?' (ข้าม '+na+' N/A)':''}</div>
+        <div class="pr-score-lv">${pass?'✓':'!'} ${lv}</div>
+      </div>
+    </div>
+    <div class="pr-sec-ttl">📊 คะแนนแยกรายหมวด</div>
+    <div class="pr-bars">${bars}</div>
+    <div class="pr-levels">${lvHtml}</div>
+    <div class="pr-sec-ttl">${probs.length?'⚠️ จุดต้องแก้ไข ('+probs.length+' หัวข้อ)':'✅ สรุปผล'}</div>
+    <div class="pr-defects">${dfHtml}</div>
+    <div class="pr-sig">
+      <div><div class="pr-sigline"></div><div class="pr-siglbl">ผู้ตรวจ</div></div>
+      <div><div class="pr-sigline"></div><div class="pr-siglbl">ผู้รับผิดชอบพื้นที่</div></div>
+      <div><div class="pr-sigline"></div><div class="pr-siglbl">ผู้อนุมัติ</div></div>
+    </div>
+    <div class="pr-foot">รายงานสร้างโดยระบบแบบตรวจ 5ส Pro</div>`;
+  fitPrintPage();
+}
+function fitPrintPage(){
+  const inner=document.getElementById('pr-inner');
+  inner.style.zoom=1;
+  const pxPerMm=96/25.4;
+  const availPx=279*pxPerMm;               // A4 (297mm) − 9mm บน/ล่าง
+  const contentPx=inner.scrollHeight;
+  if(contentPx<=availPx)return;            // พอดีหน้าเดียว — ไม่ต้องย่อ
+  const scale=(availPx/contentPx)*0.97;
+  // ย่อให้อยู่หน้าเดียวเฉพาะเมื่อย่อไม่มาก (ยังอ่านออก) · ถ้าเยอะเกินไป → ปล่อยไหลหลายหน้า (ไม่ตัดข้อมูลทิ้ง)
+  inner.style.zoom=scale>=0.7?scale:1;
+}
+function isInAppBrowser(){
+  return /Line\/|FBAN|FBAV|Instagram|MicroMessenger|GSA\/[^\s]* Nebula/i.test(navigator.userAgent);
+}
+function printReport(){
+  if(isInAppBrowser()){
+    alert('เบราว์เซอร์ในแอปนี้ (เช่น LINE) ไม่รองรับการพิมพ์/บันทึก PDF\n\nวิธีแก้: กดปุ่ม ⋮ หรือ ... มุมขวาบนของแอปนี้ → เลือก "เปิดด้วยเบราว์เซอร์อื่น" หรือ "Open in Safari/Chrome" แล้วกดพิมพ์อีกครั้งในเบราว์เซอร์จริง');
+    return;
+  }
+  buildPrintReport();
+  requestAnimationFrame(()=>{fitPrintPage();requestAnimationFrame(()=>window.print());});
+}
+function levelLabel(t){return t>=90?'ดีมาก':t>=80?'ผ่านเกณฑ์':t>=70?'พอใช้':t>=60?'ต้องปรับปรุง':'ไม่ผ่านเกณฑ์';}
+function showSpinner(on,label){
+  const el=document.getElementById('save-spinner');
+  if(label)document.getElementById('save-spinner-lbl').textContent=label;
+  el.style.display=on?'flex':'none';
+}
+let toastTimer=null;
+function showToast(msg,ms){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.display='flex';
+  setTimeout(()=>el.classList.add('show'),10);
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{el.style.display='none';},250);},ms||3200);
+}
+// อัปโหลดรูป base64 ขึ้น Cloudflare R2 (ผ่าน Worker) แล้วคืน URL
+// ถ้า Worker ยังไม่ตั้งค่า/อัปไม่สำเร็จ จะคืน base64 เดิม (แอปไม่พัง)
+async function uploadPhotos(inspectionId,itemNo,photos){
+  if(!R2_WORKER||!Array.isArray(photos)||!photos.length)return photos||[];
+  const out=[];
+  for(let i=0;i<photos.length;i++){
+    const p=photos[i];
+    if(typeof p!=='string'||!p.startsWith('data:')){out.push(p);continue;} // เป็น URL อยู่แล้ว
+    try{
+      const path=`inspections/${inspectionId}/${itemNo}/${i}_${Date.now()}.jpg`;
+      out.push(await r2Upload(path,p));
+    }catch(err){console.warn('[r2] upload failed, keeping base64:',err);out.push(p);}
+  }
+  return out;
+}
+function syncToFirestore(h){
+  if(!db)return Promise.resolve({ok:false});
+  try{
+    const batch=db.batch();
+    const ref=db.collection('inspections').doc(String(h.id));
+    const categoryScores={};
+    HMVD.forEach(cat=>{categoryScores[cat]={score:h.hS[cat]||0,max:h.hM[cat]||0};});
+    batch.set(ref,{
+      date:h.date,area:h.area,areaName:h.aname,areaDetail:h.adet||'',dept:h.dept,
+      inspector:h.insp,round:h.round,totalScore:h.tot,
+      naCount:h.items.filter(it=>it.sc==='NA').length,
+      passed:h.tot>=80,level:levelLabel(h.tot),
+      categoryScores,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+      clientSavedAt:h.saved
+    });
+    h.items.forEach(it=>{
+      const data={
+        itemNo:it.no,category:it.h,title:it.t,
+        score:(it.sc==='NA'||it.sc==='')?null:it.sc,
+        isNA:it.sc==='NA',
+        note:it.nt||''
+      };
+      if(it.ph&&it.ph.length)data.photos=it.ph;
+      batch.set(ref.collection('items').doc(it.no),data);
+    });
+    return batch.commit().then(()=>({ok:true})).catch(err=>{console.warn('[firestore] sync failed — บันทึกในเครื่องไว้แล้ว, อัปขึ้นคลาวด์ไม่สำเร็จ:',err);return{ok:false};});
+  }catch(err){console.warn('[firestore] sync error:',err);return Promise.resolve({ok:false});}
+}
+function persistHist(){try{localStorage.setItem('5s_h',JSON.stringify(hist));return true;}catch(e){console.warn('[storage] บันทึกลงเครื่องไม่สำเร็จ (พื้นที่อาจเต็ม):',e);return false;}}
+async function resyncPending(){
+  if(!db||!navigator.onLine)return;
+  const pend=hist.filter(h=>h&&h.synced===false);
+  if(!pend.length)return;
+  let changed=false;
+  for(const h of pend){const r=await syncToFirestore(h);if(r&&r.ok){h.synced=true;changed=true;}}
+  if(changed){persistHist();if(typeof rHome==='function')rHome();}
+}
+async function saveResult(){
+  if(viewMode)return;
+  const un=getUnscored();
+  if(un.length){showToast('⚠️ ยังประเมินไม่ครบ '+un.length+' ข้อ — ประเมินให้ครบก่อนบันทึก');cur=un[0];showSt(1);rItem();setNbSub2();return;}
+  const btn=document.getElementById('btn-save');
+  if(btn)btn.disabled=true;
+  showSpinner(true,'กำลังบันทึกผล...');
+  const items=IT[area],tot=getTotal();
+  const dept=document.getElementById('f-dept').value||'—';
+  const aname=area==='Custom'?(document.getElementById('f-custom').value||'พื้นที่อื่น'):ANAME[area];
+  const adet=document.getElementById('f-area').value;
+  const insp=document.getElementById('f-insp').value||'—';
+  const dv=document.getElementById('f-date').value||new Date().toISOString().split('T')[0];
+  const round=document.getElementById('f-round').value;
+  const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
+  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=4;hS[it.h]+=sc[i];}});
+  const defs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2).map(it=>{const i=items.indexOf(it);return{no:it.no,t:it.t,sc:sc[i],nt:nt[i]};});
+  const fullItems=items.map((it,i)=>({no:it.no,h:it.h,t:it.t,sc:sc[i]==='NA'?'NA':(sc[i]>=0?sc[i]:''),nt:nt[i]||'',ph:(ph[i]||[]).slice(0,3)}));
+  const rec={id:Date.now(),date:dv,area,aname,adet,dept,insp,round,tot,hS,hM,defs,items:fullItems,saved:new Date().toISOString()};
+  showSpinner(true,'กำลังอัปโหลดรูป...');
+  for(const it of rec.items){it.ph=await uploadPhotos(rec.id,it.no,it.ph);}
+  rec.synced=false;
+  hist.unshift(rec);
+  if(hist.length>50)hist=hist.slice(0,50);
+  const stored=persistHist();
+  const result=await syncToFirestore(rec);
+  rec.synced=!!(result&&result.ok);
+  if(stored&&rec.synced)persistHist();
+  clearDraft();
+  rHome();
+  showSpinner(false);
+  if(btn)btn.disabled=false;
+  let msg;
+  if(rec.synced)msg=stored?'✅ บันทึกผลและซิงก์ขึ้นคลาวด์เรียบร้อยแล้ว':'✅ ซิงก์ขึ้นคลาวด์เรียบร้อย (พื้นที่ในเครื่องเต็ม แต่ข้อมูลอยู่บนคลาวด์แล้ว)';
+  else msg=stored?'⚠️ บันทึกในเครื่องแล้ว แต่ซิงก์คลาวด์ไม่สำเร็จ — ระบบจะซิงก์ให้อัตโนมัติเมื่อกลับมาออนไลน์':'❌ พื้นที่เก็บในเครื่องเต็มและซิงก์คลาวด์ไม่สำเร็จ — กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';
+  showToast(msg);
+}
+function csvCell(v){const s=String(v==null?'':v).replace(/"/g,'""');return/[",\n]/.test(s)?'"'+s+'"':s;}
+function exportCSV(){
+  const rows=hist.filter(h=>h.items&&h.items.length);
+  if(!rows.length){alert('⚠️ ยังไม่มีข้อมูลที่บันทึกครบทุกข้อสำหรับ Export\n(รายการเก่าก่อนอัปเดตนี้จะไม่มีคะแนนรายข้อ ต้องตรวจใหม่แล้วกด "บันทึกผล" อีกครั้ง)');return;}
+  const header=['วันที่ตรวจ','ผู้ตรวจ','หน่วยงาน','พื้นที่','รายละเอียดพื้นที่','รอบตรวจ','คะแนนรวม(%)','ข้อที่','หมวด','หัวข้อการตรวจ','คะแนน','หมายเหตุ'];
+  const lines=[header.map(csvCell).join(',')];
+  rows.forEach(h=>{
+    h.items.forEach(it=>{
+      lines.push([h.date,h.insp,h.dept,h.aname,h.adet||'',h.round,h.tot,it.no,it.h,it.t,it.sc,it.nt].map(csvCell).join(','));
+    });
+  });
+  const csv='﻿'+lines.join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='5s_report_'+new Date().toISOString().split('T')[0]+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+let adminData=[],adminSelected=new Set(),adminItemsCache={};
+function rAdmin(){
+  loadAdminData();
+}
+async function loadAdminData(){
+  const listEl=document.getElementById('admin-list');
+  if(!db){listEl.innerHTML='<div class="empty-state"><div class="empty-title">Firebase ยังไม่พร้อมใช้งาน</div></div>';return;}
+  listEl.innerHTML='<div class="empty-state"><div class="empty-title">กำลังโหลด...</div></div>';
+  try{
+    const snap=await db.collection('inspections').orderBy('date','desc').limit(300).get();
+    adminData=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderAdminList();
+  }catch(err){
+    listEl.innerHTML='<div class="empty-state"><div class="empty-title">โหลดข้อมูลไม่สำเร็จ</div><div class="empty-desc">'+err.message+'</div></div>';
+  }
+}
+function renderAdminList(){
+  const listEl=document.getElementById('admin-list');
+  document.getElementById('admin-count').textContent=adminData.length;
+  if(!adminData.length){
+    listEl.innerHTML='<div class="empty-state"><div class="empty-icon">🗄️</div><div class="empty-title">ยังไม่มีข้อมูล</div></div>';
+    updateAdminFab();return;
+  }
+  const groups={};
+  adminData.forEach(d=>{
+    const k=d.date+'|'+d.area;
+    if(!groups[k])groups[k]={date:d.date,area:d.area,areaName:d.areaName,rows:[]};
+    groups[k].rows.push(d);
+  });
+  const keys=Object.keys(groups).sort((a,b)=>groups[b].date.localeCompare(groups[a].date));
+  listEl.innerHTML=keys.map(k=>{
+    const g=groups[k];
+    const scores=g.rows.map(r=>r.totalScore);
+    const spread=scores.length>1?Math.max(...scores)-Math.min(...scores):0;
+    const spreadColor=spread>=20?'#A32D2D':spread>=10?'#854F0B':'#0F6E56';
+    const dateFmt=new Date(g.date).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+    const rowsHtml=g.rows.map(r=>adminRowHtml(r)).join('');
+    return `<div class="grp-card" style="border-left-color:${ACOL[g.area]||'#94A3B8'}">
+      <div class="grp-head">
+        <div><div class="grp-date">📅 ${dateFmt}</div><div class="grp-area" style="color:${ACOL[g.area]||'#333'}">${AICO[g.area]||'📍'} ${cmpEsc(g.areaName)}</div></div>
+        <div style="text-align:right">
+          <div class="grp-n">👥 ${g.rows.length} คนประเมิน</div>
+          ${g.rows.length>1?`<div class="grp-spread" style="color:${spreadColor}">คะแนนต่างกัน ${spread} pts</div>`:''}
+        </div>
+      </div>
+      <div class="grp-rows">${rowsHtml}</div>
+    </div>`;
+  }).join('');
+  updateAdminFab();
+}
+function adminRowHtml(r){
+  const c=r.totalScore>=80?'#0F6E56':r.totalScore>=60?'#854F0B':'#A32D2D';
+  const checked=adminSelected.has(r.id)?'checked':'';
+  const time=r.createdAt&&r.createdAt.seconds?new Date(r.createdAt.seconds*1000).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'';
+  return `<div class="insp-row">
+    <div class="insp-row-main">
+      <input type="checkbox" class="insp-chk" ${checked} onchange="toggleAdminSel('${r.id}',this.checked)">
+      <div class="insp-info" onclick="viewAdminReport('${r.id}')" style="cursor:pointer">
+        <div class="insp-name">${cmpEsc(r.inspector)}</div>
+        <div class="insp-meta">${cmpEsc(r.dept||'—')}${time?' · '+time:''}${r.naCount?' · ข้าม '+r.naCount+' N/A':''}</div>
+      </div>
+      <div class="insp-score" style="color:${c}">${r.totalScore}%</div>
+    </div>
+    <div id="insp-detail-${r.id}" class="insp-detail" style="display:none"></div>
+  </div>`;
+}
+function toggleAdminSel(id,checked){
+  if(checked)adminSelected.add(id);else adminSelected.delete(id);
+  updateAdminFab();
+}
+function updateAdminFab(){
+  const fab=document.getElementById('admin-fab');
+  if(adminSelected.size>0){fab.style.display='flex';document.getElementById('admin-fab-n').textContent=adminSelected.size;}
+  else fab.style.display='none';
+}
+async function toggleAdminDetail(id){
+  const el=document.getElementById('insp-detail-'+id);
+  if(el.style.display==='block'){el.style.display='none';return;}
+  if(!adminItemsCache[id]){
+    el.style.display='block';
+    el.innerHTML='<div style="padding:6px 0;font-size:11px;color:var(--muted)">กำลังโหลด...</div>';
+    try{
+      const snap=await db.collection('inspections').doc(id).collection('items').orderBy('itemNo').get();
+      adminItemsCache[id]=snap.docs.map(d=>d.data());
+    }catch(err){el.innerHTML='<div style="padding:6px 0;font-size:11px;color:#A32D2D">โหลดรายละเอียดไม่สำเร็จ</div>';return;}
+  }
+  el.style.display='block';
+  el.innerHTML=adminItemsCache[id].map(it=>{
+    const val=it.isNA?'<span style="color:#185FA5">N/A</span>':(it.score??'-');
+    const photos=it.photos&&it.photos.length?`<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap">${it.photos.map(p=>`<img src="${p}" style="width:44px;height:44px;border-radius:6px;object-fit:cover;border:1px solid var(--border)">`).join('')}</div>`:'';
+    return `<div class="detail-row"><span class="detail-no">${it.itemNo}</span><div class="detail-t">${cmpEsc(it.title)}${photos}</div><span class="detail-sc">${val}</span></div>`;
+  }).join('');
+}
+function setViewMode(on){
+  viewMode=on;
+  const save=document.getElementById('btn-save');
+  const reset=document.getElementById('btn-reset');
+  const back=document.getElementById('btn-back-admin');
+  if(save)save.style.display=on?'none':'';
+  if(reset)reset.style.display=on?'none':'';
+  if(back)back.style.display=on?'':'none';
+}
+function exitViewMode(){setViewMode(false);viewCrit=null;init();cur=0;showSt(0);}
+async function viewAdminReport(id){
+  const rec=adminData.find(r=>r.id===id);
+  if(!rec)return;
+  if(!adminItemsCache[id]){
+    showSpinner(true,'กำลังเปิดรายงาน...');
+    try{
+      const snap=await db.collection('inspections').doc(id).collection('items').orderBy('itemNo').get();
+      adminItemsCache[id]=snap.docs.map(d=>d.data());
+    }catch(err){showSpinner(false);showToast('⚠️ เปิดรายงานไม่สำเร็จ');return;}
+    showSpinner(false);
+  }
+  const its=adminItemsCache[id]||[];
+  if(!its.length){showToast('ℹ️ รายการนี้ไม่มีคะแนนรายข้อ (บันทึกก่อนอัปเดต) จึงเปิดรายงานเต็มไม่ได้');return;}
+  area=IT[rec.area]?rec.area:'Office';
+  const list=critFor(area,its.map(x=>x.itemNo));
+  viewCrit=list;
+  init();
+  const byNo={};its.forEach(it=>{byNo[String(it.itemNo)]=it;});
+  list.forEach((it,i)=>{
+    const r=byNo[String(it.no)];
+    if(!r)return;
+    if(r.isNA)sc[i]='NA';
+    else if(r.score===null||r.score===undefined||r.score==='')sc[i]=-1;
+    else sc[i]=Number(r.score);
+    nt[i]=r.note||'';
+    ph[i]=Array.isArray(r.photos)?r.photos:[];
+  });
+  const setV=(elId,v)=>{const el=document.getElementById(elId);if(el)el.value=v;};
+  setV('f-dept',rec.dept||'');
+  setV('f-area',rec.areaDetail||'');
+  if(area==='Custom')setV('f-custom',rec.areaName||'');
+  setV('f-insp',rec.inspector||'');
+  setV('f-date',rec.date||'');
+  if(rec.round)setV('f-round',rec.round);
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-inspect').classList.add('on');
+  const tabBtn=document.getElementById('t-inspect');if(tabBtn)tabBtn.classList.add('on');
+  const fh=document.getElementById('fhead');if(fh)fh.style.background=ACOL[area]||'#0E8F6C';
+  setViewMode(true);
+  showSt(2);
+  rSum();
+  window.scrollTo(0,0);
+}
+async function deleteSelectedAdmin(){
+  if(!adminSelected.size)return;
+  if(!confirm(`ยืนยันลบข้อมูลการตรวจที่เลือก ${adminSelected.size} รายการ?\nการลบนี้ไม่สามารถย้อนกลับได้`))return;
+  showSpinner(true,'กำลังลบข้อมูล...');
+  const ids=[...adminSelected];
+  for(const id of ids){
+    try{
+      const itemsSnap=await db.collection('inspections').doc(id).collection('items').get();
+      const batch=db.batch();
+      itemsSnap.docs.forEach(d=>batch.delete(d.ref));
+      batch.delete(db.collection('inspections').doc(id));
+      await batch.commit();
+      await r2DeleteInspection(id);
+      delete adminItemsCache[id];
+    }catch(err){console.warn('[admin] delete failed for',id,err);}
+  }
+  adminSelected.clear();
+  showSpinner(false);
+  showToast('🗑️ ลบข้อมูลที่เลือกแล้ว');
+  loadAdminData();
+}
+function resetAll(){if(inspecting&&!confirm('⚠️ ล้างงานตรวจที่กำลังทำอยู่ใช่ไหม? ข้อมูลที่กรอกจะหายทั้งหมด'))return;clearDraft();init();cur=0;showSt(0);setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
+function rHome(){
+  const total=hist.length,avg=total?Math.round(hist.reduce((a,h)=>a+h.tot,0)/total):0,pass=hist.filter(h=>h.tot>=80).length;
+  document.getElementById('st-tot').textContent=total;
+  document.getElementById('st-avg').textContent=total?avg+'%':'—';
+  document.getElementById('st-pass').textContent=pass;
+  const recent=hist.slice(0,3);
+  document.getElementById('recent-list').innerHTML=recent.length?recent.map(h=>{
+    const c=h.tot>=80?'#0F6E56':h.tot>=60?'#854F0B':'#A32D2D';
+    return `<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:20px">${AICO[h.area]||'📍'}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${h.aname}</div><div style="font-size:11px;color:var(--muted)">${h.dept} · ${new Date(h.date).toLocaleDateString('th-TH')}</div></div>
+      <div style="font-size:16px;font-weight:800;color:${c}">${h.tot}%</div></div>`;}).join('')
+    :'<div class="recent-empty">ยังไม่มีประวัติ</div>';
+}
+function rHist(){
+  const el=document.getElementById('hist-list');
+  if(!hist.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">ยังไม่มีประวัติ</div><div class="empty-desc">ตรวจและบันทึกผลแล้วจะแสดงที่นี่</div></div>';return;}
+  el.innerHTML=hist.map(h=>{
+    const c=h.tot>=80?'#0F6E56':h.tot>=60?'#854F0B':'#A32D2D';
+    const bg=h.tot>=80?'#E1F5EE':h.tot>=60?'#FAEEDA':'#FCEBEB';
+    const lv=h.tot>=90?'ดีมาก':h.tot>=80?'ผ่านเกณฑ์':h.tot>=70?'พอใช้':h.tot>=60?'ต้องปรับ':'ไม่ผ่าน';
+    return `<div class="hitem"><div class="hico" style="background:${bg}">${AICO[h.area]||'📍'}</div>
+      <div class="hinfo"><div class="htitle">${h.aname}${h.adet?' ('+h.adet+')':''}</div>
+        <div class="hmeta">${h.dept} · ${h.insp} · ${new Date(h.date).toLocaleDateString('th-TH')} · ${h.round}</div>
+        <div style="font-size:11px;margin-top:3px;color:${h.defs&&h.defs.length?'#A32D2D':'#0F6E56'}">${h.defs&&h.defs.length?'⚠️ ต้องแก้ไข '+h.defs.length+' หัวข้อ':'✅ ผ่านทุกหัวข้อ'}</div></div>
+      <div class="hscore"><div class="hpct" style="color:${c}">${h.tot}%</div><div class="hlv" style="color:${c}">${lv}</div><div style="font-size:10px;color:var(--light);margin-top:2px">${h.tot}/100</div></div></div>`;}).join('');
+}
+function rRank(){
+  const el=document.getElementById('rank-list');
+  if(!hist.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">ยังไม่มีข้อมูล</div><div class="empty-desc">ตรวจและบันทึกผลแล้วจะแสดง Ranking ที่นี่</div></div>';return;}
+  const grp={};
+  hist.forEach(h=>{const k=h.aname+'|'+h.dept;if(!grp[k]||new Date(h.date)>new Date(grp[k].date))grp[k]=h;});
+  const ranked=Object.values(grp).sort((a,b)=>b.tot-a.tot);
+  const medals=['🥇','🥈','🥉'],mbc=['#DAA520','#A8A9AD','#CD7F32'];
+  el.innerHTML='<div class="sec-title">อันดับคะแนนล่าสุดแต่ละพื้นที่</div>'+ranked.map((h,i)=>{
+    const c=h.tot>=80?'#0F6E56':h.tot>=60?'#854F0B':'#A32D2D';
+    const bg=h.tot>=80?'#E1F5EE':h.tot>=60?'#FAEEDA':'#FCEBEB';
+    const lv=h.tot>=90?'ดีมาก':h.tot>=80?'ผ่าน':h.tot>=70?'พอใช้':h.tot>=60?'ต้องปรับ':'ไม่ผ่าน';
+    return `<div class="ritem"><div class="rnum" style="background:${i<3?mbc[i]:'#94A3B8'};color:#fff">${i<3?medals[i]:i+1}</div>
+      <div style="font-size:22px">${AICO[h.area]||'📍'}</div>
+      <div class="rinfo"><div class="rname">${h.aname}</div><div class="rmeta">${h.dept} · ${new Date(h.date).toLocaleDateString('th-TH')}</div>
+        <div class="rtrack"><div class="rfill" style="width:${h.tot}%;background:${c}"></div></div></div>
+      <div style="text-align:right;min-width:50px"><div class="rpct" style="color:${c}">${h.tot}%</div>
+        <div style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:7px;background:${bg};color:${c};margin-top:3px">${lv}</div></div></div>`;}).join('');
+}
+function cmpEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function cmpScCell(v,ri,no){
+  const canClick=ri!=null&&no!=null&&v!==''&&v!=null;
+  const onc=canClick?` onclick="cmpEvidence(${ri},'${no}')" title="ดูหลักฐาน/เกณฑ์"`:'';
+  const cur=canClick?';cursor:pointer':'';
+  if(v==='NA')return `<td${onc} style="text-align:center;background:#EEF1F5;color:#94A3B8${cur}">NA</td>`;
+  if(v===''||v==null)return '<td style="text-align:center;background:#F8FAFC;color:#CBD5E1">–</td>';
+  const n=Number(v);
+  const m={4:['#97C459','#173404'],3:['#C0DD97','#173404'],2:['#FAC775','#412402'],1:['#F7C1C1','#501313'],0:['#F09595','#501313']}[n]||['#F8FAFC','#64748B'];
+  return `<td${onc} style="text-align:center;font-weight:700;background:${m[0]};color:${m[1]}${cur}">${n}</td>`;
+}
+const CMP_DEPTS=['BIM','WHS','AS','DBD','RD'];
+let cmpArea='',cmpDept='',cmpRound='',cmpData=null,cmpLast=null;
+function cmpFiltersHtml(rounds){
+  const aopt=['<option value="">-- เลือกพื้นที่ --</option>'].concat(Object.keys(ANAME).map(k=>`<option value="${k}"${k===cmpArea?' selected':''}>${AICO[k]||''} ${cmpEsc(ANAME[k])}</option>`)).join('');
+  const dopt=['<option value="">-- เลือกหน่วยงาน --</option>'].concat(CMP_DEPTS.map(d=>`<option${d===cmpDept?' selected':''}>${d}</option>`)).join('');
+  let roundSel='';
+  if(rounds&&rounds.length){
+    const ropt=['<option value="">ทุกรอบ (ล่าสุดของแต่ละคน)</option>'].concat(rounds.map(r=>`<option${r===cmpRound?' selected':''}>${cmpEsc(r)}</option>`)).join('');
+    roundSel=`<div style="flex:1;min-width:120px"><div class="flbl" style="margin-bottom:4px">รอบตรวจ</div><select class="inp" onchange="cmpSet('round',this.value)">${ropt}</select></div>`;
+  }
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+    <div style="flex:1;min-width:150px"><div class="flbl" style="margin-bottom:4px">พื้นที่ตรวจ</div><select class="inp" onchange="cmpSet('area',this.value)">${aopt}</select></div>
+    <div style="flex:1;min-width:120px"><div class="flbl" style="margin-bottom:4px">หน่วยงาน</div><select class="inp" onchange="cmpSet('dept',this.value)">${dopt}</select></div>
+    ${roundSel}</div>`;
+}
+function cmpSet(k,v){
+  if(k==='round'){cmpRound=v;cmpRender();return;}
+  if(k==='area'){cmpArea=v;cmpRound='';cmpData=null;}
+  if(k==='dept'){cmpDept=v;cmpRound='';cmpData=null;}
+  cmpLoad();
+}
+function rCompare(){
+  document.getElementById('cmp-filters').innerHTML=cmpFiltersHtml(cmpData&&cmpData._rounds);
+  const bEl=document.getElementById('cmp-body');
+  if(cmpArea&&cmpDept){ if(cmpData)cmpRender(); else cmpLoad(); }
+  else bEl.innerHTML='<div class="empty-state"><div class="empty-icon">⚖️</div><div class="empty-title">เลือกพื้นที่และหน่วยงาน</div><div class="empty-desc">เลือกด้านบนให้ครบ ระบบจะดึงข้อมูลผู้ตรวจมาเทียบให้อัตโนมัติ</div></div>';
+}
+async function cmpLoad(){
+  const bEl=document.getElementById('cmp-body');
+  document.getElementById('cmp-filters').innerHTML=cmpFiltersHtml(null);
+  if(!cmpArea||!cmpDept){rCompare();return;}
+  bEl.innerHTML='<div class="empty-state"><div class="empty-title">⏳ กำลังดึงข้อมูลจากคลาวด์...</div></div>';
+  const raters=[];
+  try{
+    if(db){
+      const snap=await db.collection('inspections').where('area','==',cmpArea).limit(300).get();
+      const docs=snap.docs.map(d=>({id:d.id,...d.data()})).filter(d=>{const dd=(d.dept||'').trim();return dd===cmpDept||dd===''});
+      for(const d of docs){
+        const isnap=await db.collection('inspections').doc(d.id).collection('items').get();
+        const items=isnap.docs.map(x=>x.data()).map(it=>({no:String(it.itemNo),t:it.title,h:it.category,sc:it.isNA?'NA':(it.score==null?'':it.score),ph:Array.isArray(it.photos)?it.photos:[],nt:it.note||''}));
+        raters.push({insp:d.inspector||'—',dept:(d.dept||'').trim(),round:d.round||'—',date:d.date,saved:d.clientSavedAt||d.date,items});
+      }
+    }else{
+      hist.filter(h=>{const dd=(h.dept||'').trim();return h.area===cmpArea&&h.items&&h.items.length&&(dd===cmpDept||dd==='')}).forEach(h=>{
+        raters.push({insp:h.insp||'—',dept:(h.dept||'').trim(),round:h.round||'—',date:h.date,saved:h.saved||h.date,items:h.items});
+      });
+    }
+  }catch(err){
+    bEl.innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">โหลดข้อมูลไม่สำเร็จ</div><div class="empty-desc">'+cmpEsc(err.message||'')+'</div></div>';
+    return;
+  }
+  const rounds=[...new Set(raters.map(r=>r.round))];
+  if(cmpRound&&!rounds.includes(cmpRound))cmpRound='';
+  cmpData={raters,_rounds:rounds};
+  document.getElementById('cmp-filters').innerHTML=cmpFiltersHtml(rounds);
+  cmpRender();
+}
+function cmpRender(){
+  const bEl=document.getElementById('cmp-body');
+  if(!cmpData){bEl.innerHTML='';return;}
+  let pool=cmpData.raters.slice();
+  if(cmpRound)pool=pool.filter(r=>r.round===cmpRound);
+  const byInsp={};
+  pool.forEach(h=>{const k=h.insp||'—';if(!byInsp[k]||new Date(h.saved||h.date)>new Date(byInsp[k].saved||byInsp[k].date))byInsp[k]=h;});
+  const raters=Object.values(byInsp);
+  if(raters.length<2){
+    bEl.innerHTML=`<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">พบผู้ตรวจ ${raters.length} คน</div><div class="empty-desc">พื้นที่ + หน่วยงานนี้${cmpRound?' รอบ '+cmpEsc(cmpRound):''} ยังมีผู้ตรวจไม่ถึง 2 คน จึงยังเทียบไม่ได้</div></div>`;
+    return;
+  }
+  const multiRoundNote=(!cmpRound&&cmpData._rounds.length>1)?'<div style="font-size:11px;color:#854F0B;background:#FAEEDA;border-radius:8px;padding:7px 10px;margin-bottom:12px">ℹ️ กำลังเทียบครั้งล่าสุดของแต่ละคน (อาจคนละรอบกัน) — เลือก "รอบตรวจ" ด้านบนเพื่อเทียบเฉพาะรอบเดียว</div>':'';
+  const noDept=raters.filter(r=>!r.dept).map(r=>r.insp||'—');
+  const noDeptNote=noDept.length?`<div style="font-size:11px;color:#854F0B;background:#FAEEDA;border-radius:8px;padding:7px 10px;margin-bottom:12px">ℹ️ รวมผู้ตรวจที่ไม่ได้ระบุหน่วยงานไว้ด้วย: <b>${cmpEsc(noDept.join(', '))}</b> — ถ้าไม่ควรอยู่ในหน่วยงานนี้ ให้แก้หน่วยงานในประวัติการตรวจ</div>`:'';
+  // union ของทุกข้อจากผู้ตรวจทุกคน (ไม่ยึดคนแรก) — เรียงตามเลขข้อ ข้อที่บางคนไม่มีจะเว้นว่างให้
+  const itemMap={};
+  raters.forEach(r=>(r.items||[]).forEach(it=>{if(it&&it.no!=null&&!itemMap[it.no])itemMap[it.no]={no:it.no,h:it.h,t:it.t};}));
+  const base=Object.values(itemMap).sort((a,b)=>{const pa=String(a.no).split('.').map(Number),pb=String(b.no).split('.').map(Number);for(let i=0;i<Math.max(pa.length,pb.length);i++){const d=(pa[i]||0)-(pb[i]||0);if(d)return d;}return 0;});
+  const rows=base.map(it=>{
+    const scores=raters.map(r=>{const f=(r.items||[]).find(x=>x.no===it.no);return f?f.sc:'';});
+    const nums=scores.filter(v=>v!=='NA'&&v!==''&&v!=null).map(Number);
+    const spread=nums.length>=2?Math.max(...nums)-Math.min(...nums):null;
+    return {it,scores,nums,spread};
+  });
+  const valid=rows.filter(r=>r.spread!=null);
+  const overall=valid.length?Math.round(valid.reduce((a,r)=>a+(4-r.spread)/4,0)/valid.length*100):0;
+  const review=rows.filter(r=>r.spread!=null&&r.spread>=2).sort((a,b)=>b.spread-a.spread);
+  const oc=overall>=85?'#0F6E56':overall>=70?'#854F0B':'#A32D2D';
+  // % คะแนนรวมของผู้ตรวจแต่ละคน (ข้าม NA · เต็ม 4 ต่อข้อ) — เทียบคะแนนรวมกัน
+  const raterTotals=raters.map(r=>{let s=0,m=0;base.forEach(it=>{const f=(r.items||[]).find(x=>x.no===it.no);const v=f?f.sc:'';if(v==='NA'||v===''||v==null)return;m+=4;s+=Number(v);});return m?Math.round(s/m*100):null;});
+  const totColor=t=>t==null?'#94A3B8':t>=80?'#0F6E56':t>=60?'#854F0B':'#A32D2D';
+  const totalRow=`<tr style="border-top:2px solid var(--border);background:#EEF2F7"><td></td><td style="padding:8px;font-size:12px;font-weight:800">คะแนนรวม %</td>${raterTotals.map(t=>`<td style="text-align:center;font-weight:800;color:${totColor(t)}">${t==null?'–':t+'%'}</td>`).join('')}<td></td></tr>`;
+  cmpLast={raters,rows,raterTotals,overall,review};
+  const ths=raters.map(r=>`<th style="padding:7px 3px;font-weight:600;font-size:11px;white-space:nowrap">${cmpEsc(r.insp||'—')}</th>`).join('');
+  const trs=rows.map(r=>{
+    const sp=r.spread;
+    const flag=sp==null?'<span style="color:#CBD5E1">–</span>':sp<=1?'<span style="color:#0F6E56">น้อย</span>':sp===2?'<span style="color:#854F0B;font-weight:700">กลาง</span>':'<span style="color:#A32D2D;font-weight:700">สูง</span>';
+    const rowBg=sp>=3?'background:#FCEBEB;':sp===2?'background:#FAEEDA;':'';
+    return `<tr style="border-top:1px solid var(--border);${rowBg}">
+      ${sBadge(r.it.h)}
+      <td onclick="cmpToggle('${r.it.no}')" style="padding:7px 8px;font-size:12px;cursor:pointer" title="แตะเพื่อดูเกณฑ์การให้คะแนน"><span id="cmpc-${r.it.no}" style="display:inline-block;width:12px;color:var(--muted);font-weight:700">▸</span> <b>ข้อ ${r.it.no}</b> · <span style="color:var(--muted)">${cmpEsc(r.it.t)}</span></td>
+      ${r.scores.map((v,ri)=>cmpScCell(v,ri,r.it.no)).join('')}
+      <td style="text-align:center;font-size:11px">${flag}</td></tr>
+      <tr id="cmpd-${r.it.no}" style="display:none"><td colspan="${raters.length+3}" style="padding:11px 14px;background:var(--bg);border-top:1px dashed var(--border)">${cmpCriteriaHtml(r.it.no)}</td></tr>`;
+  }).join('');
+  const reviewHtml=review.length?review.map(r=>{
+    const mx=Math.max(...r.nums),mn=Math.min(...r.nums);
+    const hi=[],lo=[];
+    raters.forEach((rt,i)=>{const v=r.scores[i];if(v===''||v==='NA'||v==null)return;if(Number(v)===mx)hi.push(rt.insp||'—');if(Number(v)===mn)lo.push(rt.insp||'—');});
+    const bd=r.spread>=3?'#A32D2D':'#854F0B',bg=r.spread>=3?'#FCEBEB':'#FAEEDA';
+    return `<div style="background:var(--card);border:1px solid ${bd};border-radius:12px;padding:11px 13px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px">
+        <span style="font-weight:700;font-size:13px">ข้อ ${r.it.no} · ${cmpEsc(r.it.t)}</span>
+        <span style="font-size:11px;background:${bg};color:${bd};padding:2px 9px;border-radius:8px;white-space:nowrap">ต่างกัน ${r.spread} คะแนน</span></div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">
+        <b style="color:var(--text)">${cmpEsc(hi.join(', '))}</b> ให้ ${mx} คะแนน · <b style="color:var(--text)">${cmpEsc(lo.join(', '))}</b> ให้ ${mn} คะแนน<br>เกณฑ์ข้อนี้อาจตีความต่างกัน ควรนิยามให้ชัด</div></div>`;
+  }).join(''):'<div style="font-size:12px;color:#0F6E56;padding:11px 13px;background:#E1F5EE;border-radius:10px">✓ ผู้ตรวจให้คะแนนสอดคล้องกันดี ไม่มีข้อที่ต่างกันตั้งแต่ 2 คะแนน</div>';
+  bEl.innerHTML=`
+    ${multiRoundNote}
+    ${noDeptNote}
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+      <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--muted)">ผู้ตรวจที่เทียบ</div><div style="font-size:20px;font-weight:800">${raters.length} คน</div></div>
+      <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--muted)">ความสอดคล้อง</div><div style="font-size:20px;font-weight:800;color:${oc}">${overall}%</div></div>
+      <div style="background:var(--bg);border-radius:10px;padding:10px"><div style="font-size:11px;color:var(--muted)">ข้อควรทบทวน</div><div style="font-size:20px;font-weight:800;color:${review.length?'#A32D2D':'#0F6E56'}">${review.length} ข้อ</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:8px;flex-wrap:wrap">
+      <div style="font-size:12px;font-weight:700;color:var(--muted)">ตารางคะแนนรายข้อ × ผู้ตรวจ <span style="font-weight:400">· แตะชื่อข้อเพื่อดูเกณฑ์ ▸</span></div>
+      <button class="exp-btn" onclick="cmpExportExcel()">📊 Export Excel</button>
+    </div>
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:10px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:var(--bg)"><th style="text-align:center;padding:7px 6px;font-weight:700" title="หมวด 5ส">ส</th><th style="text-align:left;padding:7px 8px;font-weight:700;min-width:150px">หัวข้อ</th>${ths}<th style="padding:7px 6px;font-weight:700">ต่างกัน</th></tr></thead>
+        <tbody>${totalRow}${trs}</tbody></table></div>
+    <div style="font-size:11px;color:var(--muted);background:var(--bg);border-radius:8px;padding:9px 11px;margin-bottom:18px;line-height:1.7">
+      <b>เกณฑ์ "ต่างกัน":</b> คะแนนสูงสุด − ต่ำสุด ของข้อนั้นในบรรดาผู้ตรวจ (ข้าม NA) → <span style="color:#0F6E56;font-weight:700">น้อย</span> = ต่าง 0–1 · <span style="color:#854F0B;font-weight:700">กลาง</span> = ต่าง 2 · <span style="color:#A32D2D;font-weight:700">สูง</span> = ต่าง 3–4<br>
+      <b>ความสอดคล้อง %:</b> เฉลี่ยของ (4 − ต่างกัน) ÷ 4 ทุกข้อ × 100 (100% = ให้ตรงกันทุกข้อ) · <b>ข้อควรทบทวน:</b> ข้อที่ต่างกัน ≥ 2 · <b>คะแนนรวม %:</b> คะแนนที่แต่ละคนให้ ÷ คะแนนเต็ม (เต็ม 4/ข้อ ข้าม NA)
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:7px">ข้อที่ควรทบทวนเกณฑ์ (เรียงตามความต่าง)</div>
+    ${reviewHtml}`;
+}
+// เกณฑ์การให้คะแนน 0–4 + คำอธิบายของข้อนั้น (ดึงจาก IT[พื้นที่])
+function cmpCriteriaHtml(no){
+  const mit=(cmpArea==='Office'?OFFICE_V2.concat(OFFICE_V1):(IT[cmpArea]||[])).find(x=>x.no===no);
+  if(!mit)return '<div style="font-size:12px;color:var(--muted)">ไม่พบเกณฑ์ของข้อนี้</div>';
+  const COL={4:['#97C459','#173404'],3:['#C0DD97','#173404'],2:['#FAC775','#412402'],1:['#F7C1C1','#501313'],0:['#F09595','#501313']};
+  const levels=[4,3,2,1,0].map(s=>{const c=COL[s];return `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px"><span style="flex:none;width:22px;height:22px;border-radius:6px;background:${c[0]};color:${c[1]};font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center">${s}</span><span style="font-size:12px;color:var(--text);line-height:1.6">${cmpEsc((mit.c&&mit.c[s])||'-')}</span></div>`;}).join('');
+  return `${mit.d?`<div style="font-size:12px;color:var(--muted);margin-bottom:9px;line-height:1.6"><b style="color:var(--text)">คำอธิบาย:</b> ${cmpEsc(mit.d)}</div>`:''}<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">เกณฑ์การให้คะแนน</div>${levels}`;
+}
+function cmpToggle(no){
+  const d=document.getElementById('cmpd-'+no),c=document.getElementById('cmpc-'+no);
+  if(!d)return;
+  const open=d.style.display==='none';
+  d.style.display=open?'':'none';
+  if(c)c.textContent=open?'▾':'▸';
+}
+// ป้ายหมวด 5ส (ส1–ส5) ตามลำดับใน HMVD
+function sBadge(h){
+  const i=HMVD.indexOf(h);
+  if(i<0)return '<td></td>';
+  const c=HC[h]||'#64748B';
+  return `<td style="text-align:center"><span style="display:inline-block;min-width:26px;padding:2px 6px;border-radius:6px;background:${c}1A;color:${c};font-weight:800;font-size:11px" title="${cmpEsc(h)}">ส${i+1}</span></td>`;
+}
+// Popup หลักฐาน: รูปแนบ + ใครให้ + กี่คะแนน + เกณฑ์ของคะแนนนั้น
+function cmpEvidence(ri,no){
+  if(!cmpLast||!cmpLast.raters)return;
+  const r=cmpLast.raters[ri]; if(!r)return;
+  const item=(r.items||[]).find(x=>x.no===no)||{};
+  const sc=item.sc;
+  const note=item.nt||'';
+  const mit=critFor(cmpArea,(r.items||[]).map(x=>x.no)).find(x=>x.no===no)||{};
+  const scNum=(sc==='NA'||sc===''||sc==null)?null:Number(sc);
+  const COL={4:['#97C459','#173404'],3:['#C0DD97','#173404'],2:['#FAC775','#412402'],1:['#F7C1C1','#501313'],0:['#F09595','#501313']};
+  const badge=sc==='NA'?'<span style="background:#EEF1F5;color:#64748B;padding:3px 12px;border-radius:8px;font-weight:800">NA</span>'
+    :scNum==null?'<span style="color:#94A3B8">ยังไม่ให้คะแนน</span>'
+    :`<span style="background:${COL[scNum][0]};color:${COL[scNum][1]};padding:3px 12px;border-radius:8px;font-weight:800;font-size:15px">${scNum} คะแนน</span>`;
+  const crit=(scNum!=null&&mit.c)?mit.c[scNum]:'';
+  const photos=(item.ph||[]).filter(p=>typeof p==='string'&&p);
+  const phHtml=photos.length
+    ? `<div style="display:flex;flex-direction:column;gap:10px">${photos.map(p=>`<img src="${cmpEsc(p)}" onclick="openPhoto(this.src)" style="width:100%;height:auto;display:block;border-radius:10px;cursor:zoom-in;border:1px solid var(--border)">`).join('')}</div>`
+    : '<div style="font-size:12px;color:var(--muted);background:var(--bg);border-radius:8px;padding:14px;text-align:center">— ไม่มีรูปแนบสำหรับข้อนี้ —</div>';
+  document.getElementById('cmp-ev-card').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:12px">
+      <div><div style="font-size:11px;color:var(--muted)">หลักฐานการให้คะแนน</div><div style="font-weight:800;font-size:15px;line-height:1.35">ข้อ ${no} · ${cmpEsc(mit.t||item.t||'')}</div></div>
+      <button onclick="cmpEvClose()" style="border:none;background:var(--bg);border-radius:8px;width:32px;height:32px;font-size:20px;cursor:pointer;flex:none;line-height:1">×</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;font-size:13px">
+      <span style="color:var(--muted)">ผู้ตรวจ</span> <b>${cmpEsc(r.insp||'—')}</b> <span style="color:var(--muted)">ให้</span> ${badge}
+    </div>
+    ${crit?`<div style="font-size:12px;background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:10px;line-height:1.6"><b>เกณฑ์คะแนน ${scNum}:</b> ${cmpEsc(crit)}</div>`:''}
+    ${note?`<div style="font-size:12px;background:#FFF8E6;border:1px solid #F0DDA8;border-radius:8px;padding:10px 12px;margin-bottom:14px;line-height:1.6"><b>📝 หมายเหตุจากผู้ตรวจ:</b> ${cmpEsc(note)}</div>`:''}
+    <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">รูปหลักฐาน (${photos.length})</div>
+    ${phHtml}`;
+  document.getElementById('cmp-ev').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function cmpEvClose(e){
+  if(e&&e.target&&e.target.id!=='cmp-ev')return;
+  document.getElementById('cmp-ev').style.display='none';
+  document.getElementById('cmp-ev-card').innerHTML='';
+  document.body.style.overflow='';
+}
+function cmpExportExcel(){
+  if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ยังไม่มีข้อมูลให้ Export');return;}
+  const {raters,rows,raterTotals,overall,review}=cmpLast;
+  const names=raters.map(r=>r.insp||'—');
+  const L=[];
+  L.push(['เทียบเกณฑ์ · คะแนนรายผู้ตรวจ']);
+  L.push(['พื้นที่',ANAME[cmpArea]||cmpArea,'หน่วยงาน',cmpDept,'รอบ',cmpRound||'ทุกรอบ (ล่าสุดของแต่ละคน)']);
+  L.push(['ความสอดคล้อง',overall+'%','ข้อควรทบทวน',review.length+' ข้อ','ผู้ตรวจ',raters.length+' คน']);
+  L.push([]);
+  L.push(['หัวข้อ',...names,'ต่างกัน(คะแนน)']);
+  L.push(['คะแนนรวม %',...raterTotals.map(t=>t==null?'-':t+'%'),'']);
+  rows.forEach(r=>{L.push(['ข้อ '+r.it.no+' · '+r.it.t,...r.scores.map(v=>v==='NA'?'NA':(v===''||v==null?'-':v)),r.spread==null?'-':r.spread]);});
+  const csv=L.map(row=>row.map(csvCell).join(',')).join('\r\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`เทียบเกณฑ์_${cmpArea}_${cmpDept}${cmpRound?'_'+cmpRound:''}.csv`;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+  showToast('✅ ดาวน์โหลดไฟล์ Excel (CSV) แล้ว');
+}
+document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+document.getElementById('f-round').selectedIndex=new Date().getMonth();
+selArea('Office');rHome();resyncPending();window.addEventListener('online',resyncPending);restoreDraft();
+</script></body></html>
