@@ -12,3 +12,5 @@ INVARIANTS.md
 error_index.md
 REPO_MAP.md
 *.xlsx
+.agents/
+VERSION
