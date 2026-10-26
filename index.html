@@ -299,7 +299,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 @media print{
   @page{size:A4;margin:9mm 0}
   html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;height:auto!important;min-height:0!important}
-  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-compare,#pg-admin,.modal-overlay,.pv-overlay,.toast,.fab-delete{display:none!important}
+  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-compare,#pg-admin,#pg-settings,.modal-overlay,.pv-overlay,.toast,.fab-delete{display:none!important}
   #print-report{position:static!important;height:auto!important;overflow:visible!important;z-index:auto}
   #pr-inner .pr-dcard,#pr-inner .pr-bar-row,#pr-inner .pr-lvbox,#pr-inner .pr-head,#pr-inner .pr-score,#pr-inner .pr-ok{break-inside:avoid;page-break-inside:avoid}
 }
@@ -341,6 +341,9 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
     </button>
     <button class="tb" onclick="goTab('admin')" id="t-admin">
       <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>ข้อมูลรวม
+    </button>
+    <button class="tb" onclick="goTab('settings')" id="t-settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>ตั้งค่า
     </button>
   </div>
 </div>
@@ -487,6 +490,12 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 </div></div>
 <button class="fab-delete" id="admin-fab" style="display:none" onclick="deleteSelectedAdmin()">🗑️ ลบที่เลือก (<span id="admin-fab-n">0</span>)</button>
 
+<div class="pg" id="pg-settings"><div class="wrap">
+  <div class="sec-title">⚙️ ตั้งค่าเกณฑ์การตรวจ</div>
+  <div style="font-size:12px;color:var(--muted);margin:-4px 0 12px">แก้หัวข้อและเกณฑ์คะแนน แล้วกด "เผยแพร่" — ทุกคนในทีมจะใช้เกณฑ์เวอร์ชันล่าสุดในการตรวจครั้งต่อไป · ผลตรวจที่บันทึกไปแล้วจะไม่เปลี่ยนตาม (ล็อกเวอร์ชันไว้กับผลตรวจ)</div>
+  <div id="settings-body"></div>
+</div></div>
+
 <div id="print-report"><div class="pr-page" id="pr-inner"></div></div>
 <!-- MODAL รูปมาตรฐาน -->
 <div class="modal-overlay" id="std-modal" style="display:none" onclick="closeModal(event)">
@@ -530,7 +539,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 <script>
 const firebaseConfig={apiKey:"AIzaSyDS06AiH5y1XRQyRrIZuuqZTGt1QpgKzeU",authDomain:"fir-area-standards.firebaseapp.com",projectId:"fir-area-standards",storageBucket:"fir-area-standards.firebasestorage.app",messagingSenderId:"635164427514",appId:"1:635164427514:web:aec1a0f7947cf4b87af543"};
 let db=null,storage=null;
-try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();storage=firebase.storage();firebase.auth().signInAnonymously().catch(e=>console.warn('[auth] anon sign-in failed — cloud sync blocked until the Anonymous provider is enabled in Firebase console',e));}catch(e){console.warn('[firebase] init failed — จะบันทึกลงเครื่องอย่างเดียว',e);}
+try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();storage=firebase.storage();firebase.auth().signInAnonymously().catch(e=>console.warn('[auth] anon sign-in failed — cloud sync blocked until the Anonymous provider is enabled in Firebase console',e));firebase.auth().onAuthStateChanged(function(u){if(u&&typeof loadCriteriaSets==='function')loadCriteriaSets();});}catch(e){console.warn('[firebase] init failed — จะบันทึกลงเครื่องอย่างเดียว',e);}
 // ── Cloudflare R2 (ที่เก็บรูป) ──
 // R2_WORKER = URL ของ Worker หลัง deploy (เช่น https://s5-photos.<subdomain>.workers.dev). เว้นว่าง = เก็บ base64 อย่างเดียว
 // R2_TOKEN  = ต้องตรงกับ secret UPLOAD_TOKEN ของ Worker. เป็น public โดยดีไซน์ (ดู worker/src/index.js)
@@ -678,12 +687,33 @@ Alu:[
 ]
 };
 IT.Custom=[...IT.Office];
+// ───── 3.1 เกณฑ์ตรวจแก้ไขได้ + ล็อกเวอร์ชันกับผลตรวจ ─────
+// built-in = v0 · แก้ในหน้า "ตั้งค่า" = สร้างเวอร์ชันใหม่บน Firestore (แชร์ทุกคน) · ผลตรวจเก่าเก็บเลขเวอร์ชันไว้ ไม่เปลี่ยนย้อนหลัง
+const CRIT_AREAS=['Office','Store','Alu','Custom'];
+const CRIT_VER={Office:0,Store:0,Alu:0,Custom:0};
+const CRIT_CACHE_KEY='5s_crit';
+function cloneItems(a){return JSON.parse(JSON.stringify(a||[]));}
+const BUILTIN_CRIT={Office:cloneItems(OFFICE_V2),Store:cloneItems(IT.Store),Alu:cloneItems(IT.Alu),Custom:cloneItems(IT.Custom)};
+function validCritItems(x){return Array.isArray(x)&&x.length>0&&x.every(it=>it&&it.no&&it.t&&Array.isArray(it.c)&&it.c.length>=2);}
+function applyCritSet(a,items,ver){if(CRIT_AREAS.indexOf(a)<0||!validCritItems(items))return false;IT[a]=cloneItems(items);CRIT_VER[a]=ver||0;return true;}
+function saveCritCache(){try{const sets={};CRIT_AREAS.forEach(a=>{sets[a]={version:CRIT_VER[a],items:IT[a]};});localStorage.setItem(CRIT_CACHE_KEY,JSON.stringify({sets,ts:Date.now()}));}catch(e){}}
+function loadCritCache(){try{const d=JSON.parse(localStorage.getItem(CRIT_CACHE_KEY)||'null');if(d&&d.sets)CRIT_AREAS.forEach(a=>{if(d.sets[a])applyCritSet(a,d.sets[a].items,d.sets[a].version);});}catch(e){}}
+async function loadCriteriaSets(){
+  if(!db)return;
+  try{
+    const snap=await db.collection('criteriaSets').get();
+    let applied=false;
+    snap.forEach(doc=>{const d=doc.data()||{};if(validCritItems(d.items)&&applyCritSet(doc.id,d.items,d.version||0))applied=true;});
+    if(applied){saveCritCache();if(!inspecting){init();if(typeof rHome==='function')rHome();const sp=document.getElementById('pg-settings');if(typeof rSettings==='function'&&sp&&sp.classList.contains('on'))rSettings();}}
+  }catch(e){console.warn('[crit] โหลดเกณฑ์จากคลาวด์ไม่สำเร็จ ใช้เกณฑ์ในเครื่อง/ค่าเริ่มต้น:',e);}
+}
+loadCritCache();
 
 let area='Office',cur=0,sc={},nt={},ph={},photoIdx=-1,viewMode=false;
 let hist=JSON.parse(localStorage.getItem('5s_h')||'[]');
 let viewCrit=null;
 function detectOfficeVer(nos){const v2=new Set(OFFICE_V2.map(x=>String(x.no))),v1=new Set(OFFICE_V1.map(x=>String(x.no)));let c2=0,c1=0;(nos||[]).forEach(n=>{const s=String(n);if(v2.has(s))c2++;if(v1.has(s))c1++;});return c2>c1?'v2':(c1>c2?'v1':'v2');}
-function critFor(a,nos){if(a==='Office')return detectOfficeVer(nos)==='v1'?OFFICE_V1:OFFICE_V2;return IT[a]||[];}
+function critFor(a,nos){if(a==='Office'&&!CRIT_VER.Office)return detectOfficeVer(nos)==='v1'?OFFICE_V1:OFFICE_V2;return IT[a]||[];}
 
 function AN(){return (IT[area]||[]).length||25;}
 function init(){sc={};nt={};ph={};for(let i=0;i<AN();i++){sc[i]=-1;nt[i]='';ph[i]=[];}}
@@ -726,7 +756,7 @@ function goTab(t){
   document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   document.getElementById('pg-'+t).classList.add('on');
   document.getElementById('t-'+t).classList.add('on');
-  if(t==='history')rHist();if(t==='ranking')rRank();if(t==='home')rHome();if(t==='admin')rAdmin();if(t==='compare')rCompare();
+  if(t==='history')rHist();if(t==='ranking')rRank();if(t==='home')rHome();if(t==='admin')rAdmin();if(t==='compare')rCompare();if(t==='settings')rSettings();
 }
 function selArea(a){
   area=a;
@@ -1060,7 +1090,7 @@ function syncToFirestore(h){
     HMVD.forEach(cat=>{categoryScores[cat]={score:h.hS[cat]||0,max:h.hM[cat]||0};});
     batch.set(ref,{
       date:h.date,area:h.area,areaName:h.aname,areaDetail:h.adet||'',dept:h.dept,
-      inspector:h.insp,round:h.round,totalScore:h.tot,
+      inspector:h.insp,round:h.round,totalScore:h.tot,critArea:h.critArea||h.area,critVersion:h.critVersion||0,
       naCount:h.items.filter(it=>it.sc==='NA').length,
       passed:h.tot>=80,level:levelLabel(h.tot),
       categoryScores,
@@ -1107,7 +1137,7 @@ async function saveResult(){
   items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=4;hS[it.h]+=sc[i];}});
   const defs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2).map(it=>{const i=items.indexOf(it);return{no:it.no,t:it.t,sc:sc[i],nt:nt[i]};});
   const fullItems=items.map((it,i)=>({no:it.no,h:it.h,t:it.t,sc:sc[i]==='NA'?'NA':(sc[i]>=0?sc[i]:''),nt:nt[i]||'',ph:(ph[i]||[]).slice(0,3)}));
-  const rec={id:Date.now()+'-'+Math.random().toString(36).slice(2,8),date:dv,area,aname,adet,dept,insp,round,tot,hS,hM,defs,items:fullItems,saved:new Date().toISOString()};
+  const rec={id:Date.now()+'-'+Math.random().toString(36).slice(2,8),date:dv,area,aname,adet,dept,insp,round,tot,hS,hM,defs,items:fullItems,critArea:area,critVersion:(CRIT_VER[area]||0),saved:new Date().toISOString()};
   showSpinner(true,'กำลังอัปโหลดรูป...');
   for(const it of rec.items){it.ph=await uploadPhotos(rec.id,it.no,it.ph);}
   rec.synced=false;
@@ -1615,7 +1645,70 @@ function cmpExportExcel(){
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
   showToast('✅ ดาวน์โหลดไฟล์ Excel (CSV) แล้ว');
 }
+// ───── 3.1 หน้าตั้งค่า: ตัวแก้ไขเกณฑ์การตรวจ ─────
+let settingsArea='Office',settingsDraft={area:'',items:[]};
+function sEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function settingsLoadDraft(a){settingsArea=a;settingsDraft={area:a,items:cloneItems(IT[a]||[])};}
+function settingsSetArea(a){settingsLoadDraft(a);rSettings();}
+function setCrit(i,k,v){if(settingsDraft.items[i])settingsDraft.items[i][k]=v;}
+function setCritC(i,k,v){const it=settingsDraft.items[i];if(it){if(!Array.isArray(it.c))it.c=[];it.c[k]=v;}}
+function addCrit(){settingsDraft.items.push({no:'',h:HMVD[0],t:'',d:'',c:['','','','','']});rSettings();}
+function delCrit(i){if(!confirm('ลบหัวข้อนี้?'))return;settingsDraft.items.splice(i,1);rSettings();}
+function resetCrit(){if(!confirm('คืนค่าเกณฑ์เริ่มต้นของ '+(ANAME[settingsArea]||settingsArea)+'? (ยังไม่เผยแพร่จนกว่าจะกดปุ่มเผยแพร่)'))return;settingsDraft.items=cloneItems(BUILTIN_CRIT[settingsArea]||[]);rSettings();}
+function rSettings(){
+  const body=document.getElementById('settings-body');if(!body)return;
+  if(settingsDraft.area!==settingsArea)settingsLoadDraft(settingsArea);
+  const online=!!db,curVer=CRIT_VER[settingsArea]||0;
+  const chips=CRIT_AREAS.map(a=>`<button onclick="settingsSetArea('${a}')" style="padding:7px 13px;border-radius:20px;border:2px solid ${a===settingsArea?(ACOL[a]||'#0E8F6C'):'var(--border)'};background:${a===settingsArea?(ATINT[a]||'#E1F5EE'):'#fff'};color:${a===settingsArea?(ACOL[a]||'#0E8F6C'):'var(--muted)'};font-weight:700;font-size:12px;cursor:pointer;font-family:inherit">${sEsc(ANAME[a]||a)}</button>`).join('');
+  const cards=settingsDraft.items.map((it,i)=>{
+    const hopt=HMVD.map(h=>`<option${h===it.h?' selected':''}>${h}</option>`).join('');
+    const levels=[0,1,2,3,4].map(k=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px"><span style="width:16px;text-align:center;font-weight:700;color:var(--muted)">${k}</span><input class="inp" style="flex:1;font-size:12px" value="${sEsc((it.c||[])[k])}" oninput="setCritC(${i},${k},this.value)"></div>`).join('');
+    return `<div class="scard" style="margin-bottom:10px;padding:12px">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <input class="inp" style="width:72px;text-align:center;font-weight:700" value="${sEsc(it.no)}" oninput="setCrit(${i},'no',this.value)" title="เลขข้อ">
+        <select class="inp" style="flex:1" onchange="setCrit(${i},'h',this.value)">${hopt}</select>
+        <button onclick="delCrit(${i})" style="background:#FCEBEB;color:#A32D2D;border:none;border-radius:8px;padding:7px 11px;font-weight:700;cursor:pointer;font-family:inherit">ลบ</button>
+      </div>
+      <input class="inp" placeholder="หัวข้อการตรวจ" value="${sEsc(it.t)}" oninput="setCrit(${i},'t',this.value)" style="margin-bottom:6px;font-weight:600">
+      <textarea class="inp" placeholder="คำอธิบาย/มาตรฐานที่คาดหวัง" oninput="setCrit(${i},'d',this.value)" style="margin-bottom:8px;min-height:48px;resize:vertical">${sEsc(it.d)}</textarea>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:5px">ระดับคะแนน (0 = แย่สุด … 4 = ดีสุด)</div>
+      ${levels}
+    </div>`;
+  }).join('');
+  body.innerHTML=`
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px">${chips}</div>
+    <div class="scard" style="display:flex;align-items:center;justify-content:space-between;padding:11px 13px;margin-bottom:12px">
+      <div><div style="font-weight:700">${sEsc(ANAME[settingsArea]||settingsArea)}</div><div style="font-size:11px;color:var(--muted)">${settingsDraft.items.length} หัวข้อ · เวอร์ชันปัจจุบัน v${curVer}</div></div>
+      ${online?'':'<div style="font-size:11px;color:#A32D2D;font-weight:600;max-width:160px;text-align:right">ออฟไลน์ — แก้ได้ แต่เผยแพร่ให้ทุกคนไม่ได้</div>'}
+    </div>
+    ${cards}
+    <button class="btnfull bo" onclick="addCrit()" style="margin-bottom:8px">➕ เพิ่มหัวข้อ</button>
+    <button class="btnfull bg" onclick="publishCriteria()">💾 เผยแพร่เกณฑ์ใหม่ (ทุกคนจะเห็น)</button>
+    <button class="btnfull bo" onclick="resetCrit()" style="margin-top:8px">↩️ คืนค่าเกณฑ์เริ่มต้น</button>
+    <div style="height:20px"></div>`;
+}
+async function publishCriteria(){
+  if(!db){showToast('⚠️ ต้องออนไลน์/เชื่อมคลาวด์ เพื่อเผยแพร่เกณฑ์ให้ทุกคน');return;}
+  const a=settingsArea;
+  const items=settingsDraft.items.map(it=>({no:String(it.no||'').trim(),h:it.h||HMVD[0],t:String(it.t||'').trim(),d:String(it.d||'').trim(),c:(it.c||[]).map(x=>String(x||'').trim())}));
+  if(!validCritItems(items)){showToast('⚠️ แต่ละข้อต้องมีเลขข้อ หัวข้อ และระดับคะแนนอย่างน้อย 2 ระดับ');return;}
+  const nos=items.map(x=>x.no);
+  if(new Set(nos).size!==nos.length){showToast('⚠️ เลขข้อซ้ำกัน — เลขข้อต้องไม่ซ้ำ');return;}
+  if(!confirm('เผยแพร่เกณฑ์ '+(ANAME[a]||a)+' เป็นเวอร์ชันใหม่?\nทุกคนในทีมจะใช้เกณฑ์นี้ในการตรวจครั้งต่อไป'))return;
+  const newVer=(CRIT_VER[a]||0)+1;
+  try{
+    showSpinner(true,'กำลังเผยแพร่เกณฑ์...');
+    const payload={area:a,version:newVer,items:cloneItems(items),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+    const batch=db.batch(),ref=db.collection('criteriaSets').doc(a);
+    batch.set(ref,payload);
+    batch.set(ref.collection('versions').doc(String(newVer)),payload);
+    await batch.commit();
+    applyCritSet(a,items,newVer);saveCritCache();if(!inspecting)init();
+    showSpinner(false);showToast('✅ เผยแพร่เกณฑ์ '+(ANAME[a]||a)+' v'+newVer+' แล้ว');
+    rSettings();
+  }catch(e){showSpinner(false);showToast('❌ เผยแพร่ไม่สำเร็จ: '+((e&&e.message)||e)+' (อาจต้อง deploy Firestore rules ก่อน)');}
+}
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 document.getElementById('f-round').selectedIndex=new Date().getMonth();
-selArea('Office');rHome();resyncPending();window.addEventListener('online',resyncPending);restoreDraft();
+selArea('Office');rHome();resyncPending();loadCriteriaSets();window.addEventListener('online',resyncPending);restoreDraft();
 </script></body></html>
