@@ -534,6 +534,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 <div class="toast" id="toast"></div>
 
 <input type="file" id="photo-inp" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
+<input type="file" id="refimg-inp" accept="image/*" multiple style="display:none" onchange="handleRefImg(event)">
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -542,7 +543,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 <script>
 const firebaseConfig={apiKey:"AIzaSyDS06AiH5y1XRQyRrIZuuqZTGt1QpgKzeU",authDomain:"fir-area-standards.firebaseapp.com",projectId:"fir-area-standards",storageBucket:"fir-area-standards.firebasestorage.app",messagingSenderId:"635164427514",appId:"1:635164427514:web:aec1a0f7947cf4b87af543"};
 let db=null,storage=null;
-try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();storage=firebase.storage();firebase.auth().signInAnonymously().catch(e=>console.warn('[auth] anon sign-in failed — cloud sync blocked until the Anonymous provider is enabled in Firebase console',e));firebase.auth().onAuthStateChanged(function(u){if(u&&typeof loadCriteriaSets==='function')loadCriteriaSets();});}catch(e){console.warn('[firebase] init failed — จะบันทึกลงเครื่องอย่างเดียว',e);}
+try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();storage=firebase.storage();firebase.auth().signInAnonymously().catch(e=>console.warn('[auth] anon sign-in failed — cloud sync blocked until the Anonymous provider is enabled in Firebase console',e));firebase.auth().onAuthStateChanged(function(u){if(u){if(typeof loadCriteriaSets==='function')loadCriteriaSets();if(typeof loadRefImages==='function')loadRefImages();}});}catch(e){console.warn('[firebase] init failed — จะบันทึกลงเครื่องอย่างเดียว',e);}
 // ── Cloudflare R2 (ที่เก็บรูป) ──
 // R2_WORKER = URL ของ Worker หลัง deploy (เช่น https://s5-photos.<subdomain>.workers.dev). เว้นว่าง = เก็บ base64 อย่างเดียว
 // R2_TOKEN  = ต้องตรงกับ secret UPLOAD_TOKEN ของ Worker. เป็น public โดยดีไซน์ (ดู worker/src/index.js)
@@ -711,6 +712,26 @@ async function loadCriteriaSets(){
   }catch(e){console.warn('[crit] โหลดเกณฑ์จากคลาวด์ไม่สำเร็จ ใช้เกณฑ์ในเครื่อง/ค่าเริ่มต้น:',e);}
 }
 loadCritCache();
+// ───── 3.2 รูปมาตรฐานอ้างอิง (อัปขึ้น R2 + แชร์ผ่าน Firestore: refImages/{area}.images = {เลขข้อ:[url,...]}) ─────
+const REFIMG_CACHE_KEY='5s_refimg';
+let REFIMG={Office:{},Store:{},Alu:{},Custom:{}};
+function refImgFor(a,no){
+  const arr=(REFIMG[a]&&REFIMG[a][no])||[];
+  if(arr.length)return arr;
+  if(a==='Office'){const it=(BUILTIN_CRIT.Office||[]).find(x=>String(x.no)===String(no));if(it&&it.std&&typeof STD_IMG_OFFICE_ZONES!=='undefined')return STD_IMG_OFFICE_ZONES[it.std]||[];}
+  return [];
+}
+function saveRefImgCache(){try{localStorage.setItem(REFIMG_CACHE_KEY,JSON.stringify(REFIMG));}catch(e){}}
+function loadRefImgCache(){try{const d=JSON.parse(localStorage.getItem(REFIMG_CACHE_KEY)||'null');if(d&&typeof d==='object')CRIT_AREAS.forEach(a=>{if(d[a]&&typeof d[a]==='object')REFIMG[a]=d[a];});}catch(e){}}
+async function loadRefImages(){
+  if(!db)return;
+  try{
+    const snap=await db.collection('refImages').get();let any=false;
+    snap.forEach(doc=>{const d=doc.data()||{};if(CRIT_AREAS.indexOf(doc.id)>=0&&d.images&&typeof d.images==='object'){REFIMG[doc.id]=d.images;any=true;}});
+    if(any){saveRefImgCache();const sp=document.getElementById('pg-settings');if(typeof rSettings==='function'&&sp&&sp.classList.contains('on'))rSettings();}
+  }catch(e){console.warn('[refimg] โหลดรูปมาตรฐานจากคลาวด์ไม่สำเร็จ:',e);}
+}
+loadRefImgCache();
 
 let area='Office',cur=0,sc={},nt={},ph={},photoIdx=-1,viewMode=false;
 let hist=JSON.parse(localStorage.getItem('5s_h')||'[]');
@@ -815,7 +836,7 @@ function rItem(){
   const items=IT[area],it=items[cur],s=sc[cur];
   const isNA=s==='NA',has=!isNA&&s>=0;
   const col=ACOL[area],bg=ABG[area];
-  const zimgs=(area==='Office'&&it.std&&typeof STD_IMG_OFFICE_ZONES!=='undefined')?(STD_IMG_OFFICE_ZONES[it.std]||[]):[];
+  const zimgs=refImgFor(area,it.no);
   const hasStd=zimgs.length>0;
   let crit;
   if(isNA){
@@ -827,7 +848,7 @@ function rItem(){
   }
   const sbtns=[0,1,2,3,4].map(v=>`<button class="sc${s===v?' v'+v:''}" onclick="setS(${v})">${v}<span>${SL[v]}</span></button>`).join('');
   const nabtn=`<button class="sc${isNA?' vna':''}" onclick="setNA()">N/A<span>ข้ามหัวข้อ</span></button>`;
-  const stdBtnHtml=hasStd?`<div class="std-btn-wrap"><button class="std-btn" onclick="openStdModal('${it.std}')">📐 ดูรูปมาตรฐาน</button></div>`:'';
+  const stdBtnHtml=hasStd?`<div class="std-btn-wrap"><button class="std-btn" onclick="openStdModal('${it.no}')">📐 ดูรูปมาตรฐาน (${zimgs.length})</button></div>`:'';
   const pht=ph[cur]&&ph[cur].length?ph[cur].map((p,i)=>`<div class="pthumb-wrap"><img class="pthumb" src="${p}"><button class="pdel" onclick="delPh(${cur},${i})">×</button></div>`).join(''):'';
   const needPhoto=has&&s<=2;
   const hasPhoto=ph[cur]&&ph[cur].length>0;
@@ -857,12 +878,12 @@ function rItem(){
 }
 function setS(v){sc[cur]=v;rItem();saveDraft();}
 function setNA(){sc[cur]=sc[cur]==='NA'?-1:'NA';rItem();saveDraft();}
-function openStdModal(slug){
-  const imgs=(typeof STD_IMG_OFFICE_ZONES!=='undefined'&&slug)?(STD_IMG_OFFICE_ZONES[slug]||[]):[];
+function openStdModal(no){
+  const imgs=refImgFor(area,no);
   const g=document.getElementById('std-gallery');
-  g.innerHTML=imgs.length?imgs.map(src=>`<img class="modal-img" src="${src}" alt="รูปมาตรฐาน" style="width:100%;border-radius:8px">`).join(''):'<div style="padding:24px;text-align:center;color:#A89A8E">ยังไม่มีรูปมาตรฐานสำหรับโซนนี้</div>';
+  g.innerHTML=imgs.length?imgs.map(src=>`<img class="modal-img" src="${src}" alt="รูปมาตรฐาน" style="width:100%;border-radius:8px" onclick="openPhoto('${src}')">`).join(''):'<div style="padding:24px;text-align:center;color:#A89A8E">ยังไม่มีรูปมาตรฐานสำหรับข้อนี้</div>';
   const cap=document.getElementById('std-caption');
-  if(cap)cap.textContent='ตัวอย่างมาตรฐาน'+(typeof STD_ZONE_NAME!=='undefined'&&STD_ZONE_NAME[slug]?' — '+STD_ZONE_NAME[slug]:'')+' ตามหลัก 5ส';
+  if(cap)cap.textContent='ตัวอย่างมาตรฐานตามหลัก 5ส';
   document.getElementById('std-modal').style.display='flex';
   document.body.style.overflow='hidden';
 }
@@ -1676,6 +1697,8 @@ function rSettings(){
       <textarea class="inp" placeholder="คำอธิบาย/มาตรฐานที่คาดหวัง" oninput="setCrit(${i},'d',this.value)" style="margin-bottom:8px;min-height:48px;resize:vertical">${sEsc(it.d)}</textarea>
       <div style="font-size:11px;color:var(--muted);margin-bottom:5px">ระดับคะแนน (0 = แย่สุด … 4 = ดีสุด)</div>
       ${levels}
+      <div style="font-size:11px;color:var(--muted);margin:8px 0 5px">รูปมาตรฐานอ้างอิง (ผู้ตรวจกดดูได้ตอนให้คะแนน)</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${((REFIMG[settingsArea]&&REFIMG[settingsArea][it.no])||[]).map((u,k)=>`<div style="position:relative;width:54px;height:54px"><img src="${sEsc(u)}" style="width:54px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--border)" onclick="openPhoto('${sEsc(u)}')"><button onclick="delRefImg(${i},${k})" style="position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:#A32D2D;color:#fff;border:none;font-weight:700;cursor:pointer;line-height:1">×</button></div>`).join('')}<button onclick="pickRefImg(${i})" style="width:54px;height:54px;border:1.5px dashed var(--border);border-radius:6px;background:#F7F9FC;color:var(--muted);font-size:20px;cursor:pointer">＋</button></div>
     </div>`;
   }).join('');
   body.innerHTML=`
@@ -1711,7 +1734,46 @@ async function publishCriteria(){
     rSettings();
   }catch(e){showSpinner(false);showToast('❌ เผยแพร่ไม่สำเร็จ: '+((e&&e.message)||e)+' (อาจต้อง deploy Firestore rules ก่อน)');}
 }
+// ───── 3.2 จัดการรูปมาตรฐานในหน้าตั้งค่า ─────
+let refimgTarget=null;
+function pickRefImg(i){
+  const no=settingsDraft.items[i]&&settingsDraft.items[i].no;
+  if(!no){showToast('⚠️ ใส่เลขข้อก่อน แล้วค่อยเพิ่มรูป');return;}
+  if(typeof R2_WORKER==='undefined'||!R2_WORKER){showToast('⚠️ ยังไม่ได้ตั้งค่าที่เก็บรูป (R2) — อัปรูปมาตรฐานไม่ได้');return;}
+  refimgTarget={area:settingsArea,no:no};
+  const inp=document.getElementById('refimg-inp');if(inp){inp.value='';inp.click();}
+}
+async function handleRefImg(e){
+  const files=Array.prototype.slice.call(e.target.files||[]);e.target.value='';
+  if(!files.length||!refimgTarget)return;
+  const area=refimgTarget.area,no=refimgTarget.no;
+  if(!REFIMG[area])REFIMG[area]={};
+  const urls=(REFIMG[area][no]||[]).slice();
+  showSpinner(true,'กำลังอัปโหลดรูปมาตรฐาน...');
+  try{
+    for(const f of files){
+      const dataUrl=await new Promise(res=>{const r=new FileReader();r.onload=ev=>res(ev.target.result);r.onerror=()=>res(null);r.readAsDataURL(f);});
+      if(!dataUrl)continue;
+      const comp=await compressImage(dataUrl,1200,0.7);
+      const path='standards/'+area+'/'+no+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,6)+'.jpg';
+      const url=await r2Upload(path,comp);
+      if(typeof url!=='string'||url.startsWith('data:'))throw new Error('อัปโหลดขึ้น R2 ไม่สำเร็จ');
+      urls.push(url);
+    }
+    REFIMG[area][no]=urls;saveRefImgCache();
+    if(db)await db.collection('refImages').doc(area).set({area:area,images:REFIMG[area],updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    showSpinner(false);showToast('✅ เพิ่มรูปมาตรฐานแล้ว');rSettings();
+  }catch(err){showSpinner(false);showToast('❌ เพิ่มรูปไม่สำเร็จ: '+((err&&err.message)||err)+' (อาจต้อง deploy Firestore rules)');rSettings();}
+}
+async function delRefImg(i,k){
+  const no=settingsDraft.items[i]&&settingsDraft.items[i].no;if(!no)return;
+  if(!confirm('ลบรูปมาตรฐานนี้?'))return;
+  if(!REFIMG[settingsArea])REFIMG[settingsArea]={};
+  const arr=(REFIMG[settingsArea][no]||[]).slice();arr.splice(k,1);REFIMG[settingsArea][no]=arr;
+  saveRefImgCache();rSettings();
+  if(db){try{await db.collection('refImages').doc(settingsArea).set({area:settingsArea,images:REFIMG[settingsArea],updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}catch(e){showToast('⚠️ ลบในคลาวด์ไม่สำเร็จ: '+((e&&e.message)||e));}}
+}
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 document.getElementById('f-round').selectedIndex=new Date().getMonth();
-selArea('Office');rHome();resyncPending();loadCriteriaSets();window.addEventListener('online',resyncPending);restoreDraft();
+selArea('Office');rHome();resyncPending();loadCriteriaSets();loadRefImages();window.addEventListener('online',resyncPending);restoreDraft();
 </script></body></html>
