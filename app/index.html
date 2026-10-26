@@ -529,10 +529,11 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script>
 const firebaseConfig={apiKey:"AIzaSyDS06AiH5y1XRQyRrIZuuqZTGt1QpgKzeU",authDomain:"fir-area-standards.firebaseapp.com",projectId:"fir-area-standards",storageBucket:"fir-area-standards.firebasestorage.app",messagingSenderId:"635164427514",appId:"1:635164427514:web:aec1a0f7947cf4b87af543"};
 let db=null,storage=null;
-try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();storage=firebase.storage();}catch(e){console.warn('[firebase] init failed — จะบันทึกลงเครื่องอย่างเดียว',e);}
+try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();storage=firebase.storage();firebase.auth().signInAnonymously().catch(e=>console.warn('[auth] anon sign-in failed — cloud sync blocked until the Anonymous provider is enabled in Firebase console',e));}catch(e){console.warn('[firebase] init failed — จะบันทึกลงเครื่องอย่างเดียว',e);}
 // ── Cloudflare R2 (ที่เก็บรูป) ──
 // R2_WORKER = URL ของ Worker หลัง deploy (เช่น https://s5-photos.<subdomain>.workers.dev). เว้นว่าง = เก็บ base64 อย่างเดียว
 // R2_TOKEN  = ต้องตรงกับ secret UPLOAD_TOKEN ของ Worker. เป็น public โดยดีไซน์ (ดู worker/src/index.js)
@@ -1109,7 +1110,7 @@ async function saveResult(){
   items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=4;hS[it.h]+=sc[i];}});
   const defs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2).map(it=>{const i=items.indexOf(it);return{no:it.no,t:it.t,sc:sc[i],nt:nt[i]};});
   const fullItems=items.map((it,i)=>({no:it.no,h:it.h,t:it.t,sc:sc[i]==='NA'?'NA':(sc[i]>=0?sc[i]:''),nt:nt[i]||'',ph:(ph[i]||[]).slice(0,3)}));
-  const rec={id:Date.now(),date:dv,area,aname,adet,dept,insp,round,tot,hS,hM,defs,items:fullItems,saved:new Date().toISOString()};
+  const rec={id:Date.now()+'-'+Math.random().toString(36).slice(2,8),date:dv,area,aname,adet,dept,insp,round,tot,hS,hM,defs,items:fullItems,saved:new Date().toISOString()};
   showSpinner(true,'กำลังอัปโหลดรูป...');
   for(const it of rec.items){it.ph=await uploadPhotos(rec.id,it.no,it.ph);}
   rec.synced=false;

@@ -1,0 +1,44 @@
+rules_version = '2';
+
+// 5S Area Standards — Firestore security rules
+// ------------------------------------------------------------
+// Step-1 lock: require an authenticated session (anonymous sign-in happens
+// in the app) for ALL access, and validate inspection documents on create.
+// This blocks tokenless REST bots and malformed writes, which is a large
+// step up from an open ("test mode") database.
+//
+// LIMITATION (be honest): anonymous auth does NOT stop a determined person
+// who obtains a free anon token. Real delete/edit protection needs the
+// committee-login feature (a later step), where `update`/`delete` would be
+// gated on a committee role (e.g. request.auth.token.committee == true).
+// ------------------------------------------------------------
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /inspections/{id} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll(['date', 'area', 'inspector', 'totalScore'])
+        && request.resource.data.date is string
+        && request.resource.data.area is string
+        && request.resource.data.inspector is string
+        && request.resource.data.totalScore is number
+        && request.resource.data.totalScore >= 0
+        && request.resource.data.totalScore <= 100;
+
+      allow update, delete: if request.auth != null;
+
+      // per-item scores live in a subcollection
+      match /items/{itemId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+
+    // Everything else is denied (default-deny, stated explicitly).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
