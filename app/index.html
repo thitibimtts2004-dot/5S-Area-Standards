@@ -414,7 +414,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
         </div>
         <div class="field"><div class="flbl">พื้นที่ตรวจ</div><input class="inp" id="f-area" placeholder="เช่น ชั้น 3 โซน A"></div>
         <div class="frow">
-          <div class="field"><div class="flbl">ผู้ตรวจ <span style="color:#B23A2E">*</span></div><input class="inp" id="f-insp" placeholder="ชื่อ-นามสกุล" oninput="this.classList.remove('inp-err')"></div>
+          <div class="field"><div class="flbl">ผู้ตรวจ <span style="color:#B23A2E">*</span></div><input class="inp" id="f-insp" list="insp-list" autocomplete="off" placeholder="เลือกหรือพิมพ์ชื่อ" oninput="this.classList.remove('inp-err')"><datalist id="insp-list"></datalist></div>
           <div class="field"><div class="flbl">รอบการตรวจ</div>
             <select class="inp" id="f-round">
               <option>มกราคม</option><option>กุมภาพันธ์</option><option>มีนาคม</option>
@@ -732,6 +732,21 @@ async function loadRefImages(){
   }catch(e){console.warn('[refimg] โหลดรูปมาตรฐานจากคลาวด์ไม่สำเร็จ:',e);}
 }
 loadRefImgCache();
+// ───── 4.1 รายชื่อผู้ตรวจ (แชร์ผ่าน Firestore: appConfig/inspectors.names = [ชื่อ,...]) ─────
+const INSP_CACHE_KEY='5s_inspectors';
+let INSPECTORS=[];
+function saveInspCache(){try{localStorage.setItem(INSP_CACHE_KEY,JSON.stringify(INSPECTORS));}catch(e){}}
+function loadInspCache(){try{const d=JSON.parse(localStorage.getItem(INSP_CACHE_KEY)||'null');if(Array.isArray(d))INSPECTORS=d.filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim());}catch(e){}}
+function renderInspDatalist(){const dl=document.getElementById('insp-list');if(dl)dl.innerHTML=INSPECTORS.map(n=>`<option value="${sEsc(n)}"></option>`).join('');}
+async function loadInspectors(){
+  if(!db)return;
+  try{
+    const doc=await db.collection('appConfig').doc('inspectors').get();
+    const d=doc.exists?(doc.data()||{}):{};
+    if(Array.isArray(d.names)){INSPECTORS=d.names.filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim());saveInspCache();renderInspDatalist();const sp=document.getElementById('pg-settings');if(typeof rSettings==='function'&&sp&&sp.classList.contains('on'))rSettings();}
+  }catch(e){console.warn('[insp] โหลดรายชื่อผู้ตรวจจากคลาวด์ไม่สำเร็จ:',e);}
+}
+loadInspCache();
 
 let area='Office',cur=0,sc={},nt={},ph={},photoIdx=-1,viewMode=false;
 let hist=JSON.parse(localStorage.getItem('5s_h')||'[]');
@@ -1753,6 +1768,14 @@ function rSettings(){
     <button class="btnfull bo" onclick="addCrit()" style="margin-bottom:8px">➕ เพิ่มหัวข้อ</button>
     <button class="btnfull bg" onclick="publishCriteria()">💾 เผยแพร่เกณฑ์ใหม่ (ทุกคนจะเห็น)</button>
     <button class="btnfull bo" onclick="resetCrit()" style="margin-top:8px">↩️ คืนค่าเกณฑ์เริ่มต้น</button>
+    <div class="scard" style="padding:13px;margin-top:18px">
+      <div style="font-weight:700;margin-bottom:3px">👥 รายชื่อผู้ตรวจ</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">รายชื่อนี้จะขึ้นให้เลือกตอนกรอกช่อง “ผู้ตรวจ” (ยังพิมพ์ชื่อใหม่เองได้)</div>
+      ${INSPECTORS.length?INSPECTORS.map((n,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;font-weight:600;min-width:0;word-break:break-word">${sEsc(n)}</span><button onclick="delInspector(${i})" style="background:#FCEBEB;color:#A32D2D;border:none;border-radius:8px;padding:5px 11px;font-weight:700;cursor:pointer;font-family:inherit;font-size:12px;flex-shrink:0">ลบ</button></div>`).join(''):'<div style="font-size:12px;color:var(--muted);padding:6px 0">ยังไม่มีรายชื่อ — เพิ่มด้านล่างได้เลย</div>'}
+      <input class="inp" id="insp-new" placeholder="พิมพ์ชื่อผู้ตรวจใหม่" style="margin-top:10px" onkeydown="if(event.key==='Enter'){event.preventDefault();addInspector();}">
+      <button class="btnfull bg" onclick="addInspector()" style="margin-top:8px">➕ เพิ่มชื่อ</button>
+      ${online?'':'<div style="font-size:11px;color:#A32D2D;font-weight:600;margin-top:8px">ออฟไลน์ — แก้ได้ แต่แชร์ให้ทุกคนไม่ได้</div>'}
+    </div>
     <div style="height:20px"></div>`;
 }
 async function publishCriteria(){
@@ -1815,7 +1838,35 @@ async function delRefImg(i,k){
   saveRefImgCache();rSettings();
   if(db){try{await db.collection('refImages').doc(settingsArea).set({area:settingsArea,images:REFIMG[settingsArea],updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}catch(e){showToast('⚠️ ลบในคลาวด์ไม่สำเร็จ: '+((e&&e.message)||e));}}
 }
+// ───── 4.1 จัดการรายชื่อผู้ตรวจในหน้าตั้งค่า ─────
+async function saveInspectors(){
+  saveInspCache();renderInspDatalist();
+  if(!db)return false;
+  try{await db.collection('appConfig').doc('inspectors').set({names:INSPECTORS,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});return true;}
+  catch(e){showToast('⚠️ บันทึกขึ้นคลาวด์ไม่สำเร็จ: '+((e&&e.message)||e)+' (อาจต้อง deploy Firestore rules)');return false;}
+}
+async function addInspector(){
+  const inp=document.getElementById('insp-new');if(!inp)return;
+  const name=(inp.value||'').trim();
+  if(!name){showToast('⚠️ ใส่ชื่อก่อน');return;}
+  if(INSPECTORS.some(n=>n.toLowerCase()===name.toLowerCase())){showToast('⚠️ มีชื่อนี้อยู่แล้ว');return;}
+  INSPECTORS.push(name);INSPECTORS.sort((a,b)=>a.localeCompare(b,'th'));
+  inp.value='';
+  showSpinner(true,'กำลังบันทึกรายชื่อ...');
+  const ok=await saveInspectors();
+  showSpinner(false);rSettings();
+  showToast(ok?'✅ เพิ่ม “'+name+'” แล้ว':(db?'⚠️ เพิ่มในเครื่องแล้ว แต่ซิงก์คลาวด์ไม่สำเร็จ':'✅ เพิ่มในเครื่องแล้ว (ออฟไลน์)'));
+}
+async function delInspector(i){
+  const name=INSPECTORS[i];if(name==null)return;
+  if(!confirm('ลบ “'+name+'” ออกจากรายชื่อผู้ตรวจ?'))return;
+  INSPECTORS.splice(i,1);
+  showSpinner(true,'กำลังบันทึกรายชื่อ...');
+  const ok=await saveInspectors();
+  showSpinner(false);rSettings();
+  showToast(ok?'✅ ลบแล้ว':(db?'⚠️ ลบในเครื่องแล้ว แต่ซิงก์คลาวด์ไม่สำเร็จ':'✅ ลบในเครื่องแล้ว (ออฟไลน์)'));
+}
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 document.getElementById('f-round').selectedIndex=new Date().getMonth();
-selArea('Office');rHome();resyncPending();loadCriteriaSets();loadRefImages();window.addEventListener('online',resyncPending);restoreDraft();
+selArea('Office');rHome();resyncPending();loadCriteriaSets();loadRefImages();renderInspDatalist();loadInspectors();window.addEventListener('online',resyncPending);restoreDraft();
 </script></body></html>
