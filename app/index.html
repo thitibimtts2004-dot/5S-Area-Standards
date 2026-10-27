@@ -290,7 +290,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 .pr-dbadge{font-size:2.2mm;font-weight:700;padding:.4mm 1.4mm;border-radius:1.5mm;margin-left:1.2mm;white-space:nowrap}
 .pr-dnote{font-size:2.3mm;color:#64748B;line-height:1.35;margin-top:.6mm;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pr-dph{width:13mm;height:13mm;object-fit:cover;border-radius:1mm;border:.25mm solid #E2E8F0;flex-shrink:0}
-.pr-ok{text-align:center;padding:6mm;color:#2563EB;font-size:3.2mm;font-weight:700;border:.3mm dashed #60A5FA;border-radius:2mm;background:#DBEAFE}
+.pr-ok{text-align:center;padding:6mm;color:#2563EB;font-size:3.2mm;font-weight:700;border:.3mm dashed #60A5FA;border-radius:2mm;background:#DBEAFE}.pr-ins{font-size:2.6mm;color:#475569;margin:1.2mm 0 .5mm;padding:1.4mm 2mm;background:#F1F5F9;border-radius:1.5mm;line-height:1.4}.pr-gcol{column-count:1}.pr-gcard{display:block}.pr-gsub{display:flex;gap:2mm;align-items:flex-start;padding-top:1.4mm;margin-top:1.4mm;border-top:.2mm dashed #E2E8F0}.pr-gsub:first-child{border-top:none;margin-top:1mm;padding-top:0}.pr-gtxt{flex:1;min-width:0}.pr-ghd{display:flex;align-items:center;gap:1.4mm;flex-wrap:wrap}.pr-gname{font-size:2.5mm;font-weight:700;color:#334155}
 .pr-sig{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm;margin-top:6mm;padding-top:5mm}
 .pr-sigline{border-top:.3mm solid #94A3B8;margin-bottom:1.3mm}
 .pr-siglbl{font-size:2.5mm;color:#64748B;text-align:center}
@@ -1125,6 +1125,70 @@ function printReport(){
   buildPrintReport();
   requestAnimationFrame(()=>{fitPrintPage();requestAnimationFrame(()=>window.print());});
 }
+
+// Consolidated multi-inspector report → same polished print style as the single report.
+// Score = plain average across all inspectors (officialScore); bars = per-cat average;
+// จุดต้องแก้ไข grouped by item (items where >=1 inspector scored 0-2), listing under each
+// item only the inspectors who scored 0-2 (name + score badge + note + photo).
+function buildConsolidatedReport(){
+  if(isInAppBrowser()){alert('เบราว์เซอร์ในแอปนี้ (เช่น LINE) ไม่รองรับการพิมพ์/บันทึก PDF\n\nวิธีแก้: กดปุ่ม ⋯ มุมขวาบน แล้วเลือก "เปิดในเบราว์เซอร์"');return;}
+  if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ต้องมีผู้ตรวจอย่างน้อย 2 คน (เลือกพื้นที่/หน่วยงานในแท็บเทียบผลก่อน)');return;}
+  const{raters,rows,officialScore,offLv}=cmpLast;
+  const tot=officialScore==null?0:officialScore,pass=tot>=80,[g1,g2]=tierGrad(tot);
+  const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
+  rows.forEach(r=>{if(r.mean!=null){hM[r.it.h]+=4;hS[r.it.h]+=r.mean;}});
+  const bars=HMVD.map(h=>{const p=hM[h]>0?Math.round(hS[h]/hM[h]*100):0,c=HC[h];
+    return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v"><b style="color:${c}">${hM[h]>0?p+'%':'N/A'}</b></div></div>`;}).join('');
+  const lvs=[{n:'<60',l:'ไม่ผ่าน',bg:'#FEE2E2',fg:'#991B1B',a:tot<60},{n:'60–69',l:'ต้องปรับ',bg:'#E0F2FE',fg:'#D97706',a:tot>=60&&tot<70},{n:'70–79',l:'พอใช้',bg:'#DBEAFE',fg:'#1E3A8A',a:tot>=70&&tot<80},{n:'80–89',l:'ผ่าน',bg:'#DBEAFE',fg:'#2563EB',a:tot>=80&&tot<90},{n:'90+',l:'ดีมาก',bg:'#DBEAFE',fg:'#1E40AF',a:tot>=90}];
+  const lvHtml=lvs.map(l=>`<div class="pr-lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg:''}"><div class="pr-lvn" style="color:${l.fg}">${l.n}</div><div class="pr-lvl" style="color:${l.fg}">${l.l}</div></div>`).join('');
+  const lowRows=rows.filter(r=>r.nums.some(v=>v<=2));
+  const dfHtml=lowRows.length?lowRows.map(r=>{
+    const subs=raters.map(rt=>{
+      const f=(rt.items||[]).find(x=>x.no===r.it.no);if(!f)return'';
+      const v=f.sc;if(v==='NA'||v===''||v==null)return'';
+      const s=Number(v);if(s>2)return'';
+      const note=f.nt||'',pht=(f.ph&&f.ph.length)?`<img class="pr-dph" src="${f.ph[0]}">`:'';
+      return `<div class="pr-gsub"><div class="pr-gtxt"><div class="pr-ghd"><span class="pr-gname">👤 ${cmpEsc(rt.insp||'—')}</span><span class="pr-dbadge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</span></div>${note?`<div class="pr-dnote">${cmpEsc(note)}</div>`:''}</div>${pht}</div>`;
+    }).filter(Boolean).join('');
+    return `<div class="pr-dcard pr-gcard" style="--pr-cat:${HC[r.it.h]}"><div class="pr-dttl">ข้อ ${r.it.no} — ${cmpEsc(r.it.t)}</div>${subs}</div>`;
+  }).join(''):`<div class="pr-ok">✅ ไม่มีข้อที่ผู้ตรวจให้คะแนนต่ำ (0-2)</div>`;
+  const aname=cmpArea==='Custom'?'พื้นที่อื่น':(ANAME[cmpArea]||cmpArea);
+  const dept=cmpDept||'—',roundTxt=cmpRound||'ล่าสุดของแต่ละคน';
+  const inspList=raters.map(r=>cmpEsc(r.insp||'—')).join(', ');
+  const ds=new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+  const inner=document.getElementById('pr-inner');
+  inner.style.setProperty('--pr-accent',ACOL[cmpArea]||'#1E293B');
+  inner.innerHTML=`
+    <div class="pr-head">
+      <div class="pr-brand"><div class="pr-logo">🏭</div><div><div class="pr-h1">รายงานผลการตรวจ 5ส (รวมทุกผู้ตรวจ)</div><div class="pr-h2">แบบตรวจ 5ส Pro · v3.0</div></div></div>
+      <div class="pr-meta">
+        <span>${AICO[cmpArea]||'📍'} <b>${cmpEsc(aname)}</b></span>
+        <span>🏢 หน่วยงาน <b>${cmpEsc(dept)}</b></span>
+        <span>📅 <b>${ds}</b></span>
+        <span>👥 ผู้ตรวจ <b>${raters.length} คน</b></span>
+        <span>🔄 รอบ <b>${cmpEsc(roundTxt)}</b></span>
+      </div>
+      <div class="pr-score" style="background-color:${g2};background-image:linear-gradient(135deg,${g1},${g2})">
+        <div class="pr-score-n">${tot}<span class="pr-score-mx">/100</span></div>
+        <div class="pr-score-mx">เฉลี่ยจากผู้ตรวจ ${raters.length} คน</div>
+        <div class="pr-score-lv">${pass?'✓':'!'} ${offLv}</div>
+      </div>
+    </div>
+    <div class="pr-ins">👥 ผู้ตรวจ ${raters.length} คน: ${inspList}</div>
+    <div class="pr-sec-ttl">📊 คะแนนแยกรายหมวด (เฉลี่ยทุกคน)</div>
+    <div class="pr-bars">${bars}</div>
+    <div class="pr-levels">${lvHtml}</div>
+    <div class="pr-sec-ttl">${lowRows.length?'⚠️ จุดต้องแก้ไข ('+lowRows.length+' ข้อ)':'✅ สรุปผล'}</div>
+    <div class="pr-defects pr-gcol">${dfHtml}</div>
+    <div class="pr-sig">
+      <div><div class="pr-sigline"></div><div class="pr-siglbl">ผู้ตรวจ</div></div>
+      <div><div class="pr-sigline"></div><div class="pr-siglbl">ผู้รับผิดชอบพื้นที่</div></div>
+      <div><div class="pr-sigline"></div><div class="pr-siglbl">ผู้อนุมัติ</div></div>
+    </div>
+    <div class="pr-foot">รายงานสร้างโดยระบบแบบตรวจ 5ส Pro</div>`;
+  fitPrintPage();
+  requestAnimationFrame(()=>{fitPrintPage();requestAnimationFrame(()=>window.print());});
+}
 // Averaged (Compare-tab) report → A4 print layout, reuses the single-report print container + window.print()
 function buildComparePrintReport(){
   if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ยังไม่มีข้อมูลให้พิมพ์');return false;}
@@ -1775,6 +1839,7 @@ function cmpRender(){
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:8px;flex-wrap:wrap">
       <div style="font-size:12px;font-weight:700;color:var(--muted)">ตารางคะแนนรายข้อ × ผู้ตรวจ <span style="font-weight:400">· แตะชื่อข้อเพื่อดูเกณฑ์ ▸</span></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="exp-btn" onclick="buildConsolidatedReport()" style="background:#011E48;color:#fff;border-color:#011E48">📊 คำนวณคะแนน &amp; สร้าง Report</button>
         <button class="exp-btn" onclick="cmpPrintReport()">🖨️ Export PDF</button>
         <button class="exp-btn" onclick="cmpExportExcel()">📊 Export Excel</button>
       </div>
