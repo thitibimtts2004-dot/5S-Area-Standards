@@ -1421,7 +1421,7 @@ function cmpScCell(v,ri,no){
   if(v==='NA')return `<td${onc} style="text-align:center;background:#F7EFE8;color:#A89A8E${cur}">NA</td>`;
   if(v===''||v==null)return '<td style="text-align:center;background:#FBF7F2;color:#D8CCC0">–</td>';
   const n=Number(v);
-  const m={4:['#D99B4E','#5A2A16'],3:['#EBBE80','#5A2A16'],2:['#F4A261','#3D1C0E'],1:['#F3C3B0','#5A1E14'],0:['#E8A592','#5A1E14']}[n]||['#FBF7F2','#7A6A5E'];
+  const m={4:['#97C459','#173404'],3:['#C0DD97','#173404'],2:['#FAC775','#412402'],1:['#F7C1C1','#501313'],0:['#F09595','#501313']}[n]||['#FBF7F2','#7A6A5E'];
   return `<td${onc} style="text-align:center;font-weight:700;background:${m[0]};color:${m[1]}${cur}">${n}</td>`;
 }
 const CMP_DEPTS=['BIM','WHS','AS','DBD','RD'];
