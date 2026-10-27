@@ -277,6 +277,15 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 .pr-sigline{border-top:.3mm solid #94A3B8;margin-bottom:1.3mm}
 .pr-siglbl{font-size:2.5mm;color:#64748B;text-align:center}
 .pr-foot{margin-top:2mm;font-size:2mm;color:#94A3B8;text-align:center}
+.pr-cmp-stats{display:flex;gap:2mm;margin-bottom:1mm}
+.pr-cmp-stat{flex:1;background:#F1F5F9;border-radius:2mm;padding:2mm 2.5mm}
+.pr-cmp-sl{font-size:2.2mm;color:#64748B}
+.pr-cmp-sv{font-size:4mm;font-weight:800;color:#1A202C}
+.pr-cmp-tbl{width:100%;border-collapse:collapse;font-size:2.4mm;margin-top:1mm}
+.pr-cmp-tbl th{background:#F1F5F9;padding:1.4mm 1mm;font-weight:700;text-align:center;border-bottom:.3mm solid #CBD5E1}
+.pr-cmp-tbl td{padding:1.2mm 1mm;border-bottom:.2mm solid #E2E8F0}
+.pr-cmp-tot td{background:#EEF2F7;font-weight:800;text-align:center}
+.pr-cmp-rev{font-size:2.5mm;padding:1.6mm 2mm;background:#FFF8E6;border:.2mm solid #F0DDA8;border-radius:1.6mm;margin-bottom:1.2mm}
 /* ===== DESKTOP (Sidebar + Dashboard) ===== */
 @media (min-width:1000px){
   .tab-bar{position:fixed;left:0;top:0;bottom:0;width:220px;border-top:none;border-right:1px solid rgba(255,255,255,.08);z-index:210;overflow-y:auto}
@@ -301,7 +310,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
   html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;height:auto!important;min-height:0!important}
   .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-compare,#pg-admin,#pg-settings,.modal-overlay,.pv-overlay,.toast,.fab-delete{display:none!important}
   #print-report{position:static!important;height:auto!important;overflow:visible!important;z-index:auto}
-  #pr-inner .pr-dcard,#pr-inner .pr-bar-row,#pr-inner .pr-lvbox,#pr-inner .pr-head,#pr-inner .pr-score,#pr-inner .pr-ok{break-inside:avoid;page-break-inside:avoid}
+  #pr-inner .pr-dcard,#pr-inner .pr-bar-row,#pr-inner .pr-lvbox,#pr-inner .pr-head,#pr-inner .pr-score,#pr-inner .pr-ok,#pr-inner .pr-cmp-rev,#pr-inner .pr-cmp-tbl tr{break-inside:avoid;page-break-inside:avoid}
 }
 </style>
 </head>
@@ -1088,6 +1097,66 @@ function printReport(){
   buildPrintReport();
   requestAnimationFrame(()=>{fitPrintPage();requestAnimationFrame(()=>window.print());});
 }
+// Averaged (Compare-tab) report → A4 print layout, reuses the single-report print container + window.print()
+function buildComparePrintReport(){
+  if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ยังไม่มีข้อมูลให้พิมพ์');return false;}
+  const{raters,rows,raterTotals,overall,review,officialScore,offLv}=cmpLast;
+  const offColor=officialScore==null?'#94A3B8':officialScore>=80?'#0F6E56':officialScore>=60?'#854F0B':'#A32D2D';
+  const[g1,g2]=officialScore==null?['#64748B','#94A3B8']:tierGrad(officialScore);
+  const totColor=t=>t==null?'#94A3B8':t>=80?'#0F6E56':t>=60?'#854F0B':'#A32D2D';
+  const ths=raters.map(r=>`<th>${cmpEsc(r.insp||'—')}</th>`).join('');
+  const totalRow=`<tr class="pr-cmp-tot"><td></td><td>คะแนนรวม %</td>${raterTotals.map(t=>`<td style="color:${totColor(t)}">${t==null?'–':t+'%'}</td>`).join('')}<td style="color:${offColor}">${officialScore==null?'–':officialScore+'%'}</td><td></td></tr>`;
+  const trs=rows.map(r=>{
+    const sp=r.spread;
+    const fl=sp==null?'–':sp<=1?'น้อย':sp===2?'กลาง':'สูง';
+    const flc=sp==null?'#CBD5E1':sp<=1?'#0F6E56':sp===2?'#854F0B':'#A32D2D';
+    const i=HMVD.indexOf(r.it.h);
+    return `<tr><td style="text-align:center;font-weight:800;color:${HC[r.it.h]||'#64748B'}">${i<0?'':'ส'+(i+1)}</td><td>ข้อ ${r.it.no} · ${cmpEsc(r.it.t)}</td>${r.scores.map(v=>`<td style="text-align:center">${v===''||v==null?'–':v==='NA'?'NA':v}</td>`).join('')}<td style="text-align:center;font-weight:700">${r.mean==null?'–':r.mean.toFixed(1)}</td><td style="text-align:center;color:${flc};font-weight:700">${fl}</td></tr>`;
+  }).join('');
+  const reviewHtml=review.length?review.map(r=>`<div class="pr-cmp-rev"><b>ข้อ ${r.it.no} · ${cmpEsc(r.it.t)}</b> — ต่างกัน ${r.spread} คะแนน</div>`).join(''):'<div class="pr-ok">✅ ผู้ตรวจให้คะแนนสอดคล้องกันดี ไม่มีข้อที่ต่างกันตั้งแต่ 2 คะแนน</div>';
+  const ds=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  const inner=document.getElementById('pr-inner');
+  inner.style.setProperty('--pr-accent',offColor);
+  inner.innerHTML=`
+    <div class="pr-head">
+      <div class="pr-brand"><div class="pr-logo">🏭</div><div><div class="pr-h1">รายงานคะแนนเฉลี่ย 5ส</div><div class="pr-h2">รวมผู้ตรวจทุกคน · แบบตรวจ 5ส Pro</div></div></div>
+      <div class="pr-meta">
+        <span>📍 <b>${ANAME[cmpArea]||cmpArea}</b></span>
+        <span>🏢 หน่วยงาน <b>${cmpEsc(cmpDept)}</b></span>
+        ${cmpRound?`<span>🔄 รอบ <b>${cmpEsc(cmpRound)}</b></span>`:''}
+        <span>👥 ผู้ตรวจ <b>${raters.length} คน</b></span>
+        <span>📅 <b>${ds}</b></span>
+      </div>
+      <div class="pr-score" style="background-color:${g2};background-image:linear-gradient(135deg,${g1},${g2})">
+        <div class="pr-score-n">${officialScore==null?'–':officialScore}<span class="pr-score-mx">${officialScore==null?'':'/100'}</span></div>
+        <div class="pr-score-mx">คะแนนเฉลี่ยทางการ</div>
+        <div class="pr-score-lv">${offLv}</div>
+      </div>
+    </div>
+    <div class="pr-sec-ttl">📊 สรุป</div>
+    <div class="pr-cmp-stats">
+      <div class="pr-cmp-stat"><div class="pr-cmp-sl">ผู้ตรวจที่เทียบ</div><div class="pr-cmp-sv">${raters.length} คน</div></div>
+      <div class="pr-cmp-stat"><div class="pr-cmp-sl">ความสอดคล้อง</div><div class="pr-cmp-sv" style="color:${overall>=85?'#0F6E56':overall>=70?'#854F0B':'#A32D2D'}">${overall}%</div></div>
+      <div class="pr-cmp-stat"><div class="pr-cmp-sl">ข้อควรทบทวน</div><div class="pr-cmp-sv" style="color:${review.length?'#A32D2D':'#0F6E56'}">${review.length} ข้อ</div></div>
+    </div>
+    <div class="pr-sec-ttl">📋 คะแนนรายข้อ × ผู้ตรวจ</div>
+    <table class="pr-cmp-tbl"><thead><tr><th>ส</th><th style="text-align:left">หัวข้อ</th>${ths}<th>เฉลี่ย</th><th>ต่างกัน</th></tr></thead><tbody>${totalRow}${trs}</tbody></table>
+    <div class="pr-sec-ttl">${review.length?'⚠️ ข้อที่ควรทบทวนเกณฑ์ ('+review.length+' ข้อ)':'✅ สรุปความเห็น'}</div>
+    ${reviewHtml}
+    <div class="pr-sig">
+      <div><div class="pr-sigline"></div><div class="pr-siglbl">ประธานกรรมการ</div></div>
+      <div><div class="pr-sigline"></div><div class="pr-siglbl">ผู้รับผิดชอบพื้นที่</div></div>
+      <div><div class="pr-sigline"></div><div class="pr-siglbl">ผู้อนุมัติ</div></div>
+    </div>
+    <div class="pr-foot">รายงานสร้างโดยระบบแบบตรวจ 5ส Pro · รวมความเห็นผู้ตรวจ ${raters.length} คน</div>`;
+  fitPrintPage();
+  return true;
+}
+function cmpPrintReport(){
+  if(isInAppBrowser()){alert('เบราว์เซอร์ในแอปนี้ (เช่น LINE) ไม่รองรับการพิมพ์/บันทึก PDF\n\nวิธีแก้: กดปุ่ม ⋮ หรือ ... มุมขวาบนของแอปนี้ → เลือก "เปิดด้วยเบราว์เซอร์อื่น" หรือ "Open in Safari/Chrome" แล้วกดพิมพ์อีกครั้งในเบราว์เซอร์จริง');return;}
+  if(!buildComparePrintReport())return;
+  requestAnimationFrame(()=>{fitPrintPage();requestAnimationFrame(()=>window.print());});
+}
 function levelLabel(t){return t>=90?'ดีมาก':t>=80?'ผ่านเกณฑ์':t>=70?'พอใช้':t>=60?'ต้องปรับปรุง':'ไม่ผ่านเกณฑ์';}
 function showSpinner(on,label){
   const el=document.getElementById('save-spinner');
@@ -1626,7 +1695,10 @@ function cmpRender(){
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:8px;flex-wrap:wrap">
       <div style="font-size:12px;font-weight:700;color:var(--muted)">ตารางคะแนนรายข้อ × ผู้ตรวจ <span style="font-weight:400">· แตะชื่อข้อเพื่อดูเกณฑ์ ▸</span></div>
-      <button class="exp-btn" onclick="cmpExportExcel()">📊 Export Excel</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="exp-btn" onclick="cmpPrintReport()">🖨️ Export PDF</button>
+        <button class="exp-btn" onclick="cmpExportExcel()">📊 Export Excel</button>
+      </div>
     </div>
     <div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:10px">
       <table style="width:100%;border-collapse:collapse;font-size:12px">
