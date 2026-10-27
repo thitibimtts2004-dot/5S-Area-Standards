@@ -776,6 +776,7 @@ init();
 
 function goTab(t){
   if(viewMode)exitViewMode();
+  if(editId){editId=null;setEditMode(false);viewCrit=null;}
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   document.getElementById('pg-'+t).classList.add('on');
@@ -1149,7 +1150,8 @@ async function saveResult(){
   if(un.length){showToast('⚠️ ยังประเมินไม่ครบ '+un.length+' ข้อ — ประเมินให้ครบก่อนบันทึก');cur=un[0];showSt(1);rItem();setNbSub2();return;}
   const btn=document.getElementById('btn-save');
   if(btn)btn.disabled=true;
-  showSpinner(true,'กำลังบันทึกผล...');
+  const editing=!!editId;
+  showSpinner(true,editing?'กำลังบันทึกการแก้ไข...':'กำลังบันทึกผล...');
   const items=IT[area],tot=getTotal();
   const dept=document.getElementById('f-dept').value||'—';
   const aname=area==='Custom'?(document.getElementById('f-custom').value||'พื้นที่อื่น'):ANAME[area];
@@ -1161,10 +1163,26 @@ async function saveResult(){
   items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=4;hS[it.h]+=sc[i];}});
   const defs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2).map(it=>{const i=items.indexOf(it);return{no:it.no,t:it.t,sc:sc[i],nt:nt[i]};});
   const fullItems=items.map((it,i)=>({no:it.no,h:it.h,t:it.t,sc:sc[i]==='NA'?'NA':(sc[i]>=0?sc[i]:''),nt:nt[i]||'',ph:(ph[i]||[]).slice(0,3)}));
-  const rec={id:Date.now()+'-'+Math.random().toString(36).slice(2,8),date:dv,area,aname,adet,dept,insp,round,tot,hS,hM,defs,items:fullItems,critArea:area,critVersion:(CRIT_VER[area]||0),saved:new Date().toISOString()};
+  // Editing keeps the record's original id + pinned criteria version (don't bump).
+  const orig=editing?adminData.find(r=>r.id===editId):null;
+  const rec={id:editing?editId:(Date.now()+'-'+Math.random().toString(36).slice(2,8)),date:dv,area,aname,adet,dept,insp,round,tot,hS,hM,defs,items:fullItems,critArea:(orig&&orig.critArea)||area,critVersion:(orig?(orig.critVersion||0):(CRIT_VER[area]||0)),saved:new Date().toISOString()};
   showSpinner(true,'กำลังอัปโหลดรูป...');
   for(const it of rec.items){it.ph=await uploadPhotos(rec.id,it.no,it.ph);}
   rec.synced=false;
+  if(editing){
+    const hi=hist.findIndex(h=>h&&String(h.id)===String(editId));
+    if(hi>=0)hist[hi]=rec;
+    const stored=persistHist();
+    const result=await syncToFirestore(rec);
+    rec.synced=!!(result&&result.ok);
+    if(stored&&rec.synced)persistHist();
+    delete adminItemsCache[editId];
+    showSpinner(false);
+    if(btn)btn.disabled=false;
+    showToast(rec.synced?'✅ บันทึกการแก้ไขเรียบร้อยแล้ว':'⚠️ แก้ไขในเครื่องแล้ว แต่ซิงก์คลาวด์ไม่สำเร็จ — ระบบจะซิงก์ให้เมื่อกลับมาออนไลน์');
+    goTab('admin');
+    return;
+  }
   hist.unshift(rec);
   if(hist.length>50)hist=hist.slice(0,50);
   const stored=persistHist();
@@ -1199,7 +1217,7 @@ function exportCSV(){
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
-let adminData=[],adminSelected=new Set(),adminItemsCache={};
+let adminData=[],adminSelected=new Set(),adminItemsCache={},editId=null;
 function rAdmin(){
   loadAdminData();
 }
@@ -1261,6 +1279,7 @@ function adminRowHtml(r){
         <div class="insp-meta">${cmpEsc(r.dept||'—')}${time?' · '+time:''}${r.naCount?' · ข้าม '+r.naCount+' N/A':''}</div>
       </div>
       <div class="insp-score" style="color:${c}">${r.totalScore}%</div>
+      <button onclick="event.stopPropagation();editAdminReport('${r.id}')" title="แก้ไขรายการนี้" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 8px;margin-left:8px;cursor:pointer;font-size:14px;line-height:1">✏️</button>
     </div>
     <div id="insp-detail-${r.id}" class="insp-detail" style="display:none"></div>
   </div>`;
@@ -1302,7 +1321,21 @@ function setViewMode(on){
   if(back)back.style.display=on?'':'none';
 }
 function exitViewMode(){setViewMode(false);viewCrit=null;init();cur=0;showSt(0);}
-async function viewAdminReport(id){
+// Toggle the inspect form between "edit saved record" and normal modes.
+// Edit mode keeps the Save button visible (relabelled) + shows the back
+// button + hides "reset", so an existing record can be changed and saved
+// back onto the same id instead of creating a new copy.
+function setEditMode(on){
+  const save=document.getElementById('btn-save');
+  const reset=document.getElementById('btn-reset');
+  const back=document.getElementById('btn-back-admin');
+  if(save){save.style.display='';save.innerHTML=on?'💾 บันทึกการแก้ไข':'💾 บันทึกผลการตรวจ';}
+  if(reset)reset.style.display=on?'none':'';
+  if(back)back.style.display=on?'':'none';
+}
+// Shared loader for the Admin tab. edit=false → read-only report (summary);
+// edit=true → fully editable form bound to this record's id.
+async function openAdminRecord(id,edit){
   const rec=adminData.find(r=>r.id===id);
   if(!rec)return;
   if(!adminItemsCache[id]){
@@ -1314,7 +1347,7 @@ async function viewAdminReport(id){
     showSpinner(false);
   }
   const its=adminItemsCache[id]||[];
-  if(!its.length){showToast('ℹ️ รายการนี้ไม่มีคะแนนรายข้อ (บันทึกก่อนอัปเดต) จึงเปิดรายงานเต็มไม่ได้');return;}
+  if(!its.length){showToast('ℹ️ รายการนี้ไม่มีคะแนนรายข้อ (บันทึกก่อนอัปเดต) จึง'+(edit?'แก้ไข':'เปิดรายงานเต็ม')+'ไม่ได้');return;}
   area=IT[rec.area]?rec.area:'Office';
   const list=critFor(area,its.map(x=>x.itemNo));
   viewCrit=list;
@@ -1341,11 +1374,20 @@ async function viewAdminReport(id){
   document.getElementById('pg-inspect').classList.add('on');
   const tabBtn=document.getElementById('t-inspect');if(tabBtn)tabBtn.classList.add('on');
   const fh=document.getElementById('fhead');if(fh)fh.style.background=ACOL[area]||'#E66A2C';
-  setViewMode(true);
-  showSt(2);
-  rSum();
+  if(edit){
+    editId=id;viewMode=false;inspecting=false;
+    setEditMode(true);
+    cur=0;showSt(1);rItem();setNbSub2();uPb();uMini();
+  }else{
+    editId=null;
+    setViewMode(true);
+    setEditMode(false);
+    showSt(2);rSum();
+  }
   window.scrollTo(0,0);
 }
+function viewAdminReport(id){return openAdminRecord(id,false);}
+function editAdminReport(id){return openAdminRecord(id,true);}
 async function deleteSelectedAdmin(){
   if(!adminSelected.size)return;
   if(!confirm(`ยืนยันลบข้อมูลการตรวจที่เลือก ${adminSelected.size} รายการ?\nการลบนี้ไม่สามารถย้อนกลับได้`))return;
