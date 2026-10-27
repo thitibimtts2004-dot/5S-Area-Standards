@@ -1607,6 +1607,52 @@ async function cmpLoad(){
   document.getElementById('cmp-filters').innerHTML=cmpFiltersHtml(rounds);
   cmpRender();
 }
+// คะแนนเฉลี่ยทางการของ 1 รอบ (รวมผู้ตรวจทุกคนในรอบ · ล่าสุดต่อคน · ข้าม NA) — ตรรกะเดียวกับ officialScore ใน cmpRender
+function cmpOfficialForRound(roundRaters){
+  const byInsp={};
+  roundRaters.forEach(h=>{const k=h.insp||'—';if(!byInsp[k]||new Date(h.saved||h.date)>new Date(byInsp[k].saved||byInsp[k].date))byInsp[k]=h;});
+  const raters=Object.values(byInsp);
+  if(!raters.length)return{score:null,n:0};
+  const nos=[];const seen={};
+  raters.forEach(r=>(r.items||[]).forEach(it=>{if(it&&it.no!=null&&!seen[it.no]){seen[it.no]=1;nos.push(it.no);}}));
+  let sum=0,cnt=0;
+  nos.forEach(no=>{
+    const nums=raters.map(r=>{const f=(r.items||[]).find(x=>x.no===no);return f?f.sc:'';}).filter(v=>v!=='NA'&&v!==''&&v!=null).map(Number);
+    if(nums.length){sum+=nums.reduce((a,v)=>a+v,0)/nums.length;cnt++;}
+  });
+  return{score:cnt?Math.round(sum/(cnt*4)*100):null,n:raters.length};
+}
+// กราฟแนวโน้มคะแนนเฉลี่ยทางการข้ามรอบ (inline SVG · ไม่ใช้ library · ทำงานออฟไลน์)
+function cmpTrendHtml(){
+  if(!cmpData||!cmpData._rounds)return'';
+  const rounds=cmpData._rounds.slice().sort((a,b)=>String(a).localeCompare(String(b),'th',{numeric:true}));
+  const all=rounds.map(rd=>{const o=cmpOfficialForRound(cmpData.raters.filter(r=>r.round===rd));return{round:rd,score:o.score,n:o.n};});
+  const data=all.filter(d=>d.score!=null);
+  if(data.length<2)return'';
+  const W=320,H=150,padL=24,padR=10,padT=14,padB=26,plotW=W-padL-padR,plotH=H-padT-padB,n=data.length;
+  const x=i=>padL+(n===1?plotW/2:plotW*i/(n-1));
+  const y=v=>padT+plotH*(1-v/100);
+  const tc=v=>v>=80?'#0F6E56':v>=60?'#854F0B':'#A32D2D';
+  let grid='';
+  [0,20,40,60,80,100].forEach(g=>{const yy=y(g).toFixed(1),p=g===80;grid+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" style="stroke:${p?'#0F6E56':'var(--border)'};stroke-width:${p?1:0.5}"${p?' stroke-dasharray="4 3"':''}/><text x="${padL-4}" y="${(+yy+3).toFixed(1)}" font-size="8" style="fill:var(--muted)" text-anchor="end">${g}</text>`;});
+  const line=data.map((d,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(d.score).toFixed(1)}`).join(' ');
+  const dots=data.map((d,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(d.score).toFixed(1)}" r="3.5" fill="${tc(d.score)}"/><text x="${x(i).toFixed(1)}" y="${(y(d.score)-6).toFixed(1)}" font-size="8.5" font-weight="700" fill="${tc(d.score)}" text-anchor="middle">${d.score}</text>`).join('');
+  const xl=data.map((d,i)=>{const anc=i===0?'start':i===n-1?'end':'middle';return`<text x="${x(i).toFixed(1)}" y="${H-8}" font-size="8" style="fill:var(--muted)" text-anchor="${anc}">${cmpEsc(String(d.round))}</text>`;}).join('');
+  const diff=data[data.length-1].score-data[0].score;
+  const tTxt=diff>0?`▲ ดีขึ้น ${diff}%`:diff<0?`▼ ลดลง ${-diff}%`:'■ เท่าเดิม';
+  const tCol=diff>0?'#0F6E56':diff<0?'#A32D2D':'#64748B';
+  return`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <div style="font-size:13px;font-weight:800">📈 แนวโน้มคะแนนเฉลี่ยข้ามรอบ</div>
+        <div style="font-size:12px;font-weight:700;color:${tCol}">${tTxt}</div>
+      </div>
+      <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;overflow:visible" preserveAspectRatio="xMidYMid meet">
+        ${grid}<path d="${line}" fill="none" style="stroke:var(--green)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots}${xl}
+      </svg>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6">คะแนนเฉลี่ยทางการแต่ละรอบ (รวมผู้ตรวจทุกคนในรอบ · เส้นประเขียว = เกณฑ์ผ่าน 80%) · ${data.length} รอบ</div>
+    </div>`;
+}
 function cmpRender(){
   const bEl=document.getElementById('cmp-body');
   if(!cmpData){bEl.innerHTML='';return;}
@@ -1674,6 +1720,7 @@ function cmpRender(){
         <b style="color:var(--text)">${cmpEsc(hi.join(', '))}</b> ให้ ${mx} คะแนน · <b style="color:var(--text)">${cmpEsc(lo.join(', '))}</b> ให้ ${mn} คะแนน<br>เกณฑ์ข้อนี้อาจตีความต่างกัน ควรนิยามให้ชัด</div></div>`;
   }).join(''):'<div style="font-size:12px;color:#E66A2C;padding:11px 13px;background:#FDEEE4;border-radius:10px">✓ ผู้ตรวจให้คะแนนสอดคล้องกันดี ไม่มีข้อที่ต่างกันตั้งแต่ 2 คะแนน</div>';
   bEl.innerHTML=`
+    ${cmpTrendHtml()}
     ${multiRoundNote}
     ${noDeptNote}
     <div style="background:linear-gradient(135deg,var(--card),var(--bg));border:2px solid ${offColor};border-radius:16px;padding:16px 18px;margin-bottom:14px">
