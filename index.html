@@ -788,7 +788,7 @@ let viewCrit=null;
 function detectOfficeVer(nos){const v2=new Set(OFFICE_V2.map(x=>String(x.no))),v1=new Set(OFFICE_V1.map(x=>String(x.no)));let c2=0,c1=0;(nos||[]).forEach(n=>{const s=String(n);if(v2.has(s))c2++;if(v1.has(s))c1++;});return c2>c1?'v2':(c1>c2?'v1':'v2');}
 function critFor(a,nos){if(a==='Office'&&!CRIT_VER.Office)return detectOfficeVer(nos)==='v1'?OFFICE_V1:OFFICE_V2;return IT[a]||[];}
 
-function AN(){return (IT[area]||[]).length||25;}
+function AN(){return ((viewCrit||IT[area])||[]).length||25;}
 function init(){sc={};nt={};ph={};for(let i=0;i<AN();i++){sc[i]=-1;nt[i]='';ph[i]=[];}}
 // --- Autosave งานตรวจกลางคัน (กัน refresh/แครช/ปิดแท็บ แล้วข้อมูลหาย) ---
 const DRAFT_KEY='5s_draft';
@@ -883,7 +883,7 @@ function getTotal(){const mx=getMaxPossible();return mx>0?Math.round(getRawTotal
 function getNACount(){return Object.values(sc).filter(v=>v==='NA').length;}
 function getUnscored(){const a=[];for(let i=0;i<AN();i++){if(sc[i]===-1)a.push(i);}return a;}
 function rItem(){
-  const items=IT[area],it=items[cur],s=sc[cur];
+  const items=(viewCrit||IT[area]),it=items[cur],s=sc[cur];
   const isNA=s==='NA',has=!isNA&&s>=0;
   const col=ACOL[area],bg=ABG[area];
   const zimgs=refImgFor(area,it.no);
@@ -1257,11 +1257,12 @@ async function saveResult(){
   if(viewMode)return;
   const un=getUnscored();
   if(un.length){showToast('⚠️ ยังประเมินไม่ครบ '+un.length+' ข้อ — ประเมินให้ครบก่อนบันทึก');cur=un[0];showSt(1);rItem();setNbSub2();return;}
+  if(getScored().length===0){showToast('⚠️ ต้องให้คะแนนอย่างน้อย 1 ข้อ ก่อนบันทึก (ติ๊ก NA ทั้งหมดบันทึกไม่ได้)');return;}
   const btn=document.getElementById('btn-save');
   if(btn)btn.disabled=true;
   const editing=!!editId;
   showSpinner(true,editing?'กำลังบันทึกการแก้ไข...':'กำลังบันทึกผล...');
-  const items=IT[area],tot=getTotal();
+  const items=(viewCrit||IT[area]),tot=getTotal();
   const dept=document.getElementById('f-dept').value||'—';
   const aname=area==='Custom'?(document.getElementById('f-custom').value||'พื้นที่อื่น'):ANAME[area];
   const adet=document.getElementById('f-area').value;
@@ -1299,6 +1300,7 @@ async function saveResult(){
   rec.synced=!!(result&&result.ok);
   if(stored&&rec.synced)persistHist();
   clearDraft();
+  editId=null;viewCrit=null;
   rHome();
   showSpinner(false);
   if(btn)btn.disabled=false;
