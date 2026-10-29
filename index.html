@@ -326,11 +326,36 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 @media print{
   @page{size:A4;margin:9mm 0}
   html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;height:auto!important;min-height:0!important}
-  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-compare,#pg-admin,#pg-settings,.modal-overlay,.pv-overlay,.toast,.fab-delete{display:none!important}
+  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-compare,#pg-admin,#pg-settings,.modal-overlay,.pv-overlay,.toast,.fab-delete,#rpv-bar{display:none!important}
   #print-report{position:static!important;height:auto!important;overflow:visible!important;z-index:auto}
+  #rpv-bg.show{position:static!important;background:none!important;overflow:visible!important;padding:0!important;display:block!important}
+  #rpv-bg.show #print-report{box-shadow:none!important;zoom:1!important;position:static!important;left:auto!important;margin:0 auto!important}
   #pr-inner .pr-dcard,#pr-inner .pr-bar-row,#pr-inner .pr-lvbox,#pr-inner .pr-head,#pr-inner .pr-score,#pr-inner .pr-ok,#pr-inner .pr-cmp-rev,#pr-inner .pr-cmp-tbl tr{break-inside:avoid;page-break-inside:avoid}
 }
 .nb-logo img{width:22px;height:26px;object-fit:contain;display:block}.sb-brand{display:none}.tb.on{background:#fff;color:#0D6EFD;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,.14);font-weight:700}.tb.on svg{stroke:#0D6EFD}@media(min-width:1000px){.sb-brand{display:flex;align-items:center;justify-content:center;gap:13px;position:absolute;top:0;left:0;right:0;height:185px;padding:14px;border-bottom:none;background:var(--hdr);z-index:1}.sb-brand img{width:100%;height:auto;display:block}.sb-brand .sb-tx{display:flex;flex-direction:column;line-height:1.15}.sb-brand .sb-tx b{color:#fff;font-size:20px;font-weight:800;letter-spacing:.3px}.sb-brand .sb-tx span{color:rgba(255,255,255,.5);font-size:10.5px;letter-spacing:.2px}.tab-inner{padding-top:201px}body{background:var(--hdr)}.navbar{background:var(--hdr);box-shadow:none;display:none}body[data-tab="inspect"] .navbar{display:block}.pg{background:#fff;border-top-left-radius:26px;min-height:calc(100vh - 96px)}.pg>.wrap{background:transparent}}
+/* --- Compact "จุดต้องแก้ไข" cards (1-page consolidated report) --- */
+.pr-gcol{column-count:2;column-gap:3.5mm}
+.pr-gcard{display:block;break-inside:avoid;page-break-inside:avoid;margin-bottom:2mm}
+.pr-ghead{display:flex;align-items:baseline;justify-content:space-between;gap:2mm}
+.pr-ghead .pr-dttl{-webkit-line-clamp:2}
+.pr-gcnt{font-size:2.3mm;font-weight:800;color:#DC2626;white-space:nowrap;flex-shrink:0}
+.pr-gchips{display:flex;flex-wrap:wrap;gap:1mm;margin-top:1mm}
+.pr-gchip{font-size:2.1mm;font-weight:700;padding:.4mm 1.6mm;border-radius:1.4mm;white-space:nowrap}
+.pr-gnotes{margin-top:1mm}
+.pr-gnote{font-size:2.3mm;color:#475569;line-height:1.3;margin-top:.3mm}
+.pr-gnm{color:#94A3B8;font-size:2mm}
+.pr-gphotos{display:flex;flex-wrap:wrap;gap:1.2mm;margin-top:1.4mm}
+.pr-gthumb{width:15mm;height:15mm;object-fit:cover;border-radius:1.2mm;border:.25mm solid #E2E8F0;background:#F1F5F9}
+/* --- On-screen preview overlay (show before printing) --- */
+#rpv-bar{display:none}
+#rpv-bg{display:none}
+body.pvon{overflow:hidden}
+#rpv-bg.show{display:block;position:fixed;inset:0;z-index:9000;background:rgba(15,23,42,.82);overflow:auto;padding:64px 14px 48px;text-align:center}
+#rpv-bg.show #print-report{display:inline-block;position:relative;left:auto;top:auto;margin:0 auto;z-index:1;height:auto;max-height:none;overflow:visible;background:#fff;box-shadow:0 14px 60px rgba(0,0,0,.5)}
+#rpv-bar.show{display:flex;position:fixed;top:0;left:0;right:0;min-height:52px;align-items:center;justify-content:center;gap:10px;background:#011E48;color:#fff;z-index:9002;box-shadow:0 2px 12px rgba(0,0,0,.35);flex-wrap:wrap;padding:7px 12px;box-sizing:border-box}
+#rpv-bar button{font-family:inherit;font-size:13.5px;font-weight:700;padding:8px 15px;border-radius:9px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+#rpv-bar button.primary{background:#fff;color:#011E48;border-color:#fff}
+#rpv-bar .rpv-hint{font-size:12px;color:rgba(255,255,255,.72);font-weight:600}
 </style>
 </head>
 <body>
@@ -534,6 +559,8 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 </div></div>
 
 <div id="print-report"><div class="pr-page" id="pr-inner"></div></div>
+<div id="rpv-bar"><span class="rpv-hint">👀 ดูภาพรวมก่อน แล้วค่อยพิมพ์</span><button class="primary" onclick="printFromPreview()">🖨️ พิมพ์ / บันทึก PDF</button><button onclick="closeReportPreview()">✕ ปิด</button></div>
+<div id="rpv-bg" onclick="if(event.target===this)closeReportPreview()"></div>
 <!-- MODAL รูปมาตรฐาน -->
 <div class="modal-overlay" id="std-modal" style="display:none" onclick="closeModal(event)">
   <div class="modal-box" onclick="event.stopPropagation()">
@@ -1143,14 +1170,17 @@ function buildConsolidatedReport(){
   const lvHtml=lvs.map(l=>`<div class="pr-lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg:''}"><div class="pr-lvn" style="color:${l.fg}">${l.n}</div><div class="pr-lvl" style="color:${l.fg}">${l.l}</div></div>`).join('');
   const lowRows=rows.filter(r=>r.nums.some(v=>v<=2));
   const dfHtml=lowRows.length?lowRows.map(r=>{
-    const subs=raters.map(rt=>{
-      const f=(rt.items||[]).find(x=>x.no===r.it.no);if(!f)return'';
-      const v=f.sc;if(v==='NA'||v===''||v==null)return'';
-      const s=Number(v);if(s>2)return'';
-      const note=f.nt||'',pht=(f.ph&&f.ph.length)?`<img class="pr-dph" src="${f.ph[0]}">`:'';
-      return `<div class="pr-gsub"><div class="pr-gtxt"><div class="pr-ghd"><span class="pr-gname">👤 ${cmpEsc(rt.insp||'—')}</span><span class="pr-dbadge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</span></div>${note?`<div class="pr-dnote">${cmpEsc(note)}</div>`:''}</div>${pht}</div>`;
-    }).filter(Boolean).join('');
-    return `<div class="pr-dcard pr-gcard" style="--pr-cat:${HC[r.it.h]}"><div class="pr-dttl">ข้อ ${r.it.no} — ${cmpEsc(r.it.t)}</div>${subs}</div>`;
+    const flagged=raters.map(rt=>{
+      const f=(rt.items||[]).find(x=>x.no===r.it.no);if(!f)return null;
+      const v=f.sc;if(v==='NA'||v===''||v==null)return null;
+      const s=Number(v);if(s>2)return null;
+      return {name:rt.insp||'—',s,note:(f.nt||'').trim(),ph:(f.ph&&f.ph.length)?f.ph[0]:''};
+    }).filter(Boolean);
+    if(!flagged.length)return'';
+    const chips=flagged.map(x=>`<span class="pr-gchip" style="background:${SBG[x.s]};color:${SFG[x.s]}">${cmpEsc(x.name)} · ${SL[x.s]}</span>`).join('');
+    const notes=flagged.filter(x=>x.note).map(x=>`<div class="pr-gnote">• ${cmpEsc(x.note)} <span class="pr-gnm">(${cmpEsc(x.name)})</span></div>`).join('');
+    const phs=flagged.filter(x=>x.ph).map(x=>`<img class="pr-gthumb" src="${x.ph}" title="${cmpEsc(x.name)}">`).join('');
+    return `<div class="pr-dcard pr-gcard" style="--pr-cat:${HC[r.it.h]}"><div class="pr-ghead"><div class="pr-dttl">ข้อ ${r.it.no} — ${cmpEsc(r.it.t)}</div><span class="pr-gcnt">⚠️ ${flagged.length} คนแจ้ง</span></div><div class="pr-gchips">${chips}</div>${notes?`<div class="pr-gnotes">${notes}</div>`:''}${phs?`<div class="pr-gphotos">${phs}</div>`:''}</div>`;
   }).join(''):`<div class="pr-ok">✅ ไม่มีข้อที่ผู้ตรวจให้คะแนนต่ำ (0-2)</div>`;
   const aname=cmpArea==='Custom'?'พื้นที่อื่น':(ANAME[cmpArea]||cmpArea);
   const dept=cmpDept||'—',roundTxt=cmpRound||'ล่าสุดของแต่ละคน';
@@ -1187,8 +1217,37 @@ function buildConsolidatedReport(){
     </div>
     <div class="pr-foot">รายงานสร้างโดยระบบแบบตรวจ 5ส Pro</div>`;
   fitPrintPage();
-  requestAnimationFrame(()=>{fitPrintPage();requestAnimationFrame(()=>window.print());});
+  // โชว์พรีวิวบนจอก่อน (รอรูปโหลดให้ครบ) — ยังไม่สั่งพิมพ์ ให้ผู้ใช้ดูภาพรวมแล้วค่อยกดพิมพ์เอง
+  waitReportImages(inner).then(()=>{fitPrintPage();showReportPreview();});
 }
+// รอให้รูปในรายงานโหลดเสร็จ (รูปเก็บบน R2 เป็นลิงก์ ต้องโหลดผ่านเน็ต) ก่อนวัด/โชว์
+function waitReportImages(el){
+  const imgs=[...el.querySelectorAll('img')];
+  if(!imgs.length)return Promise.resolve();
+  return Promise.all(imgs.map(im=>im.complete&&im.naturalWidth?Promise.resolve():new Promise(res=>{im.onload=im.onerror=res;setTimeout(res,4000);})));
+}
+function fitPreviewZoom(){
+  const pr=document.getElementById('print-report'),pxPerMm=96/25.4,pageW=210*pxPerMm;
+  pr.style.zoom=Math.min(1,(Math.min(window.innerWidth-28,pageW))/pageW);
+}
+function showReportPreview(){
+  const bg=document.getElementById('rpv-bg'),bar=document.getElementById('rpv-bar'),pr=document.getElementById('print-report');
+  bg.appendChild(pr);document.body.classList.add('pvon');
+  bg.classList.add('show');bar.classList.add('show');
+  fitPreviewZoom();bg.scrollTop=0;
+}
+function closeReportPreview(){
+  const bg=document.getElementById('rpv-bg'),bar=document.getElementById('rpv-bar'),pr=document.getElementById('print-report');
+  pr.style.zoom='';document.body.appendChild(pr);
+  document.body.classList.remove('pvon');bg.classList.remove('show');bar.classList.remove('show');
+}
+function printFromPreview(){
+  const pr=document.getElementById('print-report');
+  pr.style.zoom='';                                   // พิมพ์ที่ขนาด A4 เต็ม
+  requestAnimationFrame(()=>{fitPrintPage();requestAnimationFrame(()=>{window.print();fitPreviewZoom();});});
+}
+window.addEventListener('resize',()=>{if(document.body.classList.contains('pvon'))fitPreviewZoom();});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('pvon'))closeReportPreview();});
 // Averaged (Compare-tab) report → A4 print layout, reuses the single-report print container + window.print()
 function buildComparePrintReport(){
   if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ยังไม่มีข้อมูลให้พิมพ์');return false;}
