@@ -23,7 +23,7 @@ const ALLOWED_ORIGINS = [
 ];
 
 const MAX_BYTES = 3 * 1024 * 1024;                 // 3 MB per image
-const KEY_RE = /^inspections\/[\w-]+\/[\w.-]+\/[\w.-]+$/; // inspections/<id>/<itemNo>/<file>
+const KEY_RE = /^(inspections|standards)\/[\w-]+\/[\w.-]+\/[\w.-]+$/; // inspections/<id>/<itemNo>/<file> OR standards/<area>/<itemNo>/<file>
 
 function corsHeaders(origin) {
   // localhost / 127.0.0.1 on ANY port (dev servers like Vite use a port, which
