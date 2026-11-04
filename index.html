@@ -160,9 +160,9 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 .sc{padding:9px 2px;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:16px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .12s;text-align:center;line-height:1}
 .sc span{font-size:9px;font-weight:400;margin-top:3px;display:block}
 .sc.v0{background:#FEE2E2;border-color:#CBD5E1;color:#991B1B}
-.sc.v1{background:#FEE2E2;border-color:#93C5FD;color:#DC2626}
-.sc.v2{background:#E0F2FE;border-color:#60A5FA;color:#D97706}
-.sc.v3{background:#DBEAFE;border-color:#60A5FA;color:#2563EB}
+.sc.v1{background:#FEE2E2;border-color:#F87171;color:#DC2626}
+.sc.v2{background:#DBEAFE;border-color:#60A5FA;color:#2563EB}
+.sc.v3{background:#DBEAFE;border-color:#2563EB;color:#1E40AF}
 .sc.v4{background:#DBEAFE;border-color:#60A5FA;color:#1E40AF}
 .sc.vna{background:#E0F2FE;border-color:#3B82F6;color:#1D4ED8;font-size:13px}
 .na-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;background:#E0F2FE;color:#1D4ED8;font-size:11px;font-weight:700;margin-top:6px}
@@ -555,7 +555,7 @@ body[data-role="admin"] #logout-fab,body[data-role="inspector"] #logout-fab{disp
               <option>ตุลาคม</option><option>พฤศจิกายน</option><option>ธันวาคม</option>
             </select></div>
         </div>
-        <div class="tip-box"><b>เกณฑ์ 0–4</b> &nbsp;|&nbsp; 4=ดีมาก · 3=ดี · 2=พอใช้ · 1=ต้องปรับปรุง · 0=ไม่ผ่าน<br>25 หัวข้อ × 4 = <b>100 คะแนนเต็ม</b> · ผ่านเกณฑ์ ≥ 80 คะแนน</div>
+        <div class="tip-box"><b>เกณฑ์การให้คะแนน</b> &nbsp;|&nbsp; 3=ดีกว่ามาตรฐาน · 2=ผ่านมาตรฐาน · 1=ไม่ผ่านมาตรฐาน · N/A=ไม่มีให้ตรวจ<br>คะแนนรวมคิดเป็น % (ข้าม N/A) · ผ่านมาตรฐานทุกข้อ = 67% · ดีกว่ามาตรฐานทุกข้อ = 100%</div>
       </div>
     </div>
     <div class="botnav">
@@ -886,10 +886,10 @@ async function r2DeleteInspection(id){
 const HMVD=["สะสาง","สะดวก","สะอาด","สร้างมาตรฐาน","สร้างวินัย"];
 const HC={"สะสาง":"#2563EB","สะดวก":"#1D4ED8","สะอาด":"#6366F1","สร้างมาตรฐาน":"#1D4ED8","สร้างวินัย":"#1D4ED8"};
 const HB={"สะสาง":"#DBEAFE","สะดวก":"#E0F2FE","สะอาด":"#E0E7FF","สร้างมาตรฐาน":"#E0F2FE","สร้างวินัย":"#FEE2E2"};
-const SL=["ไม่ผ่าน","ต้องปรับ","พอใช้","ดี","ดีมาก"];
-const SBG=["#FEE2E2","#FEE2E2","#E0F2FE","#DBEAFE","#DBEAFE"];
-const SFG=["#991B1B","#DC2626","#D97706","#2563EB","#1E40AF"];
-const SBC=["#CBD5E1","#93C5FD","#60A5FA","#60A5FA","#60A5FA"];
+const SL=["—","ไม่ผ่านมาตรฐาน","ผ่านมาตรฐาน","ดีกว่ามาตรฐาน","ดีกว่ามาตรฐาน"];
+const SBG=["#F1F5F9","#FEE2E2","#DBEAFE","#DBEAFE","#DBEAFE"];
+const SFG=["#64748B","#DC2626","#2563EB","#1E40AF","#1E40AF"];
+const SBC=["#E2E8F0","#F87171","#60A5FA","#2563EB","#2563EB"];
 // ───── พื้นที่ตรวจ (แก้ไขได้ในหน้าตั้งค่า · แชร์ผ่าน Firestore: appConfig/areas.list) ─────
 const AREA_BUILTIN_KEYS=['Office','Store','Alu','Custom'];
 const AREA_CACHE_KEY='5s_areas';
@@ -1291,9 +1291,11 @@ function setPb(done,tot){
 // NA-aware คำนวณคะแนน (getTotal ยังคืนค่าเป็น % 0-100 เหมือนเดิม เพื่อไม่กระทบ history/ranking/print)
 function getScored(){return Object.entries(sc).filter(([i,v])=>v!==-1&&v!=='NA');}
 function getRawTotal(){return getScored().reduce((a,[,v])=>a+Number(v),0);}
-function getMaxPossible(){return getScored().length*4;}
+function getMaxPossible(){return getScored().length*3;}
 function getTotal(){const mx=getMaxPossible();return mx>0?Math.round(getRawTotal()/mx*100):0;}
 function getNACount(){return Object.values(sc).filter(v=>v==='NA').length;}
+function getPassRate(){const s=getScored();return s.length?Math.round(s.filter(([,v])=>Number(v)>=2).length/s.length*100):0;}
+function passRateOf(items){if(!items)return null;let n=0,p=0;items.forEach(it=>{const v=it.sc;if(v==='NA'||v===''||v==null)return;n++;if(Number(v)>=2)p++;});return n>0?Math.round(p/n*100):null;}
 function getUnscored(){const a=[];for(let i=0;i<AN();i++){if(sc[i]===-1)a.push(i);}return a;}
 function rItem(){
   const items=(viewCrit||IT[area]),it=items[cur],s=sc[cur];
@@ -1305,15 +1307,15 @@ function rItem(){
   if(isNA){
     crit=`<div class="crit" style="background:#E0F2FE;color:#1D4ED8;border-color:#3B82F6">N/A — ข้ามหัวข้อนี้ ไม่นำมาคิดคะแนน</div>`;
   }else if(has){
-    crit=`<div class="crit" style="background:${SBG[s]};color:${SFG[s]};border-color:${SBC[s]}">${it.c[s]}</div>`;
+    crit=`<div class="crit" style="background:${SBG[s]};color:${SFG[s]};border-color:${SBC[s]}">${SL[s]}</div>`;
   }else{
     crit=`<div class="crit" style="background:#F8FAFC;color:#94A3B8;border-color:#E2E8F0">กดเลือกคะแนนเพื่อดูเกณฑ์ หรือกด N/A หากไม่เกี่ยวข้อง</div>`;
   }
-  const sbtns=[0,1,2,3,4].map(v=>`<button class="sc${s===v?' v'+v:''}" onclick="setS(${v})">${v}<span>${SL[v]}</span></button>`).join('');
+  const sbtns=[1,2,3].map(v=>`<button class="sc${s===v?' v'+v:''}" onclick="setS(${v})">${v}<span>${SL[v]}</span></button>`).join('');
   const nabtn=`<button class="sc${isNA?' vna':''}" onclick="setNA()">N/A<span>ข้ามหัวข้อ</span></button>`;
   const stdBtnHtml=hasStd?`<div class="std-btn-wrap"><button class="std-btn" onclick="openStdModal('${it.no}')">📐 ดูรูปมาตรฐาน (${zimgs.length})</button></div>`:'';
   const pht=ph[cur]&&ph[cur].length?ph[cur].map((p,i)=>`<div class="pthumb-wrap"><img class="pthumb" src="${p}"><button class="pdel" onclick="delPh(${cur},${i})">×</button></div>`).join(''):'';
-  const needPhoto=has&&s<=2;
+  const needPhoto=has&&s<=1;
   const hasPhoto=ph[cur]&&ph[cur].length>0;
   const photoHint=needPhoto?(hasPhoto?'<div style="width:100%;font-size:11px;color:#2563EB;font-weight:700;margin-top:4px">✓ แนบรูปหลักฐานแล้ว</div>':'<div style="width:100%;font-size:11px;color:#DC2626;font-weight:700;margin-top:4px">* คะแนนนี้ต้องแนบรูปหลักฐานอย่างน้อย 1 รูป</div>'):'';
   document.getElementById('item-area').innerHTML=`
@@ -1407,8 +1409,8 @@ function handlePhoto(e){
 function delPh(i,pi){ph[i].splice(pi,1);rItem();saveDraft();}
 function nextItem(){
   const s=sc[cur];
-  if(s>=0&&s<=2&&(!ph[cur]||!ph[cur].length)){
-    showToast('📷 คะแนนข้อนี้ต่ำ (0-2) ต้องแนบรูปหลักฐานอย่างน้อย 1 รูปก่อนไปต่อ');
+  if(s===1&&(!ph[cur]||!ph[cur].length)){
+    showToast('📷 คะแนนข้อนี้ไม่ผ่านมาตรฐาน ต้องแนบรูปหลักฐานอย่างน้อย 1 รูปก่อนไปต่อ');
     return;
   }
   if(cur<AN()-1){cur++;rItem();setNbSub2();}
@@ -1423,7 +1425,7 @@ function nextItem(){
 }
 function prevItem(){if(cur>0){cur--;rItem();setNbSub2();}else{showSt(0);setNbSub('กรอกข้อมูล');}}
 function uMini(){
-  const t=getTotal(),c=t>=80?'#16A34A':t>=60?'#D97706':'#DC2626';
+  const t=getTotal(),c=t>=90?'#16A34A':t>=67?'#2563EB':'#DC2626';
   document.getElementById('ms-n').textContent=t;document.getElementById('ms-n').style.color=c;
   document.getElementById('ms-bar').style.width=t+'%';document.getElementById('ms-bar').style.background=c;
   document.getElementById('ms-pct').textContent=t+'%';document.getElementById('ms-pct').style.color=c;
@@ -1434,8 +1436,8 @@ function uPb(){
   document.getElementById('pb-lbl').textContent=d+'/'+n;
 }
 function getReportData(){
-  const items=viewCrit||IT[area],tot=getTotal(),na=getNACount(),pass=tot>=80;
-  const lv=tot>=90?'ดีมาก':tot>=80?'ผ่านเกณฑ์':tot>=70?'พอใช้':tot>=60?'ต้องปรับปรุง':'ไม่ผ่านเกณฑ์';
+  const items=viewCrit||IT[area],tot=getTotal(),na=getNACount(),pr=getPassRate(),pass=pr>=80;
+  const lv=pass?(tot>=90?'ดีกว่ามาตรฐาน':'ผ่านมาตรฐาน'):'ต่ำกว่ามาตรฐาน';
   const dept=deptName(document.getElementById('f-dept').value)||'—';
   const aname=area==='Custom'?(document.getElementById('f-custom').value||'พื้นที่อื่น'):ANAME[area];
   const adet='';
@@ -1444,18 +1446,18 @@ function getReportData(){
   const ds=dv?new Date(dv).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'-';
   const round=document.getElementById('f-round').value;
   const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
-  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=4;hS[it.h]+=sc[i];}});
-  const probs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2);
+  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=3;hS[it.h]+=sc[i];}});
+  const probs=items.filter((_,i)=>sc[i]===1);
   const naItems=items.filter((_,i)=>sc[i]==='NA');
-  const lvs=[{n:'<60',l:'ไม่ผ่าน',bg:'#FEE2E2',fg:'#991B1B',a:tot<60},{n:'60–69',l:'ต้องปรับ',bg:'#E0F2FE',fg:'#D97706',a:tot>=60&&tot<70},{n:'70–79',l:'พอใช้',bg:'#DBEAFE',fg:'#1E3A8A',a:tot>=70&&tot<80},{n:'80–89',l:'ผ่าน',bg:'#DBEAFE',fg:'#2563EB',a:tot>=80&&tot<90},{n:'90+',l:'ดีมาก',bg:'#DBEAFE',fg:'#1E40AF',a:tot>=90}];
-  return{items,tot,na,naItems,pass,lv,dept,aname:cmpEsc(aname),adet:cmpEsc(adet),insp:cmpEsc(insp),ds,round,hS,hM,probs,lvs};
+  const lvs=[{n:'<67',l:'ต่ำกว่ามาตรฐาน',bg:'#FEE2E2',fg:'#991B1B',a:tot<67},{n:'67–89',l:'ผ่านมาตรฐาน',bg:'#DBEAFE',fg:'#2563EB',a:tot>=67&&tot<90},{n:'90+',l:'ดีกว่ามาตรฐาน',bg:'#DBEAFE',fg:'#1E40AF',a:tot>=90}];
+  return{items,tot,na,naItems,pass,pr,lv,dept,aname:cmpEsc(aname),adet:cmpEsc(adet),insp:cmpEsc(insp),ds,round,hS,hM,probs,lvs};
 }
 function rSum(){
-  const{items,tot,na,naItems,pass,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
+  const{items,tot,na,naItems,pass,pr,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
   const bars=HMVD.map(h=>{const s=hS[h],m=hM[h],p=m>0?Math.round(s/m*100):0,c=HC[h];
     return `<div class="br-row"><div class="br-n" style="color:${c}">${h}</div><div class="br-track"><div class="br-fill" style="width:${p}%;background:${c}"></div></div><div style="display:flex;align-items:baseline;gap:2px;min-width:42px;justify-content:flex-end"><div class="br-v" style="color:${c}">${m>0?s:'—'}</div><div class="br-p">/${m>0?m:'N/A'}</div></div></div>`;}).join('');
   const naHtml=naItems.length?naItems.map(it=>`<div style="padding:5px 0;font-size:12px;color:#1D4ED8">⊘ ข้อ ${it.no} — ${it.t}</div>`).join(''):'';
-  const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||it.c[s];
+  const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||'';
     const pht=ph[i]&&ph[i].length?`<div class="df-photos">${ph[i].map(p=>`<img class="df-photo" src="${p}">`).join('')}</div>`:'';
     return `<div class="df-item"><div class="df-hd"><div class="df-dot" style="background:${HC[it.h]}"></div><div class="df-ttl">ข้อ ${it.no} — ${it.t}</div><div class="df-badge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</div></div><div class="df-note">${cmpEsc(note)}</div>${pht}</div>`;}).join('')
     :`<div style="padding:14px;text-align:center;font-size:13px;color:var(--muted)">✅ ไม่พบจุดบกพร่อง</div>`;
@@ -1464,7 +1466,8 @@ function rSum(){
       <span>${AICO[area]||'📍'} ${aname}</span>${adet?`<span>📍 ${adet}</span>`:''}<span>🏢 ${dept}</span><span>📅 ${ds}</span><span>👤 ${insp}</span><span>🔄 ${round}</span>
     </div>
     <div class="sum-hero"><div class="hring"><div class="hn">${tot}</div><div class="hmx">/100</div></div>
-      <div class="hr"><div class="hpct">${tot}%</div><div class="hlbl">${items.length-na} หัวข้อ${na>0?' (ข้าม '+na+' N/A)':''}</div><div class="hbadge">${pass?'✓':'!'} ${lv}</div></div></div>
+      <div class="hr"><div class="hpct">${tot}%</div><div class="hlbl">${items.length-na} หัวข้อ${na>0?' (ข้าม '+na+' N/A)':''}</div><div class="hbadge">${lv}</div></div></div>
+    <div style="margin:0 0 12px;padding:9px 13px;border-radius:10px;font-size:13px;font-weight:700;text-align:center;background:${pass?'#DCFCE7':'#FEE2E2'};color:${pass?'#15803D':'#B91C1C'}">${pass?'✓ ผ่านเกณฑ์':'✗ ไม่ผ่านเกณฑ์'} · ข้อได้มาตรฐาน ${pr}% <span style="font-weight:500;opacity:.8">(เส้นผ่าน 80%)</span></div>
     <div class="scard"><div class="shd"><div class="sico" style="background:#DBEAFE">📊</div><div class="sttl">คะแนนแยกรายหมวด</div></div><div class="sbd">${bars}</div></div>
     <div class="lvstrip">${lvs.map(l=>`<div class="lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg+';':'border-color:transparent'}"><div class="lvn" style="color:${l.fg}">${l.n}</div><div class="lvl" style="color:${l.fg}">${l.l}</div></div>`).join('')}</div>
     ${naItems.length?`<div class="scard"><div class="shd"><div class="sico" style="background:#E0F2FE">⊘</div><div class="sttl" style="color:#1D4ED8">หัวข้อ N/A — ข้ามไป (${naItems.length} หัวข้อ)</div></div><div class="sbd" style="padding:10px 15px">${naHtml}</div></div>`:''}
@@ -1473,14 +1476,14 @@ function rSum(){
       <div class="sbd" style="padding:${probs.length?'12px 15px':'0'}">${dfHtml}</div></div>`;
   buildPrintReport();
 }
-function tierGrad(tot){return tot>=80?['#15803D','#16A34A']:tot>=60?['#B45309','#D97706']:['#B91C1C','#DC2626'];}
+function tierGrad(tot){return tot>=90?['#15803D','#16A34A']:tot>=67?['#1E40AF','#2563EB']:['#B91C1C','#DC2626'];}
 function buildPrintReport(){
-  const{items,tot,na,pass,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
+  const{items,tot,na,pass,pr,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
   const [g1,g2]=tierGrad(tot);
   const bars=HMVD.map(h=>{const s=hS[h],m=hM[h],p=m>0?Math.round(s/m*100):0,c=HC[h];
     return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v"><b style="color:${c}">${m>0?s:'—'}/${m>0?m:'N/A'}</b><span class="pr-bar-pct">${p}%</span></div></div>`;}).join('');
   const lvHtml=lvs.map(l=>`<div class="pr-lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg:''}"><div class="pr-lvn" style="color:${l.fg}">${l.n}</div><div class="pr-lvl" style="color:${l.fg}">${l.l}</div></div>`).join('');
-  const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||it.c[s];
+  const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||'';
     const has=ph[i]&&ph[i].length;
     const pht=has?`<img class="pr-dph" src="${ph[i][0]}">`:'';
     return `<div class="pr-dcard" style="--pr-cat:${HC[it.h]}"><div class="pr-dtxt"><div class="pr-dttl">ข้อ ${it.no} — ${it.t}<span class="pr-dbadge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</span></div><div class="pr-dnote">${cmpEsc(note)}</div></div>${pht}</div>`;}).join('')
@@ -1499,8 +1502,9 @@ function buildPrintReport(){
       </div>
       <div class="pr-score" style="background-color:${g2};background-image:linear-gradient(135deg,${g1},${g2})">
         <div class="pr-score-n">${tot}<span class="pr-score-mx">/100</span></div>
-        <div class="pr-score-mx">${items.length-na} หัวข้อ × 4 คะแนน${na>0?' (ข้าม '+na+' N/A)':''}</div>
-        <div class="pr-score-lv">${pass?'✓':'!'} ${lv}</div>
+        <div class="pr-score-mx">${items.length-na} หัวข้อ × 3 คะแนน${na>0?' (ข้าม '+na+' N/A)':''}</div>
+        <div class="pr-score-lv">${lv}</div>
+        <div class="pr-score-lv" style="background:${pass?'rgba(220,252,231,.95)':'rgba(254,226,226,.95)'};color:${pass?'#15803D':'#B91C1C'}">${pass?'✓ ผ่านเกณฑ์':'✗ ไม่ผ่านเกณฑ์'} · ข้อได้มาตรฐาน ${pr}%</div>
       </div>
     </div>
     <div class="pr-sec-ttl">📊 คะแนนแยกรายหมวด</div>
@@ -1547,14 +1551,14 @@ function buildConsolidatedReport(){
   if(isInAppBrowser()){alert('เบราว์เซอร์ในแอปนี้ (เช่น LINE) ไม่รองรับการพิมพ์/บันทึก PDF\n\nวิธีแก้: กดปุ่ม ⋯ มุมขวาบน แล้วเลือก "เปิดในเบราว์เซอร์"');return;}
   if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ต้องมีผู้ตรวจอย่างน้อย 2 คน (เลือกพื้นที่/หน่วยงานในแท็บเทียบผลก่อน)');return;}
   const{raters,rows,officialScore,offLv}=cmpLast;
-  const tot=officialScore==null?0:officialScore,pass=tot>=80,[g1,g2]=tierGrad(tot);
+  const tot=officialScore==null?0:officialScore,[g1,g2]=tierGrad(tot);const _or=rows.filter(r=>r.mean!=null),pr=_or.length?Math.round(_or.filter(r=>r.mean>=2).length/_or.length*100):0,pass=pr>=80;
   const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
-  rows.forEach(r=>{if(r.mean!=null){hM[r.it.h]+=4;hS[r.it.h]+=r.mean;}});
+  rows.forEach(r=>{if(r.mean!=null){hM[r.it.h]+=3;hS[r.it.h]+=r.mean;}});
   const bars=HMVD.map(h=>{const p=hM[h]>0?Math.round(hS[h]/hM[h]*100):0,c=HC[h];
     return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v"><b style="color:${c}">${hM[h]>0?p+'%':'N/A'}</b></div></div>`;}).join('');
-  const lvs=[{n:'<60',l:'ไม่ผ่าน',bg:'#FEE2E2',fg:'#991B1B',a:tot<60},{n:'60–69',l:'ต้องปรับ',bg:'#E0F2FE',fg:'#D97706',a:tot>=60&&tot<70},{n:'70–79',l:'พอใช้',bg:'#DBEAFE',fg:'#1E3A8A',a:tot>=70&&tot<80},{n:'80–89',l:'ผ่าน',bg:'#DBEAFE',fg:'#2563EB',a:tot>=80&&tot<90},{n:'90+',l:'ดีมาก',bg:'#DBEAFE',fg:'#1E40AF',a:tot>=90}];
+  const lvs=[{n:'<67',l:'ต่ำกว่ามาตรฐาน',bg:'#FEE2E2',fg:'#991B1B',a:tot<67},{n:'67–89',l:'ผ่านมาตรฐาน',bg:'#DBEAFE',fg:'#2563EB',a:tot>=67&&tot<90},{n:'90+',l:'ดีกว่ามาตรฐาน',bg:'#DBEAFE',fg:'#1E40AF',a:tot>=90}];
   const lvHtml=lvs.map(l=>`<div class="pr-lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg:''}"><div class="pr-lvn" style="color:${l.fg}">${l.n}</div><div class="pr-lvl" style="color:${l.fg}">${l.l}</div></div>`).join('');
-  const lowRows=rows.filter(r=>r.nums.some(v=>v<=2));
+  const lowRows=rows.filter(r=>r.nums.some(v=>v===1));
   const dfHtml=lowRows.length?lowRows.map(r=>{
     const flagged=raters.map(rt=>{
       const f=(rt.items||[]).find(x=>x.no===r.it.no);if(!f)return null;
@@ -1567,7 +1571,7 @@ function buildConsolidatedReport(){
     const notes=flagged.filter(x=>x.note).map(x=>`<div class="pr-gnote">• ${cmpEsc(x.note)} <span class="pr-gnm">(${cmpEsc(x.name)})</span></div>`).join('');
     const phs=flagged.filter(x=>x.ph).map(x=>`<img class="pr-gthumb" src="${x.ph}" title="${cmpEsc(x.name)}">`).join('');
     return `<div class="pr-dcard pr-gcard" style="--pr-cat:${HC[r.it.h]}"><div class="pr-ghead"><div class="pr-dttl">ข้อ ${r.it.no} — ${cmpEsc(r.it.t)}</div><span class="pr-gcnt">⚠️ ${flagged.length} คนแจ้ง</span></div><div class="pr-gchips">${chips}</div>${notes?`<div class="pr-gnotes">${notes}</div>`:''}${phs?`<div class="pr-gphotos">${phs}</div>`:''}</div>`;
-  }).join(''):`<div class="pr-ok">✅ ไม่มีข้อที่ผู้ตรวจให้คะแนนต่ำ (0-2)</div>`;
+  }).join(''):`<div class="pr-ok">✅ ไม่มีข้อที่ผู้ตรวจให้ "ไม่ผ่านมาตรฐาน"</div>`;
   const aname=cmpArea==='Custom'?'พื้นที่อื่น':(ANAME[cmpArea]||cmpArea);
   const dept=deptName(cmpDept)||'—',roundTxt=cmpRound||'ล่าสุดของแต่ละคน';
   const inspList=raters.map(r=>cmpEsc(r.insp||'—')).join(', ');
@@ -1587,7 +1591,8 @@ function buildConsolidatedReport(){
       <div class="pr-score" style="background-color:${g2};background-image:linear-gradient(135deg,${g1},${g2})">
         <div class="pr-score-n">${tot}<span class="pr-score-mx">/100</span></div>
         <div class="pr-score-mx">เฉลี่ยจากผู้ตรวจ ${raters.length} คน</div>
-        <div class="pr-score-lv">${pass?'✓':'!'} ${offLv}</div>
+        <div class="pr-score-lv">${pass?(tot>=90?'ดีกว่ามาตรฐาน':'ผ่านมาตรฐาน'):'ต่ำกว่ามาตรฐาน'}</div>
+        <div class="pr-score-lv" style="background:${pass?'rgba(220,252,231,.95)':'rgba(254,226,226,.95)'};color:${pass?'#15803D':'#B91C1C'}">${pass?'✓ ผ่านเกณฑ์':'✗ ไม่ผ่านเกณฑ์'} · ข้อได้มาตรฐาน ${pr}%</div>
       </div>
     </div>
     <div class="pr-ins">👥 ผู้ตรวจ ${raters.length} คน: ${inspList}</div>
@@ -1638,9 +1643,9 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classLi
 function buildComparePrintReport(){
   if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ยังไม่มีข้อมูลให้พิมพ์');return false;}
   const{raters,rows,raterTotals,overall,review,officialScore,offLv}=cmpLast;
-  const offColor=officialScore==null?'#94A3B8':officialScore>=80?'#16A34A':officialScore>=60?'#D97706':'#DC2626';
+  const offColor=officialScore==null?'#94A3B8':officialScore>=90?'#16A34A':officialScore>=67?'#2563EB':'#DC2626';
   const[g1,g2]=officialScore==null?['#64748B','#94A3B8']:tierGrad(officialScore);
-  const totColor=t=>t==null?'#94A3B8':t>=80?'#16A34A':t>=60?'#D97706':'#DC2626';
+  const totColor=t=>t==null?'#94A3B8':t>=90?'#16A34A':t>=67?'#2563EB':'#DC2626';
   const ths=raters.map(r=>`<th>${cmpEsc(r.insp||'—')}</th>`).join('');
   const totalRow=`<tr class="pr-cmp-tot"><td></td><td>คะแนนรวม %</td>${raterTotals.map(t=>`<td style="color:${totColor(t)}">${t==null?'–':t+'%'}</td>`).join('')}<td style="color:${offColor}">${officialScore==null?'–':officialScore+'%'}</td><td></td></tr>`;
   const trs=rows.map(r=>{
@@ -1694,7 +1699,7 @@ function cmpPrintReport(){
   if(!buildComparePrintReport())return;
   requestAnimationFrame(()=>{fitPrintPage();requestAnimationFrame(()=>window.print());});
 }
-function levelLabel(t){return t>=90?'ดีมาก':t>=80?'ผ่านเกณฑ์':t>=70?'พอใช้':t>=60?'ต้องปรับปรุง':'ไม่ผ่านเกณฑ์';}
+function levelLabel(t){return t>=90?'ดีกว่ามาตรฐาน':t>=67?'ผ่านมาตรฐาน':'ต่ำกว่ามาตรฐาน';}
 function showSpinner(on,label){
   const el=document.getElementById('save-spinner');
   if(label)document.getElementById('save-spinner-lbl').textContent=label;
@@ -1735,7 +1740,7 @@ function syncToFirestore(h){
       date:h.date,area:h.area,areaName:h.aname,areaDetail:h.adet||'',dept:h.dept,
       inspector:h.insp,inspectorUid:(CURRENT_USER&&CURRENT_USER.uid)||null,inspectorName:(CURRENT_USER&&CURRENT_USER.name)||h.insp,round:h.round,totalScore:h.tot,critArea:h.critArea||h.area,critVersion:h.critVersion||0,
       naCount:h.items.filter(it=>it.sc==='NA').length,
-      passed:h.tot>=80,level:levelLabel(h.tot),
+      passed:(()=>{const _p=passRateOf(h.items);return _p!=null?_p>=80:h.tot>=67;})(),level:levelLabel(h.tot),
       categoryScores,
       createdAt:firebase.firestore.FieldValue.serverTimestamp(),
       clientSavedAt:h.saved
@@ -1779,8 +1784,8 @@ async function saveResult(){
   const dv=document.getElementById('f-date').value||new Date().toISOString().split('T')[0];
   const round=document.getElementById('f-round').value;
   const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
-  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=4;hS[it.h]+=sc[i];}});
-  const defs=items.filter((_,i)=>sc[i]>=0&&sc[i]<=2).map(it=>{const i=items.indexOf(it);return{no:it.no,t:it.t,sc:sc[i],nt:nt[i]};});
+  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=3;hS[it.h]+=sc[i];}});
+  const defs=items.filter((_,i)=>sc[i]===1).map(it=>{const i=items.indexOf(it);return{no:it.no,t:it.t,sc:sc[i],nt:nt[i]};});
   const fullItems=items.map((it,i)=>({no:it.no,h:it.h,t:it.t,sc:sc[i]==='NA'?'NA':(sc[i]>=0?sc[i]:''),nt:nt[i]||'',ph:(ph[i]||[]).slice(0,3)}));
   // Editing keeps the record's original id + pinned criteria version (don't bump).
   const orig=editing?adminData.find(r=>r.id===editId):null;
@@ -1888,7 +1893,7 @@ function renderAdminList(){
   updateAdminFab();
 }
 function adminRowHtml(r){
-  const c=r.totalScore>=80?'#16A34A':r.totalScore>=60?'#D97706':'#DC2626';
+  const c=r.totalScore>=90?'#16A34A':r.totalScore>=67?'#2563EB':'#DC2626';
   const checked=adminSelected.has(r.id)?'checked':'';
   const time=r.createdAt&&r.createdAt.seconds?new Date(r.createdAt.seconds*1000).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'';
   return `<div class="insp-row">
@@ -2039,7 +2044,7 @@ function rHome(){
   document.getElementById('dprog-fill').style.width=pct+'%';
   const recent=hist.slice(0,3);
   document.getElementById('recent-list').innerHTML=recent.length?recent.map(h=>{
-    const c=h.tot>=80?'#16A34A':h.tot>=60?'#D97706':'#DC2626';
+    const c=h.tot>=90?'#16A34A':h.tot>=67?'#2563EB':'#DC2626';
     return `<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border)">
       <div style="font-size:20px">${AICO[h.area]||'📍'}</div>
       <div style="flex:1"><div style="font-size:13px;font-weight:600">${h.aname}</div><div style="font-size:11px;color:var(--muted)">${escA(deptName(h.dept))} · ${new Date(h.date).toLocaleDateString('th-TH')}</div></div>
@@ -2050,9 +2055,9 @@ function rHist(){
   const el=document.getElementById('hist-list');
   if(!hist.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">ยังไม่มีประวัติ</div><div class="empty-desc">ตรวจและบันทึกผลแล้วจะแสดงที่นี่</div></div>';return;}
   el.innerHTML=hist.map(h=>{
-    const c=h.tot>=80?'#16A34A':h.tot>=60?'#D97706':'#DC2626';
-    const bg=h.tot>=80?'#DCFCE7':h.tot>=60?'#FEF3C7':'#FEE2E2';
-    const lv=h.tot>=90?'ดีมาก':h.tot>=80?'ผ่านเกณฑ์':h.tot>=70?'พอใช้':h.tot>=60?'ต้องปรับ':'ไม่ผ่าน';
+    const c=h.tot>=90?'#16A34A':h.tot>=67?'#2563EB':'#DC2626';
+    const bg=h.tot>=90?'#DCFCE7':h.tot>=67?'#DBEAFE':'#FEE2E2';
+    const lv=h.tot>=90?'ดีกว่ามาตรฐาน':h.tot>=67?'ผ่านมาตรฐาน':'ต่ำกว่ามาตรฐาน';
     return `<div class="hitem"><div class="hico" style="background:${bg}">${AICO[h.area]||'📍'}</div>
       <div class="hinfo"><div class="htitle">${h.aname}${h.adet?' ('+h.adet+')':''}</div>
         <div class="hmeta">${escA(deptName(h.dept))} · ${h.insp} · ${new Date(h.date).toLocaleDateString('th-TH')} · ${h.round}</div>
@@ -2067,9 +2072,9 @@ function rRank(){
   const ranked=Object.values(grp).sort((a,b)=>b.tot-a.tot);
   const medals=['🥇','🥈','🥉'],mbc=['#60A5FA','#94A3B8','#3B82F6'];
   el.innerHTML='<div class="sec-title">อันดับคะแนนล่าสุดแต่ละพื้นที่</div>'+ranked.map((h,i)=>{
-    const c=h.tot>=80?'#16A34A':h.tot>=60?'#D97706':'#DC2626';
-    const bg=h.tot>=80?'#DCFCE7':h.tot>=60?'#FEF3C7':'#FEE2E2';
-    const lv=h.tot>=90?'ดีมาก':h.tot>=80?'ผ่าน':h.tot>=70?'พอใช้':h.tot>=60?'ต้องปรับ':'ไม่ผ่าน';
+    const c=h.tot>=90?'#16A34A':h.tot>=67?'#2563EB':'#DC2626';
+    const bg=h.tot>=90?'#DCFCE7':h.tot>=67?'#DBEAFE':'#FEE2E2';
+    const lv=h.tot>=90?'ดีกว่ามาตรฐาน':h.tot>=67?'ผ่านมาตรฐาน':'ต่ำกว่ามาตรฐาน';
     return `<div class="ritem"><div class="rnum" style="background:${i<3?mbc[i]:'#94A3B8'};color:#fff">${i<3?medals[i]:i+1}</div>
       <div style="font-size:22px">${AICO[h.area]||'📍'}</div>
       <div class="rinfo"><div class="rname">${h.aname}</div><div class="rmeta">${escA(deptName(h.dept))} · ${new Date(h.date).toLocaleDateString('th-TH')}</div>
@@ -2163,7 +2168,7 @@ function cmpOfficialForRound(roundRaters){
     const nums=raters.map(r=>{const f=(r.items||[]).find(x=>x.no===no);return f?f.sc:'';}).filter(v=>v!=='NA'&&v!==''&&v!=null).map(Number);
     if(nums.length){sum+=nums.reduce((a,v)=>a+v,0)/nums.length;cnt++;}
   });
-  return{score:cnt?Math.round(sum/(cnt*4)*100):null,n:raters.length};
+  return{score:cnt?Math.round(sum/(cnt*3)*100):null,n:raters.length};
 }
 // กราฟแนวโน้มคะแนนเฉลี่ยทางการข้ามรอบ (inline SVG · ไม่ใช้ library · ทำงานออฟไลน์)
 function cmpTrendHtml(){
@@ -2175,7 +2180,7 @@ function cmpTrendHtml(){
   const W=320,H=150,padL=24,padR=10,padT=14,padB=26,plotW=W-padL-padR,plotH=H-padT-padB,n=data.length;
   const x=i=>padL+(n===1?plotW/2:plotW*i/(n-1));
   const y=v=>padT+plotH*(1-v/100);
-  const tc=v=>v>=80?'#16A34A':v>=60?'#D97706':'#DC2626';
+  const tc=v=>v>=90?'#16A34A':v>=67?'#2563EB':'#DC2626';
   let grid='';
   [0,20,40,60,80,100].forEach(g=>{const yy=y(g).toFixed(1),p=g===80;grid+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" style="stroke:${p?'#16A34A':'var(--border)'};stroke-width:${p?1:0.5}"${p?' stroke-dasharray="4 3"':''}/><text x="${padL-4}" y="${(+yy+3).toFixed(1)}" font-size="8" style="fill:var(--muted)" text-anchor="end">${g}</text>`;});
   const line=data.map((d,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(d.score).toFixed(1)}`).join(' ');
@@ -2223,18 +2228,18 @@ function cmpRender(){
     return {it,scores,nums,spread,mean};
   });
   const valid=rows.filter(r=>r.spread!=null);
-  const overall=valid.length?Math.round(valid.reduce((a,r)=>a+(4-r.spread)/4,0)/valid.length*100):0;
+  const overall=valid.length?Math.round(valid.reduce((a,r)=>a+Math.max(0,(2-r.spread)/2),0)/valid.length*100):0;
   const review=rows.filter(r=>r.spread!=null&&r.spread>=2).sort((a,b)=>b.spread-a.spread);
   const oc=overall>=85?'#2563EB':overall>=70?'#D97706':'#DC2626';
   // คะแนนเฉลี่ยทางการ (Method B): เฉลี่ยคะแนนรายข้อของผู้ตรวจทุกคน (ข้าม NA) แล้วรวมเป็น % เดียวต่อพื้นที่+หน่วยงาน+รอบ
   const scoredMeans=rows.filter(r=>r.mean!=null);
-  const officialScore=scoredMeans.length?Math.round(scoredMeans.reduce((a,r)=>a+r.mean,0)/(scoredMeans.length*4)*100):null;
+  const officialScore=scoredMeans.length?Math.round(scoredMeans.reduce((a,r)=>a+r.mean,0)/(scoredMeans.length*3)*100):null;
   const offLv=officialScore==null?'–':levelLabel(officialScore);
-  const offColor=officialScore==null?'#94A3B8':officialScore>=80?'#16A34A':officialScore>=60?'#D97706':'#DC2626';
+  const offColor=officialScore==null?'#94A3B8':officialScore>=90?'#16A34A':officialScore>=67?'#2563EB':'#DC2626';
   const relLabel=overall>=85?'เชื่อถือได้สูง':overall>=70?'ปานกลาง':'ควรทบทวนเกณฑ์';
-  // % คะแนนรวมของผู้ตรวจแต่ละคน (ข้าม NA · เต็ม 4 ต่อข้อ) — เทียบคะแนนรวมกัน
-  const raterTotals=raters.map(r=>{let s=0,m=0;base.forEach(it=>{const f=(r.items||[]).find(x=>x.no===it.no);const v=f?f.sc:'';if(v==='NA'||v===''||v==null)return;m+=4;s+=Number(v);});return m?Math.round(s/m*100):null;});
-  const totColor=t=>t==null?'#94A3B8':t>=80?'#16A34A':t>=60?'#D97706':'#DC2626';
+  // % คะแนนรวมของผู้ตรวจแต่ละคน (ข้าม NA · เต็ม 3 ต่อข้อ) — เทียบคะแนนรวมกัน
+  const raterTotals=raters.map(r=>{let s=0,m=0;base.forEach(it=>{const f=(r.items||[]).find(x=>x.no===it.no);const v=f?f.sc:'';if(v==='NA'||v===''||v==null)return;m+=3;s+=Number(v);});return m?Math.round(s/m*100):null;});
+  const totColor=t=>t==null?'#94A3B8':t>=90?'#16A34A':t>=67?'#2563EB':'#DC2626';
   const totalRow=`<tr style="border-top:2px solid var(--border);background:#F1F5F9"><td></td><td style="padding:8px;font-size:12px;font-weight:800">คะแนนรวม %</td>${raterTotals.map(t=>`<td style="text-align:center;font-weight:800;color:${totColor(t)}">${t==null?'–':t+'%'}</td>`).join('')}<td style="text-align:center;font-weight:800;color:${offColor}" title="คะแนนเฉลี่ยทางการ">${officialScore==null?'–':officialScore+'%'}</td><td></td></tr>`;
   cmpLast={raters,rows,raterTotals,overall,review,officialScore,offLv};
   const ths=raters.map(r=>`<th style="padding:7px 3px;font-weight:600;font-size:11px;white-space:nowrap">${cmpEsc(r.insp||'—')}</th>`).join('');
@@ -2254,7 +2259,7 @@ function cmpRender(){
     const mx=Math.max(...r.nums),mn=Math.min(...r.nums);
     const hi=[],lo=[];
     raters.forEach((rt,i)=>{const v=r.scores[i];if(v===''||v==='NA'||v==null)return;if(Number(v)===mx)hi.push(rt.insp||'—');if(Number(v)===mn)lo.push(rt.insp||'—');});
-    const bd=r.spread>=3?'#DC2626':'#D97706',bg=r.spread>=3?'#FEE2E2':'#E0F2FE';
+    const bd=r.spread>=2?'#DC2626':'#D97706',bg=r.spread>=2?'#FEE2E2':'#E0F2FE';
     return `<div style="background:var(--card);border:1px solid ${bd};border-radius:12px;padding:11px 13px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px">
         <span style="font-weight:700;font-size:13px">ข้อ ${r.it.no} · ${cmpEsc(r.it.t)}</span>
@@ -2299,19 +2304,19 @@ function cmpRender(){
         <thead><tr style="background:var(--bg)"><th style="text-align:center;padding:7px 6px;font-weight:700" title="หมวด 5ส">ส</th><th style="text-align:left;padding:7px 8px;font-weight:700;min-width:150px">หัวข้อ</th>${ths}<th style="padding:7px 6px;font-weight:700" title="คะแนนเฉลี่ยของข้อนั้นจากผู้ตรวจทุกคน">เฉลี่ย</th><th style="padding:7px 6px;font-weight:700">ต่างกัน</th></tr></thead>
         <tbody>${totalRow}${trs}</tbody></table></div>
     <div style="font-size:11px;color:var(--muted);background:var(--bg);border-radius:8px;padding:9px 11px;margin-bottom:18px;line-height:1.7">
-      <b>เกณฑ์ "ต่างกัน":</b> คะแนนสูงสุด − ต่ำสุด ของข้อนั้นในบรรดาผู้ตรวจ (ข้าม NA) → <span style="color:#2563EB;font-weight:700">น้อย</span> = ต่าง 0–1 · <span style="color:#D97706;font-weight:700">กลาง</span> = ต่าง 2 · <span style="color:#DC2626;font-weight:700">สูง</span> = ต่าง 3–4<br>
-      <b>ความสอดคล้อง %:</b> เฉลี่ยของ (4 − ต่างกัน) ÷ 4 ทุกข้อ × 100 (100% = ให้ตรงกันทุกข้อ) · <b>ข้อควรทบทวน:</b> ข้อที่ต่างกัน ≥ 2 · <b>คะแนนรวม %:</b> คะแนนที่แต่ละคนให้ ÷ คะแนนเต็ม (เต็ม 4/ข้อ ข้าม NA)<br>
+      <b>เกณฑ์ "ต่างกัน":</b> คะแนนสูงสุด − ต่ำสุด ของข้อนั้นในบรรดาผู้ตรวจ (ข้าม NA) → <span style="color:#2563EB;font-weight:700">น้อย</span> = ต่าง 0 · <span style="color:#D97706;font-weight:700">กลาง</span> = ต่าง 1 · <span style="color:#DC2626;font-weight:700">สูง</span> = ต่าง 2<br>
+      <b>ความสอดคล้อง %:</b> เฉลี่ยของ (2 − ต่างกัน) ÷ 2 ทุกข้อ × 100 (100% = ให้ตรงกันทุกข้อ) · <b>ข้อควรทบทวน:</b> ข้อที่ต่างกัน ≥ 2 · <b>คะแนนรวม %:</b> คะแนนที่แต่ละคนให้ ÷ คะแนนเต็ม (เต็ม 3/ข้อ ข้าม NA)<br>
       <b>เฉลี่ย (รายข้อ):</b> ค่าเฉลี่ยคะแนนของข้อนั้นจากผู้ตรวจทุกคน (ข้าม NA) · <b>คะแนนเฉลี่ยทางการ:</b> เอาค่าเฉลี่ยรายข้อมารวมกัน ÷ คะแนนเต็ม × 100 = คะแนนกลางของพื้นที่+หน่วยงานนี้ที่รวมความเห็นผู้ตรวจทุกคนแล้ว
     </div>
     <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:7px">ข้อที่ควรทบทวนเกณฑ์ (เรียงตามความต่าง)</div>
     ${reviewHtml}`;
 }
-// เกณฑ์การให้คะแนน 0–4 + คำอธิบายของข้อนั้น (ดึงจาก IT[พื้นที่])
+// เกณฑ์การให้คะแนน (ป้ายกลาง 1/2/3) + คำอธิบายของข้อนั้น (ดึงจาก IT[พื้นที่])
 function cmpCriteriaHtml(no){
   const mit=(cmpArea==='Office'?OFFICE_V2.concat(OFFICE_V1):(IT[cmpArea]||[])).find(x=>x.no===no);
   if(!mit)return '<div style="font-size:12px;color:var(--muted)">ไม่พบเกณฑ์ของข้อนี้</div>';
   const COL={4:['#60A5FA','#1E293B'],3:['#93C5FD','#1E293B'],2:['#60A5FA','#1E293B'],1:['#FECACA','#7F1D1D'],0:['#93C5FD','#7F1D1D']};
-  const levels=[4,3,2,1,0].map(s=>{const c=COL[s];return `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px"><span style="flex:none;width:22px;height:22px;border-radius:6px;background:${c[0]};color:${c[1]};font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center">${s}</span><span style="font-size:12px;color:var(--text);line-height:1.6">${cmpEsc((mit.c&&mit.c[s])||'-')}</span></div>`;}).join('');
+  const levels=[3,2,1].map(s=>{const c=COL[s];return `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px"><span style="flex:none;width:22px;height:22px;border-radius:6px;background:${c[0]};color:${c[1]};font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center">${s}</span><span style="font-size:12px;color:var(--text);line-height:1.6">${cmpEsc(SL[s]||'-')}</span></div>`;}).join('');
   return `${mit.d?`<div style="font-size:12px;color:var(--muted);margin-bottom:9px;line-height:1.6"><b style="color:var(--text)">คำอธิบาย:</b> ${cmpEsc(mit.d)}</div>`:''}<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">เกณฑ์การให้คะแนน</div>${levels}`;
 }
 function cmpToggle(no){
@@ -2341,7 +2346,7 @@ function cmpEvidence(ri,no){
   const badge=sc==='NA'?'<span style="background:#F1F5F9;color:#64748B;padding:3px 12px;border-radius:8px;font-weight:800">NA</span>'
     :scNum==null?'<span style="color:#94A3B8">ยังไม่ให้คะแนน</span>'
     :`<span style="background:${COL[scNum][0]};color:${COL[scNum][1]};padding:3px 12px;border-radius:8px;font-weight:800;font-size:15px">${scNum} คะแนน</span>`;
-  const crit=(scNum!=null&&mit.c)?mit.c[scNum]:'';
+  const crit=(scNum!=null)?SL[scNum]:'';
   const photos=(item.ph||[]).filter(p=>typeof p==='string'&&p);
   const phHtml=photos.length
     ? `<div style="display:flex;flex-direction:column;gap:10px">${photos.map(p=>`<img src="${cmpEsc(p)}" onclick="openPhoto(this.src)" style="width:100%;height:auto;display:block;border-radius:10px;cursor:zoom-in;border:1px solid var(--border)">`).join('')}</div>`
@@ -2415,8 +2420,6 @@ function rSettings(){
       </div>
       <input class="inp" placeholder="หัวข้อการตรวจ" value="${sEsc(it.t)}" oninput="setCrit(${i},'t',this.value)" style="margin-bottom:6px;font-weight:600">
       <textarea class="inp" placeholder="คำอธิบาย/มาตรฐานที่คาดหวัง" oninput="setCrit(${i},'d',this.value)" style="margin-bottom:8px;min-height:48px;resize:vertical">${sEsc(it.d)}</textarea>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:5px">ระดับคะแนน (0 = แย่สุด … 4 = ดีสุด)</div>
-      ${levels}
       <div style="font-size:11px;color:var(--muted);margin:8px 0 5px">รูปมาตรฐานอ้างอิง (ผู้ตรวจกดดูได้ตอนให้คะแนน)</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${((REFIMG[settingsArea]&&REFIMG[settingsArea][it.no])||[]).map((u,k)=>`<div style="position:relative;width:54px;height:54px"><img src="${sEsc(u)}" style="width:54px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--border)" onclick="openPhoto('${sEsc(u)}')"><button onclick="delRefImg(${i},${k})" style="position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:#DC2626;color:#fff;border:none;font-weight:700;cursor:pointer;line-height:1">×</button></div>`).join('')}<button onclick="pickRefImg(${i})" style="width:54px;height:54px;border:1.5px dashed var(--border);border-radius:6px;background:#F7F9FC;color:var(--muted);font-size:20px;cursor:pointer">＋</button></div>
     </div>`;
