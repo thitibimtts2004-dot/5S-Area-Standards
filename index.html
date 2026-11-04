@@ -33,6 +33,9 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-grad
 .nb-title{font-size:17px;font-weight:700;color:#fff;flex:1}
 .nb-ver{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
 .nb-sub{font-size:11px;color:rgba(255,255,255,.6);margin-bottom:8px}
+.rep-seg-bar{display:flex;gap:6px;background:var(--bg);padding:5px;border-radius:12px;margin:0 0 16px;max-width:460px}
+.rep-seg{flex:1;padding:9px 6px;border:none;background:transparent;border-radius:9px;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s}
+.rep-seg.on{background:#fff;color:#0D6EFD;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 .pb-wrap{display:flex;align-items:center;gap:8px;padding-bottom:10px}
 .pb-track{flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
 .pb-fill{height:100%;background:#fff;border-radius:2px;transition:width .4s}
@@ -489,10 +492,7 @@ body[data-role="admin"] #logout-fab,body[data-role="inspector"] #logout-fab{disp
       <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>ตรวจ 5ส.
     </button>
     <button class="tb" onclick="goTab('ranking')" id="t-ranking">
-      <svg viewBox="0 0 24 24"><polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/></svg>สรุปผล
-    </button>
-    <button class="tb" onclick="goTab('compare')" id="t-compare">
-      <svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M8 21h8"/><path d="M6 6l-3 6h6z"/><path d="M18 6l-3 6h6z"/><path d="M4 6h16"/></svg>เทียบคะแนน
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>รายงานผล
     </button>
     <button class="tb" onclick="goTab('settings')" id="t-settings">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>ตั้งค่าระบบ
@@ -593,6 +593,7 @@ body[data-role="admin"] #logout-fab,body[data-role="inspector"] #logout-fab{disp
 </div></div>
 
 <div class="pg" id="pg-history"><div class="wrap">
+<div class="rep-seg-bar"><button class="rep-seg" data-rep="ranking" onclick="goTab('ranking')">สรุปผล</button><button class="rep-seg" data-rep="compare" onclick="goTab('compare')">เทียบคะแนน</button><button class="rep-seg" data-rep="history" onclick="goTab('history')">ประวัติ</button></div>
   <div class="dash-h">ประวัติการตรวจทั้งหมด</div>
   <div class="dash-sub">ผลตรวจของทุกคน จัดกลุ่มตามวันและพื้นที่</div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
@@ -607,12 +608,14 @@ body[data-role="admin"] #logout-fab,body[data-role="inspector"] #logout-fab{disp
 <button class="fab-delete" id="admin-fab" style="display:none" onclick="deleteSelectedAdmin()">🗑️ ลบที่เลือก (<span id="admin-fab-n">0</span>)</button>
 
 <div class="pg" id="pg-ranking"><div class="wrap">
+<div class="rep-seg-bar"><button class="rep-seg" data-rep="ranking" onclick="goTab('ranking')">สรุปผล</button><button class="rep-seg" data-rep="compare" onclick="goTab('compare')">เทียบคะแนน</button><button class="rep-seg" data-rep="history" onclick="goTab('history')">ประวัติ</button></div>
   <div class="dash-h">อันดับคะแนน 5ส</div>
   <div class="dash-sub">เรียงคะแนนเฉลี่ยของแต่ละพื้นที่ จากมากไปน้อย</div>
   <div id="rank-list"></div>
 </div></div>
 
 <div class="pg" id="pg-compare"><div class="wrap">
+<div class="rep-seg-bar"><button class="rep-seg" data-rep="ranking" onclick="goTab('ranking')">สรุปผล</button><button class="rep-seg" data-rep="compare" onclick="goTab('compare')">เทียบคะแนน</button><button class="rep-seg" data-rep="history" onclick="goTab('history')">ประวัติ</button></div>
   <div class="dash-h">เทียบคะแนนรายผู้ตรวจ</div>
   <div class="dash-sub">ดูว่าเกณฑ์แต่ละข้อ เมื่อหลายคนตรวจที่เดียวกัน ให้คะแนนตรงกันไหม</div>
   <div id="cmp-filters"></div>
@@ -1142,9 +1145,10 @@ function goTab(t){
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   document.getElementById('pg-'+t).classList.add('on');document.body.dataset.tab=t;
-  const _tb=document.getElementById('t-'+t);if(_tb)_tb.classList.add('on');
+  const GRP={compare:'ranking',history:'ranking',admin:'settings'};const _tb=document.getElementById('t-'+(GRP[t]||t));if(_tb)_tb.classList.add('on');markRepSeg(t);
   if(t==='history')loadAdminData();if(t==='ranking')rRank();if(t==='home')rHome();if(t==='admin'){if(typeof listUsers==='function')listUsers();}if(t==='compare')rCompare();if(t==='settings')resetSettingsHub();
 }
+function markRepSeg(t){document.querySelectorAll('.rep-seg').forEach(b=>b.classList.toggle('on',b.dataset.rep===t));}
 function resetSettingsHub(){const h=document.getElementById('settings-hub'),c=document.getElementById('settings-criteria'),aa=document.getElementById('settings-areas');if(h)h.style.display='';if(c)c.style.display='none';if(aa)aa.style.display='none';}
 function openCriteria(){const h=document.getElementById('settings-hub'),c=document.getElementById('settings-criteria'),aa=document.getElementById('settings-areas');if(h)h.style.display='none';if(aa)aa.style.display='none';if(c)c.style.display='';rSettings();}
 function closeCriteria(){resetSettingsHub();}
