@@ -34,6 +34,15 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if signedIn();
       allow write: if isAdmin();
+      // Self-registration (option A): a signed-in user may CREATE only their OWN
+      // account doc, hard-locked to inspector + inactive + pending. An admin must
+      // approve (flip active->true, pending->false) before login works. This
+      // prevents self-promotion to admin and self-activation.
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.role == 'inspector'
+        && request.resource.data.active == false
+        && request.resource.data.pending == true;
     }
 
     match /inspections/{id} {
