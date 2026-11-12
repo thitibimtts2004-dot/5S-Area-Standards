@@ -813,12 +813,23 @@ try{
   firebase.auth().onAuthStateChanged(async function(u){
     const gate=document.getElementById('login-gate');
     if(u){
-      let prof={};
-      try{const d=await db.collection('users').doc(u.uid).get();if(d.exists)prof=d.data()||{};}catch(e){console.warn('[auth] โหลดโปรไฟล์ผู้ใช้ไม่สำเร็จ:',e);}
-      if(prof.active===false){
+      // ── ด่านตรวจสิทธิ์: ต้องมี users/{uid} จริง และต้องไม่ถูกปิดใช้งาน ──
+      // สำคัญ: Firebase Email/Password เปิดให้สมัครผ่าน REST API ได้โดยตรง ใครก็สร้าง
+      // บัญชี auth เองได้โดยไม่ผ่านหน้า register() ของแอป บัญชีพวกนั้นจะ "ไม่มี doc"
+      // ใน users/ → ต้องเตะออกเสมอ ไม่งั้นเท่ากับข้ามด่านแอดมินอนุมัติไปเลย
+      // (ไม่บังคับ active===true เพื่อไม่ให้บัญชีรุ่นเก่าที่ไม่มีฟิลด์ active หลุดออกจากระบบ)
+      let prof=null,readErr=null;
+      try{const d=await db.collection('users').doc(u.uid).get();if(d.exists)prof=d.data()||{};}
+      catch(e){readErr=e;console.warn('[auth] โหลดโปรไฟล์ผู้ใช้ไม่สำเร็จ:',e);}
+      if(readErr||!prof||prof.active===false){
         await firebase.auth().signOut();CURRENT_USER=null;document.body.dataset.role='';
         if(gate)gate.classList.remove('hide');
-        const er=document.getElementById('lg-err');if(er)er.textContent=prof.pending?'บัญชีรอแอดมินอนุมัติ — โปรดรอการอนุมัติก่อนเข้าใช้งาน':'บัญชีนี้ถูกปิดใช้งาน — ติดต่อแอดมิน';
+        const er=document.getElementById('lg-err');
+        if(er){
+          if(readErr)er.textContent='ตรวจสอบสิทธิ์ไม่สำเร็จ (เครือข่ายมีปัญหา) — กรุณาลองใหม่อีกครั้ง';
+          else if(!prof)er.textContent='บัญชีนี้ยังไม่ได้ลงทะเบียนในระบบ — ติดต่อแอดมินเพื่อเปิดใช้งาน';
+          else er.textContent=prof.pending?'บัญชีรอแอดมินอนุมัติ — โปรดรอการอนุมัติก่อนเข้าใช้งาน':'บัญชีนี้ถูกปิดใช้งาน — ติดต่อแอดมิน';
+        }
         return;
       }
       CURRENT_USER={uid:u.uid,empId:prof.empId||'',name:prof.name||prof.empId||'ผู้ใช้',role:prof.role==='admin'?'admin':'inspector'};
@@ -947,9 +958,15 @@ async function toggleUser(uid,activate){
 }
 // ── Cloudflare R2 (ที่เก็บรูป) ──
 // R2_WORKER = URL ของ Worker หลัง deploy (เช่น https://s5-photos.<subdomain>.workers.dev). เว้นว่าง = เก็บ base64 อย่างเดียว
-// R2_TOKEN  = ต้องตรงกับ secret UPLOAD_TOKEN ของ Worker. เป็น public โดยดีไซน์ (ดู worker/src/index.js)
+// การยืนยันตัวตน: ส่ง Firebase ID token ของผู้ใช้ที่ล็อกอินอยู่ไปกับทุกคำขอที่เขียน/ลบ
+// (ไม่ใช้ shared token อีกแล้ว — ของเดิมฝังอยู่ในหน้าเว็บสาธารณะ ใครก็อ่านไปลบรูปได้)
 const R2_WORKER='https://s5-photos.maildbd2004.workers.dev';
-const R2_TOKEN='s5tok_326c616de8295e77b6242db1';
+// ขอ ID token ปัจจุบัน (SDK ต่ออายุให้เองเมื่อใกล้หมดอายุ) — ไม่ได้ล็อกอิน = throw
+async function r2AuthHeader(){
+  const u=(typeof firebase!=='undefined'&&firebase.auth)?firebase.auth().currentUser:null;
+  if(!u)throw new Error('ต้องเข้าสู่ระบบก่อนจึงจะอัปโหลด/ลบรูปได้');
+  return 'Bearer '+(await u.getIdToken());
+}
 // แปลง data: URL เป็น Blob เพื่ออัปโหลด
 function dataUrlToBlob(dataUrl){const parts=dataUrl.split(',');const mime=(parts[0].match(/data:([^;]+)/)||[,'image/jpeg'])[1];const bin=atob(parts[1]);const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime});}
 // อัปโหลดรูป 1 ใบ (data: URL หรือ URL ปลายทาง) ขึ้น R2 ผ่าน Worker → คืน URL ของไฟล์บน R2 (ไม่สำเร็จ = throw)
@@ -957,7 +974,10 @@ async function r2Upload(path,src){
   let blob;
   if(typeof src==='string'&&src.startsWith('data:'))blob=dataUrlToBlob(src);
   else{const r=await fetch(src);if(!r.ok)throw new Error('fetch source failed '+r.status);blob=await r.blob();}
-  const res=await fetch(R2_WORKER.replace(/\/$/,'')+'/upload',{method:'POST',headers:{'Content-Type':blob.type||'image/jpeg','x-upload-token':R2_TOKEN,'x-file-path':path},body:blob});
+  const auth=await r2AuthHeader();
+  const res=await fetch(R2_WORKER.replace(/\/$/,'')+'/upload',{method:'POST',headers:{'Content-Type':blob.type||'image/jpeg','Authorization':auth,'x-file-path':path},body:blob});
+  if(res.status===401)throw new Error('เซสชันหมดอายุ — กรุณาเข้าสู่ระบบใหม่แล้วลองอีกครั้ง');
+  if(res.status===403)throw new Error('ไม่มีสิทธิ์อัปโหลดรูปนี้ (เฉพาะแอดมิน)');
   if(!res.ok)throw new Error('R2 upload failed '+res.status);
   const j=await res.json();return j.url;
 }
@@ -965,7 +985,7 @@ async function r2Upload(path,src){
 async function r2DeleteInspection(id){
   if(!R2_WORKER||!id)return null;
   try{
-    const res=await fetch(R2_WORKER.replace(/\/$/,'')+'/inspection/'+encodeURIComponent(id),{method:'DELETE',headers:{'x-upload-token':R2_TOKEN}});
+    const res=await fetch(R2_WORKER.replace(/\/$/,'')+'/inspection/'+encodeURIComponent(id),{method:'DELETE',headers:{'Authorization':await r2AuthHeader()}});
     if(!res.ok){console.warn('[r2] delete failed',id,res.status);return null;}
     return (await res.json()).deleted;
   }catch(err){console.warn('[r2] delete error',id,err);return null;}

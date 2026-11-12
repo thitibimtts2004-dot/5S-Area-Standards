@@ -1,11 +1,21 @@
 # Cloudflare Worker config for 5S photo storage on R2
 # Deploy:  cd worker && npx wrangler deploy
-# Secret:  npx wrangler secret put UPLOAD_TOKEN   (paste the same token the app uses)
+#
+# Auth: callers must send the signed-in user's Firebase ID token as
+#   Authorization: Bearer <idToken>
+# The Worker verifies it against Google's public JWKS — there is no shared
+# secret any more. The old UPLOAD_TOKEN secret is unused and should be removed:
+#   npx wrangler secret delete UPLOAD_TOKEN
 
 name = "s5-photos"
 main = "src/index.js"
 compatibility_date = "2024-11-01"
 account_id = "27b7ce1ae9f9f75ffedb731aec2c3f45"  # Maildbd2004@gmail.com's Account (has the s5-photos bucket)
+
+[vars]
+# Firebase project that issues the ID tokens. Used to check the token's
+# `aud` and `iss` claims, and to read users/{uid}.role for the admin check.
+FIREBASE_PROJECT_ID = "fir-area-standards"
 
 # Binds the R2 bucket to env.BUCKET inside the Worker.
 # The bucket "s5-photos" must be created first (Cloudflare dashboard > R2, or:
@@ -13,6 +23,3 @@ account_id = "27b7ce1ae9f9f75ffedb731aec2c3f45"  # Maildbd2004@gmail.com's Accou
 [[r2_buckets]]
 binding = "BUCKET"
 bucket_name = "s5-photos"
-
-# UPLOAD_TOKEN is NOT stored here on purpose — set it as a secret:
-#   npx wrangler secret put UPLOAD_TOKEN

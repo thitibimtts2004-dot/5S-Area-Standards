@@ -5,9 +5,11 @@
   "description": "Cloudflare Worker for 5S photo storage on R2",
   "scripts": {
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev"
+    "dev": "wrangler dev",
+    "test": "node test/auth.test.mjs"
   },
   "devDependencies": {
-    "wrangler": "^3.114.17"
-  }
+    "wrangler": "^4.160.1"
+  },
+  "type": "module"
 }
