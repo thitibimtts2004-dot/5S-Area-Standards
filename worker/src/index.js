@@ -6,6 +6,7 @@
 //   POST    /upload        -> store an image in R2, return its public URL
 //   GET     /file/<key>    -> serve an image from R2
 //   DELETE  /inspection/<id> -> delete every image of one inspection (admin only)
+//   DELETE  /file/<key>    -> delete one reference image under standards/ (admin only)
 //
 // Security model:
 //   The frontend is a public static page, so a shared secret baked into it is
@@ -20,6 +21,7 @@
 //       inspections/<id>/...  -> any signed-in user (evidence photos)
 //       standards/<area>/...  -> admin only (reference images)
 //       DELETE /inspection/   -> admin only
+//       DELETE /file/         -> admin only, and only under standards/
 //
 //   The admin check reads users/{uid}.role through the Firestore REST API using
 //   the caller's OWN token, so Firestore security rules still apply and this
@@ -218,6 +220,29 @@ export default {
       await env.BUCKET.put(path, buf, { httpMetadata: { contentType: ct } });
       const fileUrl = `${url.origin}/file/${encodeURIComponent(path)}`;
       return new Response(JSON.stringify({ url: fileUrl }), {
+        status: 200,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // --- Delete one reference image (admin only, standards/ prefix only) ---
+    // Evidence photos under inspections/ are deleted with DELETE /inspection/<id>,
+    // so this route stays narrow: it can only remove standard reference images.
+    if (request.method === 'DELETE' && url.pathname.startsWith('/file/')) {
+      const token = bearer(request);
+      const claims = await verifyIdToken(token, projectId);
+      if (!claims) {
+        return new Response('Unauthorized', { status: 401, headers: cors });
+      }
+      if (!(await isAdmin(claims.sub, token, projectId))) {
+        return new Response('Admin only', { status: 403, headers: cors });
+      }
+      const key = decodeURIComponent(url.pathname.slice('/file/'.length));
+      if (!KEY_RE.test(key) || !key.startsWith('standards/')) {
+        return new Response('Bad file path', { status: 400, headers: cors });
+      }
+      await env.BUCKET.delete([key]);
+      return new Response(JSON.stringify({ deleted: 1 }), {
         status: 200,
         headers: { ...cors, 'Content-Type': 'application/json' },
       });

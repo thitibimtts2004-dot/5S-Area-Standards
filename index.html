@@ -289,18 +289,22 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
   -webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
 .pr-page *{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
 .pr-head{display:flex;align-items:stretch;gap:6mm;padding-bottom:3.5mm;margin-bottom:4mm;position:relative}
-.pr-head::after{content:'';position:absolute;left:0;right:0;bottom:0;height:.9mm;border-radius:1mm;background:var(--pr-accent,#1E293B)}
-.pr-brand{display:flex;align-items:center;gap:3mm;flex-shrink:0}
-.pr-logo{width:11mm;height:11mm;border-radius:3mm;background:var(--pr-accent,#1E293B);color:#fff;display:flex;align-items:center;justify-content:center;font-size:6mm}
-.pr-h1{font-size:4.6mm;font-weight:800;line-height:1.2}
-.pr-h2{font-size:2.6mm;color:#64748B;margin-top:.5mm}
-.pr-meta{flex:1;display:flex;flex-wrap:wrap;align-content:center;gap:1.5mm 4mm;font-size:2.7mm;color:#334155;padding:0 3mm}
+.pr-head::after{content:'';position:absolute;left:0;right:0;bottom:0;height:.9mm;border-radius:1mm;background-image:linear-gradient(90deg,var(--pr-accent,#1E293B),rgba(148,163,184,.22))}
+.pr-brand{display:flex;align-items:center;gap:2.8mm;flex-shrink:0;max-width:72mm}
+/* โลโก้ระบบ: ใช้ไอคอนแอป (พื้นน้ำเงิน) — โลโก้บนแถบเมนูเป็นตัวหนังสือสีขาว ใช้บนกระดาษขาวไม่ได้ */
+.pr-logo{width:12mm;height:12mm;border-radius:3mm;overflow:hidden;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 .5mm 1.6mm rgba(2,21,58,.18)}
+.pr-logo img{width:100%;height:100%;object-fit:cover;display:block}
+.pr-logo-fb{background:var(--pr-accent,#1E293B);color:#fff;font-size:6mm;box-shadow:none}
+.pr-h1{font-size:4.8mm;font-weight:800;line-height:1.15;letter-spacing:-.015em}
+.pr-h2{font-size:2.5mm;color:#64748B;margin-top:.9mm;font-weight:600;letter-spacing:.02em}
+.pr-meta{flex:1;display:flex;flex-wrap:wrap;align-content:center;gap:1.4mm 1.6mm;font-size:2.6mm;color:#334155;padding:0 2mm}
+.pr-meta span{background:#F8FAFC;border:.25mm solid #E8EDF5;border-radius:1.6mm;padding:.8mm 1.8mm;white-space:nowrap}
 .pr-meta b{color:#1E293B}
-.pr-score{flex-shrink:0;width:36mm;border-radius:3mm;padding:2.2mm 3mm;text-align:center;color:#fff;display:flex;flex-direction:column;justify-content:center;
+.pr-score{flex-shrink:0;width:38mm;border-radius:3mm;padding:2.2mm 2.6mm;text-align:center;color:#fff;display:flex;flex-direction:column;justify-content:center;
   background-color:var(--pr-g2,#2563EB);background-image:linear-gradient(135deg,var(--pr-g1,#1D4ED8),var(--pr-g2,#2563EB));box-shadow:0 1mm 2.5mm rgba(0,0,0,.18)}
 .pr-score-n{font-size:8.2mm;font-weight:800;line-height:1;letter-spacing:-.02em}
 .pr-score-mx{font-size:2.3mm;opacity:.85}
-.pr-score-lv{margin-top:1.2mm;font-size:2.6mm;font-weight:700;background:rgba(255,255,255,.24);border-radius:8mm;padding:.9mm 2mm;display:inline-block}
+.pr-score-lv{margin-top:1.2mm;font-size:2.5mm;font-weight:700;line-height:1.3;background:rgba(255,255,255,.24);border-radius:8mm;padding:.8mm 1.8mm;display:inline-block}
 .pr-sec-ttl{font-size:3mm;font-weight:800;color:#1E293B;margin:3.2mm 0 2mm;letter-spacing:.02em;display:flex;align-items:center;gap:1.6mm}
 .pr-sec-ttl::before{content:'';width:1.4mm;height:1.4mm;border-radius:50%;background:var(--pr-accent,#1E293B);flex-shrink:0}
 .pr-bars{display:flex;flex-direction:column;gap:2mm}
@@ -336,6 +340,22 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 .pr-cmp-tbl td{padding:1.2mm 1mm;border-bottom:.2mm solid #E2E8F0}
 .pr-cmp-tot td{background:#EEF2F7;font-weight:800;text-align:center}
 .pr-cmp-rev{font-size:2.5mm;padding:1.6mm 2mm;background:#FFFBEB;border:.2mm solid #FDE68A;border-radius:1.6mm;margin-bottom:1.2mm}
+/* ===== MOBILE: แถบเมนูอยู่ล่างจอ + กันชนขอบบน/ล่างของเครื่อง (notch · home indicator) ===== */
+@media (max-width:999px){
+  /* หัวจอ: เว้นจากขอบบนเสมอ · เครื่องที่มี notch จะเว้นตามค่าจริงของเครื่อง */
+  .navbar{padding-top:max(env(safe-area-inset-top,0px),10px)}
+  #topbar{top:max(env(safe-area-inset-top,0px),10px)}
+  /* แถบเมนูย้ายลงล่างจอ (bottom nav) */
+  .tab-bar{position:fixed;left:0;right:0;bottom:0;z-index:210;border-top:1px solid rgba(255,255,255,.10);box-shadow:0 -6px 20px rgba(2,21,58,.22);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .tab-inner{padding:5px 7px}
+  .tb{padding:7px 4px 8px}
+  /* เว้นท้ายหน้าไม่ให้เนื้อหาถูกแถบเมนูบัง */
+  .wrap{padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+  .fab-delete{bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+  /* แถบปุ่มพิมพ์รายงาน: อย่าให้ทับแถบสถานะของเครื่อง */
+  #rpv-bar.show{padding-top:calc(7px + env(safe-area-inset-top,0px))}
+  #rpv-bg.show{padding-top:calc(64px + env(safe-area-inset-top,0px));padding-bottom:calc(48px + env(safe-area-inset-bottom,0px))}
+}
 /* ===== DESKTOP (Sidebar + Dashboard) ===== */
 @media (min-width:1000px){
   .tab-bar{position:fixed;left:0;top:0;bottom:0;width:220px;border-top:none;border-right:none;z-index:210;overflow:hidden;background:linear-gradient(180deg,#02153a 0%,#063069 46%,#0a4fa6 100%)}
@@ -365,7 +385,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
   @page{size:A4;margin:9mm 0}
   html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;height:auto!important;min-height:0!important}
   body::before{display:none!important}
-  .navbar,.tab-bar,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-compare,#pg-admin,#pg-settings,.modal-overlay,.pv-overlay,.toast,.fab-delete,#rpv-bar{display:none!important}
+  .navbar,.tab-bar,#topbar,#logout-fab,#login-gate,#save-spinner,#pg-home,#pg-inspect,#pg-history,#pg-ranking,#pg-compare,#pg-admin,#pg-settings,.modal-overlay,.pv-overlay,.toast,.fab-delete,#rpv-bar{display:none!important}
   #print-report{position:static!important;height:auto!important;overflow:visible!important;z-index:auto}
   #rpv-bg.show{position:static!important;background:none!important;overflow:visible!important;padding:0!important;display:block!important}
   #rpv-bg.show #print-report{box-shadow:none!important;zoom:1!important;position:static!important;left:auto!important;margin:0 auto!important}
@@ -404,6 +424,9 @@ body[data-role="admin"] #topbar,body[data-role="inspector"] #topbar{display:flex
 .set-tx span{font-size:12px;color:var(--muted)}
 .set-go{color:var(--muted);font-size:20px;font-weight:700}
 .set-back{background:none;border:none;color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;padding:4px 0;margin-bottom:10px}
+.rnd-ar{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 8px;cursor:pointer;user-select:none}
+.rnd-ar input{accent-color:#2563EB;width:15px;height:15px;margin:0;cursor:pointer}
+.rnd-ar.on{background:#DBEAFE;border-color:#60A5FA;color:#1D4ED8}
 .set-back:hover{color:var(--text)}
 @media(min-width:1000px){.set-cards{grid-template-columns:1fr 1fr}}
 /* --- Compact "จุดต้องแก้ไข" cards (1-page consolidated report) --- */
@@ -595,13 +618,8 @@ body[data-role="admin"] #logout-fab,body[data-role="inspector"] #logout-fab{disp
         <div class="field"><div class="flbl">พื้นที่ตรวจ <span style="color:#DC2626">*</span></div><select class="inp" id="f-area" onchange="selArea(this.value);this.classList.remove('inp-err')"></select></div>
         <div class="frow">
           <div class="field"><div class="flbl">ผู้ตรวจ <span style="color:#DC2626">*</span></div><input class="inp" id="f-insp" list="insp-list" autocomplete="off" placeholder="เลือกหรือพิมพ์ชื่อ" oninput="this.classList.remove('inp-err')"><datalist id="insp-list"></datalist></div>
-          <div class="field"><div class="flbl">รอบการตรวจ</div>
-            <select class="inp" id="f-round">
-              <option>มกราคม</option><option>กุมภาพันธ์</option><option>มีนาคม</option>
-              <option>เมษายน</option><option>พฤษภาคม</option><option>มิถุนายน</option>
-              <option>กรกฎาคม</option><option>สิงหาคม</option><option>กันยายน</option>
-              <option>ตุลาคม</option><option>พฤศจิกายน</option><option>ธันวาคม</option>
-            </select></div>
+          <div class="field"><div class="flbl">รอบการตรวจ <span style="color:#DC2626">*</span></div>
+            <select class="inp" id="f-round" onchange="this.classList.remove('inp-err')"></select></div>
         </div>
         <div class="tip-box"><b>เกณฑ์การให้คะแนน</b> &nbsp;|&nbsp; 3=ดีกว่ามาตรฐาน · 2=ผ่านมาตรฐาน · 1=ไม่ผ่านมาตรฐาน · N/A=ไม่มีให้ตรวจ<br>คะแนนรวมคิดเป็น % (ข้าม N/A) · ผ่านมาตรฐานทุกข้อ = 67% · ดีกว่ามาตรฐานทุกข้อ = 100%</div>
       </div>
@@ -713,6 +731,11 @@ body[data-role="admin"] #logout-fab,body[data-role="inspector"] #logout-fab{disp
         <span class="set-tx"><b>พื้นที่ / โซน</b><span>จัดการพื้นที่ตรวจ และหน่วยงาน</span></span>
         <span class="set-go">→</span>
       </button>
+      <button class="set-card" onclick="openRoundSettings()">
+        <span class="set-ic">🗓️</span>
+        <span class="set-tx"><b>รอบการตรวจ</b><span>สร้างรอบที่ให้ผู้ตรวจเลือกตอนเริ่มตรวจ</span></span>
+        <span class="set-go">→</span>
+      </button>
       <button class="set-card" onclick="goTab('admin')">
         <span class="set-ic">👥</span>
         <span class="set-tx"><b>คณะกรรมการ</b><span>จัดการผู้ใช้และสิทธิ์การเข้าระบบ</span></span>
@@ -754,6 +777,18 @@ body[data-role="admin"] #logout-fab,body[data-role="inspector"] #logout-fab{disp
       <input class="inp" id="sa-dept-code" style="width:90px;padding:7px;text-align:center;font-weight:700" placeholder="ตัวย่อ">
       <input class="inp" id="sa-dept-new" style="flex:1;min-width:140px;padding:7px" placeholder="ชื่อเต็ม">
       <button class="exp-btn" onclick="deptAdd()">➕ เพิ่มหน่วยงาน</button>
+    </div>
+  </div>
+  <div id="settings-rounds" style="display:none">
+    <button class="set-back" onclick="closeRoundSettings()">← กลับ</button>
+    <div class="sec-title">🗓️ รอบการตรวจ</div>
+    <div style="font-size:12px;color:var(--muted);margin:-4px 0 12px">แอดมินสร้างรอบที่นี่ · ผู้ตรวจจะเห็นเฉพาะรอบที่ <b>เปิดอยู่</b> ในช่อง "รอบการตรวจ" ตอนเริ่มตรวจ</div>
+    <div style="font-size:11px;color:var(--muted);margin:-6px 0 4px">💡 ปิดรอบ = ซ่อนจากช่องเลือก แต่ผลตรวจเก่าที่ใช้รอบนั้นยังอยู่ครบ</div>
+    <div style="font-size:11px;color:var(--muted);margin:0 0 10px">📍 ติ๊กพื้นที่ = รอบนี้จะโผล่เฉพาะตอนเลือกพื้นที่นั้น · <b>ไม่ติ๊กเลย = ใช้ได้ทุกพื้นที่</b></div>
+    <div id="sr-list"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;padding:10px;border:1px dashed var(--border);border-radius:10px;flex-wrap:wrap">
+      <input class="inp" id="sr-new" style="flex:1;min-width:160px;padding:7px" placeholder="ชื่อรอบ เช่น รอบที่ 1/2569">
+      <button class="exp-btn" onclick="roundAdd()">➕ เพิ่มรอบ</button>
     </div>
   </div>
 </div></div>
@@ -838,6 +873,7 @@ try{
       if(typeof onLoggedIn==='function')onLoggedIn();
     }else{
       CURRENT_USER=null;document.body.dataset.role='';
+      try{clearCloudRecs();}catch(e){}  // onAuthStateChanged อาจยิงก่อนสคริปต์รันถึงจุดประกาศตัวแปรแคช
       if(gate)gate.classList.remove('hide');
     }
   });
@@ -895,7 +931,7 @@ function doLogout(){try{firebase.auth().signOut();}catch(e){}}
 function toggleUserMenu(e){if(e)e.stopPropagation();const b=document.getElementById('tb-user'),m=document.getElementById('tb-menu');if(!b||!m)return;const open=m.classList.toggle('show');b.classList.toggle('open',open);}
 document.addEventListener('click',function(e){const w=e.target.closest('.tb-user-wrap');if(!w){const m=document.getElementById('tb-menu'),b=document.getElementById('tb-user');if(m)m.classList.remove('show');if(b)b.classList.remove('open');}});
 function onLoggedIn(){
-  try{loadAppConfig().then(()=>{try{loadCriteriaSets();}catch(e){}});loadRefImages();loadInspectors();resyncPending();}catch(e){}
+  try{loadAppConfig().then(()=>{try{loadCriteriaSets();}catch(e){}});loadRefImages();loadInspectors();resyncPending();invalidateCloudRecs();if(typeof rHome==='function')rHome();}catch(e){}
   const fi=document.getElementById('f-insp');
   if(fi&&CURRENT_USER&&CURRENT_USER.name&&!fi.value)fi.value=CURRENT_USER.name;
   const nm=document.getElementById('me-name');if(nm&&CURRENT_USER)nm.textContent=CURRENT_USER.name+(CURRENT_USER.role==='admin'?' (แอดมิน)':'');
@@ -980,6 +1016,17 @@ async function r2Upload(path,src){
   if(res.status===403)throw new Error('ไม่มีสิทธิ์อัปโหลดรูปนี้ (เฉพาะแอดมิน)');
   if(!res.ok)throw new Error('R2 upload failed '+res.status);
   const j=await res.json();return j.url;
+}
+// ลบไฟล์เดี่ยวบน R2 (ใช้กับรูปมาตรฐาน standards/ — เฉพาะแอดมิน) · คืน true เมื่อลบสำเร็จ
+// รับเฉพาะ URL ที่ออกโดย Worker ของเราเท่านั้น (รูป built-in std/*.jpg หรือ base64 เก่าไม่ต้องลบ)
+async function r2DeleteFile(fileUrl){
+  if(!R2_WORKER||typeof fileUrl!=='string')return false;
+  if(fileUrl.indexOf(R2_WORKER.replace(/\/$/,'')+'/file/')!==0)return false;
+  try{
+    const res=await fetch(fileUrl,{method:'DELETE',headers:{'Authorization':await r2AuthHeader()}});
+    if(!res.ok){console.warn('[r2] delete file failed',fileUrl,res.status);return false;}
+    return true;
+  }catch(err){console.warn('[r2] delete file error',fileUrl,err);return false;}
 }
 // ลบรูปทั้งหมดของ inspection หนึ่งใน R2 (best-effort — ล้มก็ไม่ขัดการลบ Firestore)
 async function r2DeleteInspection(id){
@@ -1145,7 +1192,7 @@ loadAreasCache();
 loadCritCache();
 // โหลด config พื้นที่/หน่วยงาน จากคลาวด์ (เรียกตอนล็อกอิน · ต้องรันก่อน loadCriteriaSets)
 async function loadAppConfig(){
-  renderAreaCards();fillDeptSelects();
+  renderAreaCards();fillDeptSelects();fillRoundSelect();
   if(!db)return;
   try{
     const ad=await db.collection('appConfig').doc('areas').get();
@@ -1161,8 +1208,15 @@ async function loadAppConfig(){
     const dz=dd.exists?(dd.data()||{}):{};
     if(Array.isArray(dz.list)&&dz.list.length){const nd=normDepts(dz.list);if(nd.length){DEPTS=nd;saveDeptCache();fillDeptSelects();}}
   }catch(e){console.warn('[dept] โหลดหน่วยงานจากคลาวด์ไม่สำเร็จ:',e);}
+  try{
+    const rd=await db.collection('appConfig').doc('rounds').get();
+    const rz=rd.exists?(rd.data()||{}):{};
+    if(Array.isArray(rz.list)){ROUNDS=normRounds(rz.list);saveRoundCache();fillRoundSelect();}
+  }catch(e){console.warn('[round] โหลดรอบการตรวจจากคลาวด์ไม่สำเร็จ:',e);}
   const saEl=document.getElementById('settings-areas');
   if(saEl&&saEl.style.display!=='none')renderAreaSettings();
+  const srEl=document.getElementById('settings-rounds');
+  if(srEl&&srEl.style.display!=='none')renderRoundSettings();
 }
 // ───── 3.2 รูปมาตรฐานอ้างอิง (อัปขึ้น R2 + แชร์ผ่าน Firestore: refImages/{area}.images = {เลขข้อ:[url,...]}) ─────
 const REFIMG_CACHE_KEY='5s_refimg';
@@ -1200,8 +1254,37 @@ async function loadInspectors(){
 }
 loadInspCache();
 
+// ───── สเกลคะแนน: ปัจจุบันคือ 0-3 (3=ดีกว่ามาตรฐาน · 2=ผ่าน · 1=ไม่ผ่าน · NA=ข้าม) ─────
+// ผลตรวจรุ่นเก่าเคยใช้สเกล 0-4 โดยเลข 4 แปลว่า "ดีกว่ามาตรฐาน" เหมือนเลข 3 (ดู SL[])
+// ถ้าปล่อยเลข 4 ไหลเข้าสูตร ตัวตั้งจะเกินตัวหาร (ทุกสูตรหารด้วย 3 ต่อข้อ) จนได้ % เกิน 100
+// — เคสจริงที่เจอ: กราฟแนวโน้มคะแนนเฉลี่ยทางการขึ้น 105% — จึงบีบค่าที่อ่านเข้ามาทุกทาง
+const SC_MAX=3;
+function pct(n){const v=Number(n);return Math.max(0,Math.min(100,Math.round(isFinite(v)?v:0)));}
+function normScore(v){
+  if(v==='NA')return 'NA';
+  if(v===''||v==null)return v;
+  const n=Number(v);
+  if(!isFinite(n))return '';
+  return Math.max(0,Math.min(SC_MAX,Math.round(n)));
+}
+function normItems(items){return (Array.isArray(items)?items:[]).map(it=>(it&&typeof it==='object')?Object.assign({},it,{sc:normScore(it.sc)}):it);}
+// คะแนนรวม % จากคะแนนรายข้อ (ข้าม NA · เต็ม 3 ต่อข้อ)
+function totOfItems(items){
+  let s=0,m=0;
+  (Array.isArray(items)?items:[]).forEach(it=>{const v=it&&it.sc;if(v==='NA'||v===''||v==null)return;m+=3;s+=Number(v);});
+  return m?pct(s/m*100):0;
+}
+// ประวัติในเครื่อง: ถ้าเรคคอร์ดไหนมีคะแนนนอกสเกล ให้บีบคะแนนรายข้อแล้วคิดคะแนนรวมใหม่
+function normHist(list){
+  return (Array.isArray(list)?list:[]).map(h=>{
+    if(!h||typeof h!=='object'||!Array.isArray(h.items))return h;
+    const items=normItems(h.items);
+    const changed=items.some((it,i)=>it&&h.items[i]&&it.sc!==h.items[i].sc);
+    return changed?Object.assign({},h,{items:items,tot:totOfItems(items)}):h;
+  });
+}
 let area='Office',cur=0,sc={},nt={},ph={},photoIdx=-1,viewMode=false;
-let hist=JSON.parse(localStorage.getItem('5s_h')||'[]');
+let hist=normHist(JSON.parse(localStorage.getItem('5s_h')||'[]'));
 let viewCrit=null;
 function detectOfficeVer(nos){const v2=new Set(OFFICE_V2.map(x=>String(x.no))),v1=new Set(OFFICE_V1.map(x=>String(x.no)));let c2=0,c1=0;(nos||[]).forEach(n=>{const s=String(n);if(v2.has(s))c2++;if(v1.has(s))c1++;});return c2>c1?'v2':(c1>c2?'v1':'v2');}
 function critFor(a,nos){if(a==='Office'&&!CRIT_VER.Office)return detectOfficeVer(nos)==='v1'?OFFICE_V1:OFFICE_V2;return IT[a]||[];}
@@ -1234,6 +1317,7 @@ function restoreDraft(){
   if(d.ph)Object.keys(d.ph).forEach(i=>{if(Array.isArray(d.ph[i]))ph[i]=d.ph[i];});
   selArea(area);
   const form=d.form||{};Object.keys(form).forEach(id=>{const el=document.getElementById(id);if(el)el.value=form[id];});
+  fillRoundSelect(form['f-round']||'');
   cur=Math.min(Math.max(parseInt(d.cur)||0,0),AN()-1);
   inspecting=true;
   goTab('inspect');showSt(1);rItem();setNbSub2();
@@ -1251,11 +1335,15 @@ function goTab(t){
   if(t==='history')loadAdminData();if(t==='ranking')rRank();if(t==='home')rHome();if(t==='admin'){if(typeof listUsers==='function')listUsers();}if(t==='compare')rCompare();if(t==='settings')resetSettingsHub();
 }
 function markRepSeg(t){document.querySelectorAll('.rep-seg').forEach(b=>b.classList.toggle('on',b.dataset.rep===t));}
-function resetSettingsHub(){const h=document.getElementById('settings-hub'),c=document.getElementById('settings-criteria'),aa=document.getElementById('settings-areas');if(h)h.style.display='';if(c)c.style.display='none';if(aa)aa.style.display='none';}
-function openCriteria(){const h=document.getElementById('settings-hub'),c=document.getElementById('settings-criteria'),aa=document.getElementById('settings-areas');if(h)h.style.display='none';if(aa)aa.style.display='none';if(c)c.style.display='';rSettings();}
+const SETTINGS_PANELS=['settings-hub','settings-criteria','settings-areas','settings-rounds'];
+function showSettingsPanel(id){SETTINGS_PANELS.forEach(k=>{const el=document.getElementById(k);if(el)el.style.display=(k===id)?'':'none';});}
+function resetSettingsHub(){showSettingsPanel('settings-hub');}
+function openCriteria(){showSettingsPanel('settings-criteria');rSettings();}
 function closeCriteria(){resetSettingsHub();}
-function openAreaSettings(){const h=document.getElementById('settings-hub'),c=document.getElementById('settings-criteria'),aa=document.getElementById('settings-areas');if(h)h.style.display='none';if(c)c.style.display='none';if(aa)aa.style.display='';renderAreaSettings();}
+function openAreaSettings(){showSettingsPanel('settings-areas');renderAreaSettings();}
 function closeAreaSettings(){resetSettingsHub();}
+function openRoundSettings(){showSettingsPanel('settings-rounds');renderRoundSettings();}
+function closeRoundSettings(){resetSettingsHub();}
 
 // ───── พื้นที่ตรวจ + หน่วยงาน (จัดการในหน้าตั้งค่า) ─────
 function escA(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
@@ -1345,6 +1433,69 @@ function renderDeptSettings(){
 }
 function deptEdit(i,field,val){if(!DEPTS[i])return;val=(val||'').trim();if(field==='code'){if(!val){renderDeptSettings();return;}if(DEPTS.some((d,j)=>j!==i&&d.code===val)){showToast('⚠️ ตัวย่อซ้ำกับหน่วยงานอื่น');renderDeptSettings();return;}DEPTS[i].code=val;if(!DEPTS[i].name)DEPTS[i].name=val;}else{DEPTS[i].name=val||DEPTS[i].code;}persistDepts();}
 async function deptDelete(i){if(!DEPTS[i])return;if(!confirm('ลบหน่วยงาน "'+(DEPTS[i].name||DEPTS[i].code)+'" ?'))return;DEPTS.splice(i,1);await persistDepts();renderDeptSettings();}
+// ───── จัดการรอบการตรวจในหน้าตั้งค่า (แอดมิน) ─────
+function renderRoundSettings(){
+  const el=document.getElementById('sr-list');if(!el)return;
+  if(!ROUNDS.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:12px;border:1px dashed var(--border);border-radius:10px">ยังไม่มีรอบตรวจ — เพิ่มรอบแรกด้านล่าง แล้วผู้ตรวจจะเลือกได้ทันที</div>';
+    return;
+  }
+  el.innerHTML=ROUNDS.map((r,i)=>{
+    const off=r.active===false;
+    const picked=Array.isArray(r.areas)?r.areas:[];
+    const chips=AREAS.map(a=>{
+      const on=picked.indexOf(a.key)>=0;
+      return `<label class="rnd-ar${on?' on':''}"><input type="checkbox" ${on?'checked':''} onchange="roundAreaToggle(${i},'${escA(a.key)}',this.checked)">${escA((a.icon||'📍')+' '+(a.short||a.name||a.key))}</label>`;
+    }).join('');
+    const scope=picked.length?picked.map(k=>ANAME[k]||k).join(' · '):'ทุกพื้นที่';
+    return `<div style="padding:8px;border:1px solid ${off?'var(--border)':'#BFDBFE'};border-radius:10px;margin-bottom:8px;${off?'opacity:.6;':''}">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input class="inp" style="flex:1;min-width:150px;padding:6px" value="${escA(r.name)}" onchange="roundEdit(${i},this.value)" placeholder="ชื่อรอบ">
+        <button class="exp-btn" onclick="roundToggle(${i})" title="${off?'กดเพื่อเปิดให้เลือก':'กดเพื่อซ่อนจากช่องเลือก'}">${off?'🚫 ปิดอยู่':'✅ เปิดอยู่'}</button>
+        <button class="exp-btn" style="color:#DC2626" onclick="roundDelete(${i})">🗑️</button>
+      </div>
+      <div style="margin-top:7px;padding-top:7px;border-top:1px dashed var(--border);display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <span style="font-size:11px;color:var(--muted)">ใช้กับพื้นที่:</span>${chips}
+        <span style="font-size:11px;color:var(--muted);font-weight:700">→ ${escA(scope)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+// ติ๊ก/เอาติ๊กออก = ผูก/ปลดพื้นที่ของรอบนั้น · ไม่เหลือพื้นที่ไหนเลย = ใช้ได้ทุกพื้นที่
+async function roundAreaToggle(i,key,on){
+  const r=ROUNDS[i];if(!r)return;
+  const list=Array.isArray(r.areas)?r.areas.slice():[];
+  const at=list.indexOf(key);
+  if(on&&at<0)list.push(key);
+  else if(!on&&at>=0)list.splice(at,1);
+  r.areas=list;
+  await persistRounds();renderRoundSettings();
+}
+async function roundEdit(i,val){
+  if(!ROUNDS[i])return;
+  const name=(val||'').trim();
+  if(!name){showToast('⚠️ ชื่อรอบว่างไม่ได้');renderRoundSettings();return;}
+  if(ROUNDS.some((r,j)=>j!==i&&r.name===name)){showToast('⚠️ มีรอบชื่อนี้แล้ว');renderRoundSettings();return;}
+  ROUNDS[i].name=name;await persistRounds();renderRoundSettings();
+}
+async function roundToggle(i){
+  if(!ROUNDS[i])return;
+  ROUNDS[i].active=(ROUNDS[i].active===false);
+  await persistRounds();renderRoundSettings();
+}
+async function roundDelete(i){
+  if(!ROUNDS[i])return;
+  if(!confirm('ลบรอบ "'+ROUNDS[i].name+'" ?\nผลตรวจเก่าที่ใช้รอบนี้ยังอยู่เหมือนเดิม แต่จะเลือกรอบนี้ใหม่ไม่ได้อีก'))return;
+  ROUNDS.splice(i,1);await persistRounds();renderRoundSettings();
+}
+async function roundAdd(){
+  const el=document.getElementById('sr-new');
+  const name=(el&&el.value||'').trim();
+  if(!name){showToast('⚠️ ใส่ชื่อรอบก่อน');return;}
+  if(ROUNDS.some(r=>r.name===name)){showToast('⚠️ มีรอบชื่อนี้แล้ว');return;}
+  ROUNDS.push({name:name,active:true,areas:[]});
+  await persistRounds();if(el)el.value='';renderRoundSettings();
+}
 async function deptAdd(){
   const ci=document.getElementById('sa-dept-code'),ni=document.getElementById('sa-dept-new');
   const code=(ci&&ci.value||'').trim(),name=(ni&&ni.value||'').trim();
@@ -1365,10 +1516,20 @@ function selArea(a){
   }
   document.getElementById('custom-field').style.display=a==='Custom'?'block':'none';
   document.getElementById('fhead').style.background=ACOL[a];
+  fillRoundSelect(); // รอบตรวจผูกกับพื้นที่ได้ → เปลี่ยนพื้นที่ต้องกรองรายการรอบใหม่
 }
-function startInspect(){cur=0;init();inspecting=false;fillAreaSelect();selArea(area);showSt(0);goTab('inspect');setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
+function startInspect(){cur=0;init();inspecting=false;fillAreaSelect();fillRoundSelect('');selArea(area);showSt(0);goTab('inspect');setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
 function startItems(){
-  const req=[['f-area','พื้นที่ตรวจ'],['f-dept','หน่วยงาน'],['f-insp','ผู้ตรวจ']];
+  // ยังไม่มีรอบที่แอดมินเปิดไว้ = เลือกไม่ได้ ต้องบอกให้ชัดว่าต้องไปทำอะไรต่อ
+  const rs=document.getElementById('f-round');
+  if(rs&&!(rs.value||'').trim()&&!activeRounds().length){
+    rs.classList.add('inp-err');
+    const admin=!!(CURRENT_USER&&CURRENT_USER.role==='admin');
+    const areaOnly=activeRounds('').length>0;  // มีรอบเปิดอยู่ แต่ไม่มีรอบไหนผูกกับพื้นที่นี้
+    showToast((areaOnly?'⚠️ ยังไม่มีรอบตรวจสำหรับพื้นที่นี้':'⚠️ ยังไม่มีรอบตรวจ')+(admin?' — ตั้งค่าได้ที่ ตั้งค่าระบบ > รอบการตรวจ':' — ติดต่อแอดมินให้สร้าง/เปิดรอบก่อน'));
+    return;
+  }
+  const req=[['f-area','พื้นที่ตรวจ'],['f-dept','หน่วยงาน'],['f-insp','ผู้ตรวจ'],['f-round','รอบการตรวจ']];
   const miss=[];let firstMissId='';
   req.forEach(([id,label])=>{
     const el=document.getElementById(id);
@@ -1399,10 +1560,43 @@ function setPb(done,tot){
 function getScored(){return Object.entries(sc).filter(([i,v])=>v!==-1&&v!=='NA');}
 function getRawTotal(){return getScored().reduce((a,[,v])=>a+Number(v),0);}
 function getMaxPossible(){return getScored().length*3;}
-function getTotal(){const mx=getMaxPossible();return mx>0?Math.round(getRawTotal()/mx*100):0;}
+function getTotal(){const mx=getMaxPossible();return mx>0?pct(getRawTotal()/mx*100):0;}
 function getNACount(){return Object.values(sc).filter(v=>v==='NA').length;}
 function getPassRate(){const s=getScored();return s.length?Math.round(s.filter(([,v])=>Number(v)>=2).length/s.length*100):0;}
 function passRateOf(items){if(!items)return null;let n=0,p=0;items.forEach(it=>{const v=it.sc;if(v==='NA'||v===''||v==null)return;n++;if(Number(v)>=2)p++;});return n>0?Math.round(p/n*100):null;}
+// ───── เกณฑ์ "ผ่าน" + "ระดับผล" — สูตรกลางตัวเดียว ใช้ทุกหน้า ทุกใบพิมพ์ และตอนบันทึก (BUG-3) ─────
+// ผ่าน  = ข้อที่ได้ "ผ่านมาตรฐาน" (คะแนน ≥2) ต้องเป็น ≥80% ของข้อที่ให้คะแนนจริง (ข้าม N/A)
+// ระดับ = ผ่าน + คะแนนรวม ≥90 → ดีกว่ามาตรฐาน · ผ่าน → ผ่านมาตรฐาน · ไม่ผ่าน → ต่ำกว่ามาตรฐาน
+// passRate == null (เรคคอร์ดเก่าที่ไม่มีคะแนนรายข้อ) → ถอยไปใช้เกณฑ์เดิม: คะแนนรวม ≥67
+const PASS_RATE_MIN=80;
+const LV_GOOD=0,LV_PASS=1,LV_FAIL=2;
+const LV_META=[
+  {lv:'ดีกว่ามาตรฐาน',c:'#16A34A',bg:'#DCFCE7',grad:['#15803D','#16A34A']},
+  {lv:'ผ่านมาตรฐาน',c:'#2563EB',bg:'#DBEAFE',grad:['#1E40AF','#2563EB']},
+  {lv:'ต่ำกว่ามาตรฐาน',c:'#DC2626',bg:'#FEE2E2',grad:['#B91C1C','#DC2626']}
+];
+function levelOf(tot,passRate){
+  const t=Number(tot)||0;
+  const pass=(passRate==null)?(t>=67):(Number(passRate)>=PASS_RATE_MIN);
+  const idx=pass?(t>=90?LV_GOOD:LV_PASS):LV_FAIL;
+  const m=LV_META[idx];
+  return{pass:pass,idx:idx,lv:m.lv,c:m.c,bg:m.bg,grad:m.grad};
+}
+// ระดับผลของเรคคอร์ดที่บันทึกแล้ว — ใช้คะแนนรายข้อถ้ามี, ไม่มีก็ใช้ passRate/passed ที่บันทึกไว้
+function levelOfRec(h){
+  if(!h)return levelOf(0,null);
+  const tot=(h.tot!=null?h.tot:h.totalScore);
+  let pr=passRateOf(h.items);
+  if(pr==null&&typeof h.passRate==='number')pr=h.passRate;
+  if(pr==null&&typeof h.passed==='boolean')pr=h.passed?100:0;
+  return levelOf(tot,pr);
+}
+// แถบเทียบระดับใต้วงคะแนน — ไฮไลต์ตาม "ระดับจริง" ไม่ใช่ % คะแนนล้วน
+function lvStrip(L){
+  return[{n:'ข้อผ่าน <80%',l:LV_META[LV_FAIL].lv,bg:'#FEE2E2',fg:'#991B1B',a:L.idx===LV_FAIL},
+         {n:'ข้อผ่าน ≥80%',l:LV_META[LV_PASS].lv,bg:'#DBEAFE',fg:'#2563EB',a:L.idx===LV_PASS},
+         {n:'+ คะแนน ≥90',l:LV_META[LV_GOOD].lv,bg:'#DBEAFE',fg:'#1E40AF',a:L.idx===LV_GOOD}];
+}
 function getUnscored(){const a=[];for(let i=0;i<AN();i++){if(sc[i]===-1)a.push(i);}return a;}
 function rItem(){
   const items=(viewCrit||IT[area]),it=items[cur],s=sc[cur];
@@ -1539,7 +1733,7 @@ function nextItem(){
 }
 function prevItem(){if(cur>0){cur--;rItem();setNbSub2();}else{showSt(0);setNbSub('กรอกข้อมูล');}}
 function uMini(){
-  const t=getTotal(),c=t>=90?'#16A34A':t>=67?'#2563EB':'#DC2626';
+  const t=getTotal(),c=levelOf(t,getPassRate()).c;
   document.getElementById('ms-n').textContent=t;document.getElementById('ms-n').style.color=c;
   document.getElementById('ms-bar').style.width=t+'%';document.getElementById('ms-bar').style.background=c;
   document.getElementById('ms-pct').textContent=t+'%';document.getElementById('ms-pct').style.color=c;
@@ -1554,8 +1748,8 @@ function uPb(){
   const ls=document.getElementById('loc-sub');if(ls)ls.textContent='รายการตรวจ 5ส. ('+n+' ข้อ)';
 }
 function getReportData(){
-  const items=viewCrit||IT[area],tot=getTotal(),na=getNACount(),pr=getPassRate(),pass=pr>=80;
-  const lv=pass?(tot>=90?'ดีกว่ามาตรฐาน':'ผ่านมาตรฐาน'):'ต่ำกว่ามาตรฐาน';
+  const items=viewCrit||IT[area],tot=getTotal(),na=getNACount(),pr=getPassRate();
+  const L=levelOf(tot,pr),pass=L.pass,lv=L.lv;
   const dept=deptName(document.getElementById('f-dept').value)||'—';
   const aname=area==='Custom'?(document.getElementById('f-custom').value||'พื้นที่อื่น'):ANAME[area];
   const adet='';
@@ -1567,7 +1761,7 @@ function getReportData(){
   items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=3;hS[it.h]+=sc[i];}});
   const probs=items.filter((_,i)=>sc[i]===1);
   const naItems=items.filter((_,i)=>sc[i]==='NA');
-  const lvs=[{n:'<67',l:'ต่ำกว่ามาตรฐาน',bg:'#FEE2E2',fg:'#991B1B',a:tot<67},{n:'67–89',l:'ผ่านมาตรฐาน',bg:'#DBEAFE',fg:'#2563EB',a:tot>=67&&tot<90},{n:'90+',l:'ดีกว่ามาตรฐาน',bg:'#DBEAFE',fg:'#1E40AF',a:tot>=90}];
+  const lvs=lvStrip(L);
   return{items,tot,na,naItems,pass,pr,lv,dept,aname:cmpEsc(aname),adet:cmpEsc(adet),insp:cmpEsc(insp),ds,round,hS,hM,probs,lvs};
 }
 function rSum(){
@@ -1594,23 +1788,33 @@ function rSum(){
       <div class="sbd" style="padding:${probs.length?'12px 15px':'0'}">${dfHtml}</div></div>`;
   buildPrintReport();
 }
-function tierGrad(tot){return tot>=90?['#15803D','#16A34A']:tot>=67?['#1E40AF','#2563EB']:['#B91C1C','#DC2626'];}
+function tierGrad(tot,pr){return levelOf(tot,pr==null?null:pr).grad;}
+// โลโก้ระบบสำหรับหัวใบพิมพ์ — ดึงไอคอนแอปที่ฝังอยู่ใน <link> ของหน้าอยู่แล้ว
+// (ไม่ต้องฝัง base64 ซ้ำในโค้ด และได้ไอคอนพื้นน้ำเงินที่อ่านออกบนกระดาษขาว)
+function brandIconSrc(){
+  const el=document.querySelector('link[rel="apple-touch-icon"]')||document.querySelector('link[rel="icon"]');
+  return (el&&el.href)?el.href:'';
+}
+function prLogoHtml(){
+  const src=brandIconSrc();
+  return src?`<div class="pr-logo"><img src="${src}" alt=""></div>`:'<div class="pr-logo pr-logo-fb">🏭</div>';
+}
 function buildPrintReport(){
   const{items,tot,na,pass,pr,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
-  const [g1,g2]=tierGrad(tot);
+  const [g1,g2]=tierGrad(tot,pr);
   const bars=HMVD.map(h=>{const s=hS[h],m=hM[h],p=m>0?Math.round(s/m*100):0,c=HC[h];
     return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v"><b style="color:${c}">${m>0?s:'—'}/${m>0?m:'N/A'}</b><span class="pr-bar-pct">${p}%</span></div></div>`;}).join('');
   const lvHtml=lvs.map(l=>`<div class="pr-lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg:''}"><div class="pr-lvn" style="color:${l.fg}">${l.n}</div><div class="pr-lvl" style="color:${l.fg}">${l.l}</div></div>`).join('');
   const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||'';
     const has=ph[i]&&ph[i].length;
-    const pht=has?`<img class="pr-dph" src="${ph[i][0]}">`:'';
+    const pht=has?`<img class="pr-dph" src="${ph[i][0]}" alt="" onerror="this.style.display='none'">`:'';
     return `<div class="pr-dcard" style="--pr-cat:${HC[it.h]}"><div class="pr-dtxt"><div class="pr-dttl">ข้อ ${it.no} — ${it.t}<span class="pr-dbadge" style="background:${SBG[s]};color:${SFG[s]}">${SL[s]}(${s})</span></div><div class="pr-dnote">${cmpEsc(note)}</div></div>${pht}</div>`;}).join('')
     :`<div class="pr-ok">✅ ผ่านทุกหัวข้อ ไม่พบจุดบกพร่อง</div>`;
   const accent=ACOL[area]||'#1E293B';
   document.getElementById('pr-inner').style.setProperty('--pr-accent',accent);
   document.getElementById('pr-inner').innerHTML=`
     <div class="pr-head">
-      <div class="pr-brand"><div class="pr-logo">🏭</div><div><div class="pr-h1">รายงานผลการตรวจ 5ส</div><div class="pr-h2">แบบตรวจ 5ส Pro · v3.0</div></div></div>
+      <div class="pr-brand">${prLogoHtml()}<div><div class="pr-h1">รายงานผลการตรวจ 5ส</div><div class="pr-h2">5S Check · ระบบตรวจ 5ส</div></div></div>
       <div class="pr-meta">
         <span>${AICO[area]||'📍'} <b>${aname}</b>${adet?' ('+adet+')':''}</span>
         <span>🏢 หน่วยงาน <b>${dept}</b></span>
@@ -1669,12 +1873,12 @@ function buildConsolidatedReport(){
   if(isInAppBrowser()){alert('เบราว์เซอร์ในแอปนี้ (เช่น LINE) ไม่รองรับการพิมพ์/บันทึก PDF\n\nวิธีแก้: กดปุ่ม ⋯ มุมขวาบน แล้วเลือก "เปิดในเบราว์เซอร์"');return;}
   if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ต้องมีผู้ตรวจอย่างน้อย 2 คน (เลือกพื้นที่/หน่วยงานในแท็บเทียบผลก่อน)');return;}
   const{raters,rows,officialScore,offLv}=cmpLast;
-  const tot=officialScore==null?0:officialScore,[g1,g2]=tierGrad(tot);const _or=rows.filter(r=>r.mean!=null),pr=_or.length?Math.round(_or.filter(r=>r.mean>=2).length/_or.length*100):0,pass=pr>=80;
+  const tot=officialScore==null?0:officialScore;const _or=rows.filter(r=>r.mean!=null),pr=_or.length?Math.round(_or.filter(r=>r.mean>=2).length/_or.length*100):0;const L=levelOf(tot,pr),pass=L.pass,[g1,g2]=L.grad;
   const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
   rows.forEach(r=>{if(r.mean!=null){hM[r.it.h]+=3;hS[r.it.h]+=r.mean;}});
   const bars=HMVD.map(h=>{const p=hM[h]>0?Math.round(hS[h]/hM[h]*100):0,c=HC[h];
     return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v"><b style="color:${c}">${hM[h]>0?p+'%':'N/A'}</b></div></div>`;}).join('');
-  const lvs=[{n:'<67',l:'ต่ำกว่ามาตรฐาน',bg:'#FEE2E2',fg:'#991B1B',a:tot<67},{n:'67–89',l:'ผ่านมาตรฐาน',bg:'#DBEAFE',fg:'#2563EB',a:tot>=67&&tot<90},{n:'90+',l:'ดีกว่ามาตรฐาน',bg:'#DBEAFE',fg:'#1E40AF',a:tot>=90}];
+  const lvs=lvStrip(L);
   const lvHtml=lvs.map(l=>`<div class="pr-lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg:''}"><div class="pr-lvn" style="color:${l.fg}">${l.n}</div><div class="pr-lvl" style="color:${l.fg}">${l.l}</div></div>`).join('');
   const lowRows=rows.filter(r=>r.nums.some(v=>v===1));
   const dfHtml=lowRows.length?lowRows.map(r=>{
@@ -1687,7 +1891,7 @@ function buildConsolidatedReport(){
     if(!flagged.length)return'';
     const chips=flagged.map(x=>`<span class="pr-gchip" style="background:${SBG[x.s]};color:${SFG[x.s]}">${cmpEsc(x.name)} · ${SL[x.s]}</span>`).join('');
     const notes=flagged.filter(x=>x.note).map(x=>`<div class="pr-gnote">• ${cmpEsc(x.note)} <span class="pr-gnm">(${cmpEsc(x.name)})</span></div>`).join('');
-    const phs=flagged.filter(x=>x.ph).map(x=>`<img class="pr-gthumb" src="${x.ph}" title="${cmpEsc(x.name)}">`).join('');
+    const phs=flagged.filter(x=>x.ph).map(x=>`<img class="pr-gthumb" src="${x.ph}" alt="" title="${cmpEsc(x.name)}" onerror="this.style.display='none'">`).join('');
     return `<div class="pr-dcard pr-gcard" style="--pr-cat:${HC[r.it.h]}"><div class="pr-ghead"><div class="pr-dttl">ข้อ ${r.it.no} — ${cmpEsc(r.it.t)}</div><span class="pr-gcnt">⚠️ ${flagged.length} คนแจ้ง</span></div><div class="pr-gchips">${chips}</div>${notes?`<div class="pr-gnotes">${notes}</div>`:''}${phs?`<div class="pr-gphotos">${phs}</div>`:''}</div>`;
   }).join(''):`<div class="pr-ok">✅ ไม่มีข้อที่ผู้ตรวจให้ "ไม่ผ่านมาตรฐาน"</div>`;
   const aname=cmpArea==='Custom'?'พื้นที่อื่น':(ANAME[cmpArea]||cmpArea);
@@ -1698,7 +1902,7 @@ function buildConsolidatedReport(){
   inner.style.setProperty('--pr-accent',ACOL[cmpArea]||'#1E293B');
   inner.innerHTML=`
     <div class="pr-head">
-      <div class="pr-brand"><div class="pr-logo">🏭</div><div><div class="pr-h1">รายงานผลการตรวจ 5ส (รวมทุกผู้ตรวจ)</div><div class="pr-h2">แบบตรวจ 5ส Pro · v3.0</div></div></div>
+      <div class="pr-brand">${prLogoHtml()}<div><div class="pr-h1">รายงานผลการตรวจ 5ส (รวมทุกผู้ตรวจ)</div><div class="pr-h2">5S Check · ระบบตรวจ 5ส</div></div></div>
       <div class="pr-meta">
         <span>${AICO[cmpArea]||'📍'} <b>${cmpEsc(aname)}</b></span>
         <span>🏢 หน่วยงาน <b>${cmpEsc(dept)}</b></span>
@@ -1709,7 +1913,7 @@ function buildConsolidatedReport(){
       <div class="pr-score" style="background-color:${g2};background-image:linear-gradient(135deg,${g1},${g2})">
         <div class="pr-score-n">${tot}<span class="pr-score-mx">/100</span></div>
         <div class="pr-score-mx">เฉลี่ยจากผู้ตรวจ ${raters.length} คน</div>
-        <div class="pr-score-lv">${pass?(tot>=90?'ดีกว่ามาตรฐาน':'ผ่านมาตรฐาน'):'ต่ำกว่ามาตรฐาน'}</div>
+        <div class="pr-score-lv">${L.lv}</div>
         <div class="pr-score-lv" style="background:${pass?'rgba(220,252,231,.95)':'rgba(254,226,226,.95)'};color:${pass?'#15803D':'#B91C1C'}">${pass?'✓ ผ่านเกณฑ์':'✗ ไม่ผ่านเกณฑ์'} · ข้อได้มาตรฐาน ${pr}%</div>
       </div>
     </div>
@@ -1760,12 +1964,12 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classLi
 // Averaged (Compare-tab) report → A4 print layout, reuses the single-report print container + window.print()
 function buildComparePrintReport(){
   if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ยังไม่มีข้อมูลให้พิมพ์');return false;}
-  const{raters,rows,raterTotals,overall,review,officialScore,offLv}=cmpLast;
-  const offColor=officialScore==null?'#94A3B8':officialScore>=90?'#16A34A':officialScore>=67?'#2563EB':'#DC2626';
-  const[g1,g2]=officialScore==null?['#64748B','#94A3B8']:tierGrad(officialScore);
-  const totColor=t=>t==null?'#94A3B8':t>=90?'#16A34A':t>=67?'#2563EB':'#DC2626';
+  const{raters,rows,raterTotals,raterPr,overall,review,officialScore,offLv,offL}=cmpLast;
+  const offColor=(officialScore==null||!offL)?'#94A3B8':offL.c;
+  const[g1,g2]=(officialScore==null||!offL)?['#64748B','#94A3B8']:offL.grad;
+  const totColor=(t,i)=>t==null?'#94A3B8':levelOf(t,(raterPr&&raterPr[i]!=null)?raterPr[i]:null).c;
   const ths=raters.map(r=>`<th>${cmpEsc(r.insp||'—')}</th>`).join('');
-  const totalRow=`<tr class="pr-cmp-tot"><td></td><td>คะแนนรวม %</td>${raterTotals.map(t=>`<td style="color:${totColor(t)}">${t==null?'–':t+'%'}</td>`).join('')}<td style="color:${offColor}">${officialScore==null?'–':officialScore+'%'}</td><td></td></tr>`;
+  const totalRow=`<tr class="pr-cmp-tot"><td></td><td>คะแนนรวม %</td>${raterTotals.map((t,i)=>`<td style="color:${totColor(t,i)}">${t==null?'–':t+'%'}</td>`).join('')}<td style="color:${offColor}">${officialScore==null?'–':officialScore+'%'}</td><td></td></tr>`;
   const trs=rows.map(r=>{
     const sp=r.spread;
     const fl=sp==null?'–':sp<=1?'น้อย':sp===2?'กลาง':'สูง';
@@ -1779,7 +1983,7 @@ function buildComparePrintReport(){
   inner.style.setProperty('--pr-accent',offColor);
   inner.innerHTML=`
     <div class="pr-head">
-      <div class="pr-brand"><div class="pr-logo">🏭</div><div><div class="pr-h1">รายงานคะแนนเฉลี่ย 5ส</div><div class="pr-h2">รวมผู้ตรวจทุกคน · แบบตรวจ 5ส Pro</div></div></div>
+      <div class="pr-brand">${prLogoHtml()}<div><div class="pr-h1">รายงานคะแนนเฉลี่ย 5ส</div><div class="pr-h2">5S Check · รวมผู้ตรวจทุกคน</div></div></div>
       <div class="pr-meta">
         <span>📍 <b>${ANAME[cmpArea]||cmpArea}</b></span>
         <span>🏢 หน่วยงาน <b>${cmpEsc(deptName(cmpDept))}</b></span>
@@ -1817,7 +2021,7 @@ function cmpPrintReport(){
   if(!buildComparePrintReport())return;
   requestAnimationFrame(()=>{fitPrintPage();requestAnimationFrame(()=>window.print());});
 }
-function levelLabel(t){return t>=90?'ดีกว่ามาตรฐาน':t>=67?'ผ่านมาตรฐาน':'ต่ำกว่ามาตรฐาน';}
+function levelLabel(t,pr){return levelOf(t,pr==null?null:pr).lv;}
 function showSpinner(on,label){
   const el=document.getElementById('save-spinner');
   if(label)document.getElementById('save-spinner-lbl').textContent=label;
@@ -1854,11 +2058,12 @@ function syncToFirestore(h){
     const ref=db.collection('inspections').doc(String(h.id));
     const categoryScores={};
     HMVD.forEach(cat=>{categoryScores[cat]={score:h.hS[cat]||0,max:h.hM[cat]||0};});
+    const _pr=passRateOf(h.items),_lv=levelOf(h.tot,_pr);
     batch.set(ref,{
       date:h.date,area:h.area,areaName:h.aname,areaDetail:h.adet||'',dept:h.dept,
       inspector:h.insp,inspectorUid:(CURRENT_USER&&CURRENT_USER.uid)||null,inspectorName:(CURRENT_USER&&CURRENT_USER.name)||h.insp,round:h.round,totalScore:h.tot,critArea:h.critArea||h.area,critVersion:h.critVersion||0,
       naCount:h.items.filter(it=>it.sc==='NA').length,
-      passed:(()=>{const _p=passRateOf(h.items);return _p!=null?_p>=80:h.tot>=67;})(),level:levelLabel(h.tot),
+      passed:_lv.pass,passRate:_pr,level:_lv.lv,
       categoryScores,
       createdAt:firebase.firestore.FieldValue.serverTimestamp(),
       clientSavedAt:h.saved
@@ -1868,12 +2073,15 @@ function syncToFirestore(h){
         itemNo:it.no,category:it.h,title:it.t,
         score:(it.sc==='NA'||it.sc==='')?null:it.sc,
         isNA:it.sc==='NA',
-        note:it.nt||''
+        note:it.nt||'',
+        // ฝังเจ้าของไว้ในตัว item ด้วย (BUG-5) — กฎ Firestore ใช้ฟิลด์นี้ตรวจสิทธิ์แก้/ลบ
+        // ได้ทันทีโดยไม่ต้อง get() เอกสารแม่ ซึ่งมีเพดานจำนวนครั้งต่อ batch
+        inspectorUid:(CURRENT_USER&&CURRENT_USER.uid)||null
       };
       if(it.ph&&it.ph.length)data.photos=it.ph;
       batch.set(ref.collection('items').doc(it.no),data);
     });
-    return batch.commit().then(()=>({ok:true})).catch(err=>{console.warn('[firestore] sync failed — บันทึกในเครื่องไว้แล้ว, อัปขึ้นคลาวด์ไม่สำเร็จ:',err);return{ok:false};});
+    return batch.commit().then(()=>{invalidateCloudRecs();return{ok:true};}).catch(err=>{console.warn('[firestore] sync failed — บันทึกในเครื่องไว้แล้ว, อัปขึ้นคลาวด์ไม่สำเร็จ:',err);return{ok:false};});
   }catch(err){console.warn('[firestore] sync error:',err);return Promise.resolve({ok:false});}
 }
 function persistHist(){try{localStorage.setItem('5s_h',JSON.stringify(hist));return true;}catch(e){console.warn('[storage] บันทึกลงเครื่องไม่สำเร็จ (พื้นที่อาจเต็ม):',e);return false;}}
@@ -1971,6 +2179,7 @@ async function loadAdminData(){
   try{
     const snap=await db.collection('inspections').orderBy('date','desc').limit(300).get();
     adminData=snap.docs.map(d=>({id:d.id,...d.data()}));
+    setCloudRecs(adminData);
     renderAdminList();
   }catch(err){
     listEl.innerHTML='<div class="empty-state"><div class="empty-title">โหลดข้อมูลไม่สำเร็จ</div><div class="empty-desc">'+err.message+'</div></div>';
@@ -2011,7 +2220,7 @@ function renderAdminList(){
   updateAdminFab();
 }
 function adminRowHtml(r){
-  const c=r.totalScore>=90?'#16A34A':r.totalScore>=67?'#2563EB':'#DC2626';
+  const c=levelOfRec(r).c;
   const checked=adminSelected.has(r.id)?'checked':'';
   const time=r.createdAt&&r.createdAt.seconds?new Date(r.createdAt.seconds*1000).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'';
   return `<div class="insp-row">
@@ -2021,7 +2230,7 @@ function adminRowHtml(r){
         <div class="insp-name">${cmpEsc(r.inspector)}</div>
         <div class="insp-meta">${cmpEsc(deptName(r.dept)||'—')}${time?' · '+time:''}${r.naCount?' · ข้าม '+r.naCount+' N/A':''}</div>
       </div>
-      <div class="insp-score" style="color:${c}">${r.totalScore}%</div>
+      <div class="insp-score" style="color:${c}">${pct(r.totalScore)}%</div>
       <button onclick="event.stopPropagation();editAdminReport('${r.id}')" title="แก้ไขรายการนี้" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 8px;margin-left:8px;cursor:pointer;font-size:14px;line-height:1">✏️</button>
     </div>
     <div id="insp-detail-${r.id}" class="insp-detail" style="display:none"></div>
@@ -2049,7 +2258,7 @@ async function toggleAdminDetail(id){
   }
   el.style.display='block';
   el.innerHTML=adminItemsCache[id].map(it=>{
-    const val=it.isNA?'<span style="color:#1D4ED8">N/A</span>':(it.score??'-');
+    const val=it.isNA?'<span style="color:#1D4ED8">N/A</span>':(normScore(it.score)??'-');
     const photos=it.photos&&it.photos.length?`<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap">${it.photos.map(p=>`<img src="${p}" style="width:44px;height:44px;border-radius:6px;object-fit:cover;border:1px solid var(--border)">`).join('')}</div>`:'';
     return `<div class="detail-row"><span class="detail-no">${it.itemNo}</span><div class="detail-t">${cmpEsc(it.title)}${photos}</div><span class="detail-sc">${val}</span></div>`;
   }).join('');
@@ -2101,7 +2310,7 @@ async function openAdminRecord(id,edit){
     if(!r)return;
     if(r.isNA)sc[i]='NA';
     else if(r.score===null||r.score===undefined||r.score==='')sc[i]=-1;
-    else sc[i]=Number(r.score);
+    else sc[i]=normScore(r.score);
     nt[i]=r.note||'';
     ph[i]=Array.isArray(r.photos)?r.photos:[];
   });
@@ -2111,7 +2320,7 @@ async function openAdminRecord(id,edit){
   if(area==='Custom')setV('f-custom',rec.areaName||'');
   setV('f-insp',rec.inspector||'');
   setV('f-date',rec.date||'');
-  if(rec.round)setV('f-round',rec.round);
+  fillRoundSelect(rec.round||'');
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   document.getElementById('pg-inspect').classList.add('on');
@@ -2148,54 +2357,100 @@ async function deleteSelectedAdmin(){
     }catch(err){console.warn('[admin] delete failed for',id,err);}
   }
   adminSelected.clear();
+  const gone=new Set(ids.map(String));
+  const before=hist.length;
+  hist=hist.filter(h=>!(h&&gone.has(String(h.id))));
+  if(hist.length!==before)persistHist();
+  invalidateCloudRecs();
   showSpinner(false);
   showToast('🗑️ ลบข้อมูลที่เลือกแล้ว');
   loadAdminData();
 }
 function resetAll(){if(inspecting&&!confirm('⚠️ ล้างงานตรวจที่กำลังทำอยู่ใช่ไหม? ข้อมูลที่กรอกจะหายทั้งหมด'))return;clearDraft();init();cur=0;showSt(0);setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
-function rHome(){
-  const total=CRIT_AREAS.length,done=CRIT_AREAS.filter(a=>hist.some(h=>h.area===a)).length,pending=total-done,pct=total?Math.round(done/total*100):0;
+// ───── ผลตรวจรวมสำหรับหน้าหลัก + จัดอันดับ (BUG-4) ─────
+// เดิม: อ่านจาก localStorage ของเครื่องตัวเองอย่างเดียว → แต่ละเครื่องเห็นไม่ตรงกัน, ล้างแคช
+// เบราว์เซอร์แล้วหาย, และไม่ตรงกับหน้าประวัติที่ดึงจาก Firestore อยู่แล้ว
+// ตอนนี้: คลาวด์เป็นแหล่งหลัก (inspections 300 รายการล่าสุด) + เติมรายการในเครื่องที่ยังซิงก์ไม่ขึ้น
+// localStorage เหลือบทบาทเป็น "แคชสำหรับโหมดออฟไลน์" เท่านั้น
+let cloudRecs=null,cloudRecsAt=0,_cloudLoading=null,cloudErr=false;
+const CLOUD_TTL=60000;
+function setCloudRecs(docs){cloudRecs=docs;cloudRecsAt=Date.now();cloudErr=false;}
+function clearCloudRecs(){cloudRecs=null;cloudRecsAt=0;cloudErr=false;}
+function invalidateCloudRecs(){cloudRecsAt=0;}
+function ensureCloudRecords(force){
+  // ยังไม่ล็อกอิน = กฎ Firestore ปฏิเสธอยู่แล้ว ไม่ต้องยิงให้เปลือง
+  if(!db||!CURRENT_USER)return Promise.resolve(false);
+  if(!force&&cloudRecs&&(Date.now()-cloudRecsAt)<CLOUD_TTL)return Promise.resolve(false);
+  if(_cloudLoading)return _cloudLoading;
+  _cloudLoading=db.collection('inspections').orderBy('date','desc').limit(300).get()
+    .then(snap=>{setCloudRecs(snap.docs.map(d=>({id:d.id,...d.data()})));return true;})
+    .catch(e=>{cloudErr=true;console.warn('[cloud] โหลดผลตรวจจากคลาวด์ไม่สำเร็จ — แสดงข้อมูลในเครื่องแทน:',e);return false;})
+    .then(r=>{_cloudLoading=null;return r;});
+  return _cloudLoading;
+}
+// เอกสารคลาวด์ 1 ใบ -> รูปแบบเดียวกับประวัติในเครื่อง (ยังไม่มีคะแนนรายข้อ จนกว่าจะกดเปิดดู)
+function recFromCloud(d){
+  return{id:d.id,date:d.date||'',area:d.area||'',aname:d.areaName||ANAME[d.area]||d.area||'',
+    adet:d.areaDetail||'',dept:d.dept||'',insp:d.inspector||d.inspectorName||'—',round:d.round||'',
+    tot:pct(d.totalScore),na:Number(d.naCount)||0,
+    passRate:(typeof d.passRate==='number')?d.passRate:null,
+    passed:(typeof d.passed==='boolean')?d.passed:null,
+    saved:d.clientSavedAt||d.date||'',cloud:true};
+}
+// รายการที่ใช้แสดงผล = คลาวด์ + ของในเครื่องที่ยังไม่มีบนคลาวด์ (กันซ้ำด้วย id)
+function allRecords(){
+  const cloud=(cloudRecs||[]).map(recFromCloud);
+  const seen=new Set(cloud.map(r=>String(r.id)));
+  const local=(hist||[]).filter(h=>h&&!seen.has(String(h.id)));
+  return cloud.concat(local).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+}
+// ป้ายบอกแหล่งข้อมูล — ให้รู้ว่ากำลังดูภาพรวมทั้งองค์กร หรือข้อมูลในเครื่องตอนออฟไลน์
+function recSourceNote(extraStyle){
+  const un=(hist||[]).filter(h=>h&&h.synced===false).length;
+  const st='font-size:11px;color:var(--muted);margin:2px 0 8px;'+(extraStyle||'');
+  let tx;
+  if(!db)tx='⚠️ ออฟไลน์ — แสดงเฉพาะผลตรวจที่บันทึกในเครื่องนี้';
+  else if(!cloudRecs&&cloudErr)tx='⚠️ เชื่อมคลาวด์ไม่ได้ — แสดงเฉพาะผลตรวจในเครื่องนี้';
+  else if(!cloudRecs)tx='⏳ กำลังโหลดผลตรวจจากคลาวด์…';
+  else tx='☁️ ผลตรวจทั้งองค์กร '+cloudRecs.length+' รายการ'+(un?' · รอซิงก์อีก '+un+' รายการ':'');
+  return'<div style="'+st+'">'+tx+'</div>';
+}
+
+function rHome(){renderHome();ensureCloudRecords().then(ch=>{if(ch)renderHome();});}
+function renderHome(){
+  const recs=allRecords();
+  const total=CRIT_AREAS.length,done=CRIT_AREAS.filter(a=>recs.some(h=>h.area===a)).length,pending=total-done,pct=total?Math.round(done/total*100):0;
   document.getElementById('st-tot').textContent=total;
   document.getElementById('st-done').textContent=done;
   document.getElementById('st-pending').textContent=pending;
   document.getElementById('dprog-pct').textContent=pct+'%';
   document.getElementById('dprog-fill').style.width=pct+'%';
-  const recent=hist.slice(0,3);
-  document.getElementById('recent-list').innerHTML=recent.length?recent.map(h=>{
-    const c=h.tot>=90?'#16A34A':h.tot>=67?'#2563EB':'#DC2626';
+  const recent=recs.slice(0,3);
+  document.getElementById('recent-list').innerHTML=(recent.length?recent.map(h=>{
+    const c=levelOfRec(h).c;
     return `<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border)">
       <div style="font-size:20px">${AICO[h.area]||'📍'}</div>
-      <div style="flex:1"><div style="font-size:13px;font-weight:600">${h.aname}</div><div style="font-size:11px;color:var(--muted)">${escA(deptName(h.dept))} · ${new Date(h.date).toLocaleDateString('th-TH')}</div></div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${escA(h.aname)}</div><div style="font-size:11px;color:var(--muted)">${escA(deptName(h.dept))} · ${escA(h.insp||'—')} · ${new Date(h.date).toLocaleDateString('th-TH')}</div></div>
       <div style="font-size:16px;font-weight:800;color:${c}">${h.tot}%</div></div>`;}).join('')
-    :'<div class="recent-empty">ยังไม่มีประวัติ</div>';
+    :'<div class="recent-empty">ยังไม่มีประวัติ</div>')+recSourceNote('margin:8px 0 0');
 }
-function rHist(){
-  const el=document.getElementById('hist-list');
-  if(!hist.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">ยังไม่มีประวัติ</div><div class="empty-desc">ตรวจและบันทึกผลแล้วจะแสดงที่นี่</div></div>';return;}
-  el.innerHTML=hist.map(h=>{
-    const c=h.tot>=90?'#16A34A':h.tot>=67?'#2563EB':'#DC2626';
-    const bg=h.tot>=90?'#DCFCE7':h.tot>=67?'#DBEAFE':'#FEE2E2';
-    const lv=h.tot>=90?'ดีกว่ามาตรฐาน':h.tot>=67?'ผ่านมาตรฐาน':'ต่ำกว่ามาตรฐาน';
-    return `<div class="hitem"><div class="hico" style="background:${bg}">${AICO[h.area]||'📍'}</div>
-      <div class="hinfo"><div class="htitle">${h.aname}${h.adet?' ('+h.adet+')':''}</div>
-        <div class="hmeta">${escA(deptName(h.dept))} · ${h.insp} · ${new Date(h.date).toLocaleDateString('th-TH')} · ${h.round}</div>
-        <div style="font-size:11px;margin-top:3px;color:${h.defs&&h.defs.length?'#DC2626':'#2563EB'}">${h.defs&&h.defs.length?'⚠️ ต้องแก้ไข '+h.defs.length+' หัวข้อ':'✅ ผ่านทุกหัวข้อ'}</div></div>
-      <div class="hscore"><div class="hpct" style="color:${c}">${h.tot}%</div><div class="hlv" style="color:${c}">${lv}</div><div style="font-size:10px;color:var(--light);margin-top:2px">${h.tot}/100</div></div></div>`;}).join('');
-}
-function rRank(){
+// หมายเหตุ: หน้า "ประวัติการตรวจ" ใช้ loadAdminData() (ดึงจาก Firestore) ไม่ได้ใช้ rHist() แล้ว —
+// rHist() เดิมเขียนลง #hist-list ซึ่งไม่มีใน markup อีกต่อไป (เป็นโค้ดตาย) จึงถอดออก
+
+function rRank(){renderRank();ensureCloudRecords().then(ch=>{if(ch)renderRank();});}
+function renderRank(){
   const el=document.getElementById('rank-list');
-  if(!hist.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">ยังไม่มีข้อมูล</div><div class="empty-desc">ตรวจและบันทึกผลแล้วจะแสดง Ranking ที่นี่</div></div>';return;}
+  const recs=allRecords();
+  if(!recs.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">ยังไม่มีข้อมูล</div><div class="empty-desc">ตรวจและบันทึกผลแล้วจะแสดง Ranking ที่นี่</div></div>'+recSourceNote('grid-column:1/-1');return;}
   const grp={};
-  hist.forEach(h=>{const k=h.aname+'|'+h.dept;if(!grp[k]||new Date(h.date)>new Date(grp[k].date))grp[k]=h;});
+  recs.forEach(h=>{const k=h.aname+'|'+h.dept;if(!grp[k]||new Date(h.date)>new Date(grp[k].date))grp[k]=h;});
   const ranked=Object.values(grp).sort((a,b)=>b.tot-a.tot);
   const medals=['🥇','🥈','🥉'],mbc=['#60A5FA','#94A3B8','#3B82F6'];
-  el.innerHTML='<div class="sec-title">อันดับคะแนนล่าสุดแต่ละพื้นที่</div>'+ranked.map((h,i)=>{
-    const c=h.tot>=90?'#16A34A':h.tot>=67?'#2563EB':'#DC2626';
-    const bg=h.tot>=90?'#DCFCE7':h.tot>=67?'#DBEAFE':'#FEE2E2';
-    const lv=h.tot>=90?'ดีกว่ามาตรฐาน':h.tot>=67?'ผ่านมาตรฐาน':'ต่ำกว่ามาตรฐาน';
+  el.innerHTML='<div class="sec-title">อันดับคะแนนล่าสุดแต่ละพื้นที่</div>'+recSourceNote('grid-column:1/-1')+ranked.map((h,i)=>{
+    const L=levelOfRec(h),c=L.c,bg=L.bg,lv=L.lv;
     return `<div class="ritem"><div class="rnum" style="background:${i<3?mbc[i]:'#94A3B8'};color:#fff">${i<3?medals[i]:i+1}</div>
       <div style="font-size:22px">${AICO[h.area]||'📍'}</div>
-      <div class="rinfo"><div class="rname">${h.aname}</div><div class="rmeta">${escA(deptName(h.dept))} · ${new Date(h.date).toLocaleDateString('th-TH')}</div>
+      <div class="rinfo"><div class="rname">${escA(h.aname)}</div><div class="rmeta">${escA(deptName(h.dept))} · ${new Date(h.date).toLocaleDateString('th-TH')}</div>
         <div class="rtrack"><div class="rfill" style="width:${h.tot}%;background:${c}"></div></div></div>
       <div style="text-align:right;min-width:50px"><div class="rpct" style="color:${c}">${h.tot}%</div>
         <div style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:7px;background:${bg};color:${c};margin-top:3px">${lv}</div></div></div>`;}).join('');
@@ -2217,6 +2472,64 @@ function normDepts(arr){return (Array.isArray(arr)?arr:[]).map(normDept).filter(
 let DEPTS=[{code:'BIM',name:'BIM'},{code:'WHS',name:'WHS'},{code:'AS',name:'AS'},{code:'DBD',name:'DBD'},{code:'RD',name:'RD'}];
 try{const _dc=JSON.parse(localStorage.getItem(DEPT_CACHE_KEY)||'null');if(Array.isArray(_dc)&&_dc.length){const _n=normDepts(_dc);if(_n.length)DEPTS=_n;}}catch(e){}
 function deptName(c){if(!c)return '';const d=DEPTS.find(x=>x.code===c);return d?(d.name||d.code):c;}
+// ───── รอบการตรวจ (แอดมินสร้างเอง · แชร์ผ่าน Firestore: appConfig/rounds.list) ─────
+// เดิมเป็นชื่อเดือนตายตัว 12 เดือนในหน้าเว็บ — เปลี่ยนเป็นให้แอดมินกำหนดเอง
+// ผู้ตรวจจะเห็นเฉพาะรอบที่แอดมินสร้างและยังเปิดอยู่ · ผลตรวจเก่าเก็บชื่อรอบเป็นข้อความ
+// จึงไม่ต้องย้ายข้อมูล (รอบเดือนเดิมยังแสดงในประวัติ/หน้าเทียบคะแนนตามปกติ)
+const ROUND_CACHE_KEY='5s_rounds';
+// areas = รายการ key ของพื้นที่ที่รอบนี้ใช้ได้ · ว่าง = ใช้ได้ทุกพื้นที่ (รอบรุ่นก่อนหน้าเป็นแบบนี้)
+function normRoundAreas(a){
+  const out=[],seen={};
+  (Array.isArray(a)?a:[]).forEach(k=>{const s=String(k||'').trim();if(s&&!seen[s]){seen[s]=1;out.push(s);}});
+  return out;
+}
+function normRound(r){
+  if(typeof r==='string'){const s=r.trim();return s?{name:s,active:true,areas:[]}:null;}
+  if(r&&r.name!=null){const s=String(r.name).trim();return s?{name:s,active:r.active!==false,areas:normRoundAreas(r.areas)}:null;}
+  return null;
+}
+function normRounds(arr){
+  const out=[],seen={};
+  (Array.isArray(arr)?arr:[]).map(normRound).filter(Boolean).forEach(r=>{if(!seen[r.name]){seen[r.name]=1;out.push(r);}});
+  return out;
+}
+let ROUNDS=[];
+try{const _rc=JSON.parse(localStorage.getItem(ROUND_CACHE_KEY)||'null');if(Array.isArray(_rc))ROUNDS=normRounds(_rc);}catch(e){}
+function saveRoundCache(){try{localStorage.setItem(ROUND_CACHE_KEY,JSON.stringify(ROUNDS));}catch(e){}}
+// พื้นที่ที่เลือกอยู่ในฟอร์มตรวจ (ถ้ายังไม่ได้เลือก ใช้พื้นที่ปัจจุบันของการตรวจ)
+function currentAreaKey(){const el=document.getElementById('f-area');const v=el?String(el.value||'').trim():'';return v||area||'';}
+function roundForArea(r,key){const list=(r&&Array.isArray(r.areas))?r.areas:[];return !list.length||!key||list.indexOf(key)>=0;}
+// activeRounds()      = รอบที่เปิดอยู่และใช้กับพื้นที่ที่เลือกอยู่
+// activeRounds('')    = รอบที่เปิดอยู่ทั้งหมด (ไม่กรองพื้นที่)
+function activeRounds(areaKey){
+  const key=(areaKey===undefined)?currentAreaKey():(areaKey||'');
+  return ROUNDS.filter(r=>r.active!==false&&roundForArea(r,key));
+}
+// เติมตัวเลือกในช่อง "รอบการตรวจ" — keep = ค่าที่ต้องคงไว้แม้ไม่อยู่ในรายการแล้ว
+// (เช่น เปิดผลตรวจเก่าที่ใช้รอบซึ่งถูกลบ/ปิดไปแล้วขึ้นมาแก้ ต้องไม่ถูกเปลี่ยนรอบทิ้ง)
+function fillRoundSelect(keep){
+  const sel=document.getElementById('f-round');if(!sel)return;
+  const explicit=(keep!=null);
+  const cur=((explicit?keep:sel.value)||'').toString().trim();
+  const list=activeRounds().map(r=>r.name);
+  // ค่าที่ส่งมาตรง ๆ คงไว้เสมอ (เช่น รอบเดิมของผลตรวจเก่าที่ถูกลบ/ปิด/ผูกพื้นที่อื่นไปแล้ว)
+  // ถ้าไม่ได้ส่งมา จะเก็บค่าที่เลือกอยู่ไว้เฉพาะตอนที่ยังเลือกได้จริงในพื้นที่นี้
+  if(cur&&explicit&&list.indexOf(cur)<0)list.unshift(cur);
+  const val=list.indexOf(cur)>=0?cur:'';
+  const none=activeRounds('').length?'-- ยังไม่มีรอบสำหรับพื้นที่นี้ --':'-- ยังไม่มีรอบตรวจ --';
+  sel.innerHTML=list.length
+    ?'<option value="">-- เลือกรอบ --</option>'+list.map(n=>`<option value="${escA(n)}"${n===val?' selected':''}>${escA(n)}</option>`).join('')
+    :'<option value="">'+none+'</option>';
+  sel.value=val;
+}
+async function persistRounds(){
+  saveRoundCache();fillRoundSelect();
+  if(!db)return false;
+  try{await db.collection('appConfig').doc('rounds').set({list:ROUNDS,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});return true;}
+  catch(e){showToast('⚠️ บันทึกรอบการตรวจไม่สำเร็จ: '+((e&&e.message)||e)+' (อาจต้อง deploy Firestore rules)');return false;}
+}
+// เติมช่องเลือกรอบจากแคชตั้งแต่ตอนโหลดหน้า (ก่อน loadAppConfig จะวิ่งตอนล็อกอินเสร็จ)
+try{fillRoundSelect('');}catch(e){}
 let cmpArea='',cmpDept='',cmpRound='',cmpData=null,cmpLast=null;
 function cmpFiltersHtml(rounds){
   const aopt=['<option value="">-- เลือกพื้นที่ --</option>'].concat(Object.keys(ANAME).map(k=>`<option value="${k}"${k===cmpArea?' selected':''}>${AICO[k]||''} ${cmpEsc(ANAME[k])}</option>`)).join('');
@@ -2255,12 +2568,12 @@ async function cmpLoad(){
       const docs=snap.docs.map(d=>({id:d.id,...d.data()})).filter(d=>{const dd=(d.dept||'').trim();return dd===cmpDept||dd===''});
       for(const d of docs){
         const isnap=await db.collection('inspections').doc(d.id).collection('items').get();
-        const items=isnap.docs.map(x=>x.data()).map(it=>({no:String(it.itemNo),t:it.title,h:it.category,sc:it.isNA?'NA':(it.score==null?'':it.score),ph:Array.isArray(it.photos)?it.photos:[],nt:it.note||''}));
+        const items=isnap.docs.map(x=>x.data()).map(it=>({no:String(it.itemNo),t:it.title,h:it.category,sc:it.isNA?'NA':normScore(it.score==null?'':it.score),ph:Array.isArray(it.photos)?it.photos:[],nt:it.note||''}));
         raters.push({insp:d.inspector||'—',dept:(d.dept||'').trim(),round:d.round||'—',date:d.date,saved:d.clientSavedAt||d.date,items});
       }
     }else{
       hist.filter(h=>{const dd=(h.dept||'').trim();return h.area===cmpArea&&h.items&&h.items.length&&(dd===cmpDept||dd==='')}).forEach(h=>{
-        raters.push({insp:h.insp||'—',dept:(h.dept||'').trim(),round:h.round||'—',date:h.date,saved:h.saved||h.date,items:h.items});
+        raters.push({insp:h.insp||'—',dept:(h.dept||'').trim(),round:h.round||'—',date:h.date,saved:h.saved||h.date,items:normItems(h.items)});
       });
     }
   }catch(err){
@@ -2278,31 +2591,31 @@ function cmpOfficialForRound(roundRaters){
   const byInsp={};
   roundRaters.forEach(h=>{const k=h.insp||'—';if(!byInsp[k]||new Date(h.saved||h.date)>new Date(byInsp[k].saved||byInsp[k].date))byInsp[k]=h;});
   const raters=Object.values(byInsp);
-  if(!raters.length)return{score:null,n:0};
+  if(!raters.length)return{score:null,pr:null,n:0};
   const nos=[];const seen={};
   raters.forEach(r=>(r.items||[]).forEach(it=>{if(it&&it.no!=null&&!seen[it.no]){seen[it.no]=1;nos.push(it.no);}}));
-  let sum=0,cnt=0;
+  let sum=0,cnt=0,pcnt=0;
   nos.forEach(no=>{
     const nums=raters.map(r=>{const f=(r.items||[]).find(x=>x.no===no);return f?f.sc:'';}).filter(v=>v!=='NA'&&v!==''&&v!=null).map(Number);
-    if(nums.length){sum+=nums.reduce((a,v)=>a+v,0)/nums.length;cnt++;}
+    if(nums.length){const mean=nums.reduce((a,v)=>a+v,0)/nums.length;sum+=mean;cnt++;if(mean>=2)pcnt++;}
   });
-  return{score:cnt?Math.round(sum/(cnt*3)*100):null,n:raters.length};
+  return{score:cnt?pct(sum/(cnt*3)*100):null,pr:cnt?Math.round(pcnt/cnt*100):null,n:raters.length};
 }
 // กราฟแนวโน้มคะแนนเฉลี่ยทางการข้ามรอบ (inline SVG · ไม่ใช้ library · ทำงานออฟไลน์)
 function cmpTrendHtml(){
   if(!cmpData||!cmpData._rounds)return'';
   const rounds=cmpData._rounds.slice().sort((a,b)=>String(a).localeCompare(String(b),'th',{numeric:true}));
-  const all=rounds.map(rd=>{const o=cmpOfficialForRound(cmpData.raters.filter(r=>r.round===rd));return{round:rd,score:o.score,n:o.n};});
+  const all=rounds.map(rd=>{const o=cmpOfficialForRound(cmpData.raters.filter(r=>r.round===rd));return{round:rd,score:o.score,pr:o.pr,n:o.n};});
   const data=all.filter(d=>d.score!=null);
   if(data.length<2)return'';
   const W=320,H=150,padL=24,padR=10,padT=14,padB=26,plotW=W-padL-padR,plotH=H-padT-padB,n=data.length;
   const x=i=>padL+(n===1?plotW/2:plotW*i/(n-1));
   const y=v=>padT+plotH*(1-v/100);
-  const tc=v=>v>=90?'#16A34A':v>=67?'#2563EB':'#DC2626';
+  const tc=d=>levelOf(d.score,d.pr==null?null:d.pr).c;
   let grid='';
   [0,20,40,60,80,100].forEach(g=>{const yy=y(g).toFixed(1),p=g===80;grid+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" style="stroke:${p?'#16A34A':'var(--border)'};stroke-width:${p?1:0.5}"${p?' stroke-dasharray="4 3"':''}/><text x="${padL-4}" y="${(+yy+3).toFixed(1)}" font-size="8" style="fill:var(--muted)" text-anchor="end">${g}</text>`;});
   const line=data.map((d,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(d.score).toFixed(1)}`).join(' ');
-  const dots=data.map((d,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(d.score).toFixed(1)}" r="3.5" fill="${tc(d.score)}"/><text x="${x(i).toFixed(1)}" y="${(y(d.score)-6).toFixed(1)}" font-size="8.5" font-weight="700" fill="${tc(d.score)}" text-anchor="middle">${d.score}</text>`).join('');
+  const dots=data.map((d,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(d.score).toFixed(1)}" r="3.5" fill="${tc(d)}"/><text x="${x(i).toFixed(1)}" y="${(y(d.score)-6).toFixed(1)}" font-size="8.5" font-weight="700" fill="${tc(d)}" text-anchor="middle">${d.score}</text>`).join('');
   const xl=data.map((d,i)=>{const anc=i===0?'start':i===n-1?'end':'middle';return`<text x="${x(i).toFixed(1)}" y="${H-8}" font-size="8" style="fill:var(--muted)" text-anchor="${anc}">${cmpEsc(String(d.round))}</text>`;}).join('');
   const diff=data[data.length-1].score-data[0].score;
   const tTxt=diff>0?`▲ ดีขึ้น ${diff}%`:diff<0?`▼ ลดลง ${-diff}%`:'■ เท่าเดิม';
@@ -2351,15 +2664,18 @@ function cmpRender(){
   const oc=overall>=85?'#2563EB':overall>=70?'#D97706':'#DC2626';
   // คะแนนเฉลี่ยทางการ (Method B): เฉลี่ยคะแนนรายข้อของผู้ตรวจทุกคน (ข้าม NA) แล้วรวมเป็น % เดียวต่อพื้นที่+หน่วยงาน+รอบ
   const scoredMeans=rows.filter(r=>r.mean!=null);
-  const officialScore=scoredMeans.length?Math.round(scoredMeans.reduce((a,r)=>a+r.mean,0)/(scoredMeans.length*3)*100):null;
-  const offLv=officialScore==null?'–':levelLabel(officialScore);
-  const offColor=officialScore==null?'#94A3B8':officialScore>=90?'#16A34A':officialScore>=67?'#2563EB':'#DC2626';
+  const officialScore=scoredMeans.length?pct(scoredMeans.reduce((a,r)=>a+r.mean,0)/(scoredMeans.length*3)*100):null;
+  const _oPr=scoredMeans.length?Math.round(scoredMeans.filter(r=>r.mean>=2).length/scoredMeans.length*100):null;
+  const _oL=levelOf(officialScore||0,_oPr);
+  const offLv=officialScore==null?'–':_oL.lv;
+  const offColor=officialScore==null?'#94A3B8':_oL.c;
   const relLabel=overall>=85?'เชื่อถือได้สูง':overall>=70?'ปานกลาง':'ควรทบทวนเกณฑ์';
   // % คะแนนรวมของผู้ตรวจแต่ละคน (ข้าม NA · เต็ม 3 ต่อข้อ) — เทียบคะแนนรวมกัน
-  const raterTotals=raters.map(r=>{let s=0,m=0;base.forEach(it=>{const f=(r.items||[]).find(x=>x.no===it.no);const v=f?f.sc:'';if(v==='NA'||v===''||v==null)return;m+=3;s+=Number(v);});return m?Math.round(s/m*100):null;});
-  const totColor=t=>t==null?'#94A3B8':t>=90?'#16A34A':t>=67?'#2563EB':'#DC2626';
-  const totalRow=`<tr style="border-top:2px solid var(--border);background:#F1F5F9"><td></td><td style="padding:8px;font-size:12px;font-weight:800">คะแนนรวม %</td>${raterTotals.map(t=>`<td style="text-align:center;font-weight:800;color:${totColor(t)}">${t==null?'–':t+'%'}</td>`).join('')}<td style="text-align:center;font-weight:800;color:${offColor}" title="คะแนนเฉลี่ยทางการ">${officialScore==null?'–':officialScore+'%'}</td><td></td></tr>`;
-  cmpLast={raters,rows,raterTotals,overall,review,officialScore,offLv};
+  const raterTotals=raters.map(r=>{let s=0,m=0;base.forEach(it=>{const f=(r.items||[]).find(x=>x.no===it.no);const v=f?f.sc:'';if(v==='NA'||v===''||v==null)return;m+=3;s+=Number(v);});return m?pct(s/m*100):null;});
+  const raterPr=raters.map(r=>{let n=0,p=0;base.forEach(it=>{const f=(r.items||[]).find(x=>x.no===it.no);const v=f?f.sc:'';if(v==='NA'||v===''||v==null)return;n++;if(Number(v)>=2)p++;});return n?Math.round(p/n*100):null;});
+  const totColor=(t,i)=>t==null?'#94A3B8':levelOf(t,raterPr[i]).c;
+  const totalRow=`<tr style="border-top:2px solid var(--border);background:#F1F5F9"><td></td><td style="padding:8px;font-size:12px;font-weight:800">คะแนนรวม %</td>${raterTotals.map((t,i)=>`<td style="text-align:center;font-weight:800;color:${totColor(t,i)}">${t==null?'–':t+'%'}</td>`).join('')}<td style="text-align:center;font-weight:800;color:${offColor}" title="คะแนนเฉลี่ยทางการ">${officialScore==null?'–':officialScore+'%'}</td><td></td></tr>`;
+  cmpLast={raters,rows,raterTotals,raterPr,overall,review,officialScore,offLv,offL:_oL};
   const ths=raters.map(r=>`<th style="padding:7px 3px;font-weight:600;font-size:11px;white-space:nowrap">${cmpEsc(r.insp||'—')}</th>`).join('');
   const trs=rows.map(r=>{
     const sp=r.spread;
@@ -2618,8 +2934,13 @@ async function delRefImg(i,k){
   const no=settingsDraft.items[i]&&settingsDraft.items[i].no;if(!no)return;
   if(!confirm('ลบรูปมาตรฐานนี้?'))return;
   if(!REFIMG[settingsArea])REFIMG[settingsArea]={};
-  const arr=(REFIMG[settingsArea][no]||[]).slice();arr.splice(k,1);REFIMG[settingsArea][no]=arr;
+  const arr=(REFIMG[settingsArea][no]||[]).slice();const removed=arr.splice(k,1)[0];REFIMG[settingsArea][no]=arr;
   saveRefImgCache();rSettings();
+  // ลบไฟล์จริงบน R2 ด้วย (BUG-7) — ไม่งั้นไฟล์ค้างกินพื้นที่และยังเปิดอ่านได้ตลอดไป
+  if(removed&&typeof removed==='string'&&R2_WORKER&&removed.indexOf(R2_WORKER.replace(/\/$/,'')+'/file/')===0){
+    const ok=await r2DeleteFile(removed);
+    if(!ok)showToast('⚠️ เอาออกจากรายการแล้ว แต่ลบไฟล์บน R2 ไม่สำเร็จ (ไฟล์ยังค้างอยู่)');
+  }
   if(db){try{await db.collection('refImages').doc(settingsArea).set({area:settingsArea,images:REFIMG[settingsArea],updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}catch(e){showToast('⚠️ ลบในคลาวด์ไม่สำเร็จ: '+((e&&e.message)||e));}}
 }
 // ───── 4.1 จัดการรายชื่อผู้ตรวจในหน้าตั้งค่า ─────

@@ -66,6 +66,9 @@ const upload = (path, token) => worker.fetch(new Request('https://w.dev/upload',
 const del = (id, token) => worker.fetch(new Request('https://w.dev/inspection/' + id, {
   method: 'DELETE', headers: token ? { Authorization: 'Bearer ' + token } : {},
 }), env);
+const delFile = (key, token) => worker.fetch(new Request('https://w.dev/file/' + encodeURIComponent(key), {
+  method: 'DELETE', headers: token ? { Authorization: 'Bearer ' + token } : {},
+}), env);
 
 // ── ชุดทดสอบ ──
 let pass = 0, fail = 0;
@@ -108,6 +111,19 @@ const before = stored.size;
 await check('แอดมินสั่งลบ', del('a1', makeToken(validPayload('uid-admin'))), 200);
 if (stored.size < before) { pass++; console.log('  ✅ ไฟล์ของ inspection a1 ถูกลบจริง'); }
 else { fail++; console.log('  ❌ ไฟล์ไม่ถูกลบ'); }
+
+console.log('\n── ลบรูปมาตรฐานทีละไฟล์ DELETE /file/ (เฉพาะแอดมิน · เฉพาะ standards/) ──');
+await upload('standards/Office/9/del.jpg', makeToken(validPayload('uid-admin')));
+await upload('inspections/keep1/1/keep.jpg', makeToken(validPayload()));
+await check('ไม่ส่ง token', delFile('standards/Office/9/del.jpg', null), 401);
+await check('inspector สั่งลบ', delFile('standards/Office/9/del.jpg', makeToken(validPayload('uid-inspector'))), 403);
+await check('แอดมินลบรูปหลักฐาน inspections/ ไม่ได้', delFile('inspections/keep1/1/keep.jpg', makeToken(validPayload('uid-admin'))), 400);
+await check('path ผิดรูปแบบ', delFile('../../etc/passwd', makeToken(validPayload('uid-admin'))), 400);
+await check('แอดมินลบรูปมาตรฐาน', delFile('standards/Office/9/del.jpg', makeToken(validPayload('uid-admin'))), 200);
+if (!stored.has('standards/Office/9/del.jpg')) { pass++; console.log('  ✅ ไฟล์ถูกลบออกจาก R2 จริง'); }
+else { fail++; console.log('  ❌ ไฟล์ยังอยู่ใน R2'); }
+if (stored.has('inspections/keep1/1/keep.jpg')) { pass++; console.log('  ✅ รูปหลักฐานของผลตรวจไม่ถูกแตะ'); }
+else { fail++; console.log('  ❌ รูปหลักฐานหายไปด้วย'); }
 
 console.log('\n── GET /file/ ยังเปิดอ่านได้โดยไม่ต้อง token (รูปในรายงาน) ──');
 await check('อ่านรูป standards ที่มีอยู่', worker.fetch(new Request('https://w.dev/file/' + encodeURIComponent('standards/Office/1/x.jpg')), env), 200);

@@ -31,6 +31,19 @@ service cloud.firestore {
 
     // User accounts. Any signed-in user may read (to show inspector names);
     // only an admin may create, edit, or deactivate accounts.
+    // เอกสารแม่ของคะแนนรายข้อ — ใช้ดูว่าผลตรวจนี้เป็นของใคร
+    function parentExists(id) {
+      return exists(/databases/$(database)/documents/inspections/$(id));
+    }
+    // หมายเหตุเรื่องโควตา: กฎ 1 คำขอเรียก get()/exists() ได้จำกัด (batch write = 20 ครั้ง)
+    // การบันทึกผลตรวจ 1 ครั้งเขียน items ~20-25 ชิ้นใน batch เดียว จึงตั้งใจให้ทุกชิ้น
+    // อ่าน "เอกสารเดียวกัน" (inspections/{id}) เพื่อให้ถูกแคชรวมเป็นครั้งเดียว และ
+    // จัดลำดับเงื่อนไขให้ทางที่ใช้บ่อยที่สุด (สร้างใหม่ / แก้ของตัวเอง) ไม่ต้องอ่านเลย
+    function ownsInspection(id) {
+      return parentExists(id)
+        && get(/databases/$(database)/documents/inspections/$(id)).data.get('inspectorUid', '') == request.auth.uid;
+    }
+
     match /users/{uid} {
       allow read: if signedIn();
       allow write: if isAdmin();
@@ -62,9 +75,24 @@ service cloud.firestore {
       allow update, delete: if isAdmin()
         || (signedIn() && resource.data.inspectorUid == request.auth.uid);
 
+      // คะแนนรายข้อ — เดิมเปิดให้ "ใครก็ได้ที่ล็อกอิน" เขียนทับ (BUG-5) ทำให้ผู้ตรวจคนหนึ่ง
+      // แก้คะแนนรายข้อในผลตรวจของคนอื่นได้ โดยคะแนนรวมในเอกสารแม่ยังเท่าเดิม (ตรวจจับยาก)
+      // ตอนนี้ผูกสิทธิ์กับเจ้าของผลตรวจในเอกสารแม่: แอดมิน หรือเจ้าของเท่านั้น
+      //
+      // ข้อยกเว้นของ create: ตอนบันทึกผลตรวจใหม่ แอปเขียนเอกสารแม่กับ items พร้อมกันใน
+      // batch เดียว และ get()/exists() ในกฎจะยังมองไม่เห็นเอกสารแม่ที่ยังไม่ commit —
+      // ถ้าบังคับว่าต้องมีเอกสารแม่ก่อน การบันทึกใหม่ทุกครั้งจะถูกปฏิเสธทั้ง batch
       match /items/{itemId} {
         allow read: if signedIn();
-        allow write: if signedIn();
+        // สร้าง: เอกสารแม่ยังไม่มี (batch เดียวกัน) หรือเป็นผลตรวจของตัวเอง / แอดมิน
+        allow create: if signedIn() && (!parentExists(id) || ownsInspection(id) || isAdmin());
+        // แก้/ลบ: ทางลัดคือดูจาก inspectorUid ที่ฝังอยู่ในตัว item เอง (ไม่ต้องอ่านเอกสารแม่)
+        // ส่วน ownsInspection() ไว้รองรับ item รุ่นเก่าที่ยังไม่มีฟิลด์นี้
+        allow update, delete: if signedIn() && (
+          resource.data.get('inspectorUid', '') == request.auth.uid
+          || ownsInspection(id)
+          || isAdmin()
+        );
       }
     }
 
