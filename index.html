@@ -621,7 +621,7 @@ body[data-role="admin"] #logout-fab,body[data-role="inspector"] #logout-fab{disp
           <div class="field"><div class="flbl">รอบการตรวจ <span style="color:#DC2626">*</span></div>
             <select class="inp" id="f-round" onchange="this.classList.remove('inp-err')"></select></div>
         </div>
-        <div class="tip-box"><b>เกณฑ์การให้คะแนน</b> &nbsp;|&nbsp; 3=ดีกว่ามาตรฐาน · 2=ผ่านมาตรฐาน · 1=ไม่ผ่านมาตรฐาน · N/A=ไม่มีให้ตรวจ<br>คะแนนรวมคิดเป็น % (ข้าม N/A) · ผ่านมาตรฐานทุกข้อ = 67% · ดีกว่ามาตรฐานทุกข้อ = 100%</div>
+        <div class="tip-box"><b>เกณฑ์การให้คะแนน</b> &nbsp;|&nbsp; 3=ดีกว่ามาตรฐาน · 2=ผ่านมาตรฐาน · 1=ไม่ผ่านมาตรฐาน · N/A=ไม่มีให้ตรวจ<br>แต้มต่อข้อ: ไม่ผ่าน=0 · ผ่าน=80 · ดีกว่า=100 · N/A ไม่นับ &nbsp;→&nbsp; <b>ผ่านมาตรฐานครบทุกข้อ = 80 คะแนน = ผ่าน KPI พอดี</b></div>
       </div>
     </div>
     <div class="botnav">
@@ -675,6 +675,7 @@ body[data-role="admin"] #logout-fab,body[data-role="inspector"] #logout-fab{disp
     <div class="sec-title" style="margin:0;padding:0;border:none">รายการ (<span id="admin-count">0</span>)</div>
     <div style="display:flex;gap:6px">
       <button class="exp-btn" onclick="loadAdminData()">🔄 รีเฟรช</button>
+      <button class="exp-btn" onclick="rescoreAll()">♻️ คำนวณคะแนนใหม่</button>
       <button class="exp-btn" onclick="exportCSV()">📥 Export CSV</button>
     </div>
   </div>
@@ -685,7 +686,7 @@ body[data-role="admin"] #logout-fab,body[data-role="inspector"] #logout-fab{disp
 <div class="pg" id="pg-ranking"><div class="wrap">
 <div class="rep-seg-bar"><button class="rep-seg" data-rep="ranking" onclick="goTab('ranking')">สรุปผล</button><button class="rep-seg" data-rep="compare" onclick="goTab('compare')">เทียบคะแนน</button><button class="rep-seg" data-rep="history" onclick="goTab('history')">ประวัติ</button></div>
   <div class="dash-h">อันดับคะแนน 5ส</div>
-  <div class="dash-sub">เรียงคะแนนเฉลี่ยของแต่ละพื้นที่ จากมากไปน้อย</div>
+  <div class="dash-sub">คะแนนเฉลี่ยจากผู้ตรวจทุกคน · กดปุ่ม Report เพื่อออกใบรายงานของแต่ละพื้นที่</div>
   <div id="rank-list"></div>
 </div></div>
 
@@ -1268,10 +1269,22 @@ function normScore(v){
   return Math.max(0,Math.min(SC_MAX,Math.round(n)));
 }
 function normItems(items){return (Array.isArray(items)?items:[]).map(it=>(it&&typeof it==='object')?Object.assign({},it,{sc:normScore(it.sc)}):it);}
-// คะแนนรวม % จากคะแนนรายข้อ (ข้าม NA · เต็ม 3 ต่อข้อ)
+// ───── ตารางแปลง "คะแนนดิบรายข้อ" → "แต้ม" (SCORE_VER 2) ─────
+// KPI ขององค์กรคือ 80 = ผ่านมาตรฐาน จึงยึดจุดนี้ตรง ๆ: ผ่านมาตรฐานครบทุกข้อ = 80 คะแนนพอดี
+//   1 = ไม่ผ่านมาตรฐาน →   0 แต้ม   (เดิมได้ 33% ฟรี ๆ เพราะหารด้วย 3 — ตัดพื้นนั้นทิ้ง)
+//   2 = ผ่านมาตรฐาน    →  80 แต้ม   ← ตรงกับ KPI
+//   3 = ดีกว่ามาตรฐาน  → 100 แต้ม   (สเกลเก่า 0-4: เลข 4 ก็คือดีกว่ามาตรฐาน)
+//   N/A               → ไม่นับทั้งตัวตั้งและตัวหาร
+// กติกาสำคัญ: ต้อง "แปลงเป็นแต้มก่อน แล้วค่อยเฉลี่ย" เสมอ ห้ามเฉลี่ยคะแนนดิบก่อนแล้วค่อยแปลง
+// มิฉะนั้นข้อที่กรรมการให้ ไม่ผ่าน/ดีกว่า จะได้ 80 (ข้อบกพร่องถูกลบล้าง) แทนที่จะเป็น 50
+const SCORE_VER=2;
+const PT_FULL=100;
+const PT=[0,0,80,100,100];          // index = คะแนนดิบ 0-4
+function ptOf(v){const i=Number(v);return isFinite(i)?PT[Math.max(0,Math.min(4,Math.round(i)))]:0;}
+// คะแนนรวม % จากคะแนนรายข้อ (ข้าม NA · เต็ม 100 แต้มต่อข้อ)
 function totOfItems(items){
   let s=0,m=0;
-  (Array.isArray(items)?items:[]).forEach(it=>{const v=it&&it.sc;if(v==='NA'||v===''||v==null)return;m+=3;s+=Number(v);});
+  (Array.isArray(items)?items:[]).forEach(it=>{const v=it&&it.sc;if(v==='NA'||v===''||v==null)return;m+=PT_FULL;s+=ptOf(v);});
   return m?pct(s/m*100):0;
 }
 // ประวัติในเครื่อง: ถ้าเรคคอร์ดไหนมีคะแนนนอกสเกล ให้บีบคะแนนรายข้อแล้วคิดคะแนนรวมใหม่
@@ -1558,27 +1571,30 @@ function setPb(done,tot){
 }
 // NA-aware คำนวณคะแนน (getTotal ยังคืนค่าเป็น % 0-100 เหมือนเดิม เพื่อไม่กระทบ history/ranking/print)
 function getScored(){return Object.entries(sc).filter(([i,v])=>v!==-1&&v!=='NA');}
-function getRawTotal(){return getScored().reduce((a,[,v])=>a+Number(v),0);}
-function getMaxPossible(){return getScored().length*3;}
+function getRawTotal(){return getScored().reduce((a,[,v])=>a+ptOf(v),0);}
+function getMaxPossible(){return getScored().length*PT_FULL;}
 function getTotal(){const mx=getMaxPossible();return mx>0?pct(getRawTotal()/mx*100):0;}
 function getNACount(){return Object.values(sc).filter(v=>v==='NA').length;}
 function getPassRate(){const s=getScored();return s.length?Math.round(s.filter(([,v])=>Number(v)>=2).length/s.length*100):0;}
 function passRateOf(items){if(!items)return null;let n=0,p=0;items.forEach(it=>{const v=it.sc;if(v==='NA'||v===''||v==null)return;n++;if(Number(v)>=2)p++;});return n>0?Math.round(p/n*100):null;}
 // ───── เกณฑ์ "ผ่าน" + "ระดับผล" — สูตรกลางตัวเดียว ใช้ทุกหน้า ทุกใบพิมพ์ และตอนบันทึก (BUG-3) ─────
-// ผ่าน  = ข้อที่ได้ "ผ่านมาตรฐาน" (คะแนน ≥2) ต้องเป็น ≥80% ของข้อที่ให้คะแนนจริง (ข้าม N/A)
-// ระดับ = ผ่าน + คะแนนรวม ≥90 → ดีกว่ามาตรฐาน · ผ่าน → ผ่านมาตรฐาน · ไม่ผ่าน → ต่ำกว่ามาตรฐาน
-// passRate == null (เรคคอร์ดเก่าที่ไม่มีคะแนนรายข้อ) → ถอยไปใช้เกณฑ์เดิม: คะแนนรวม ≥67
-const PASS_RATE_MIN=80;
+// SCORE_VER 2: ตัดสินด้วย "คะแนนรวม ≥80" ตัวเดียว ตรงกับ KPI ขององค์กร
+// เลิกใช้เกณฑ์ซ้อน (pass rate ≥80%) เพราะตารางแต้มใหม่ทำให้ "ผ่านมาตรฐานครบทุกข้อ = 80" อยู่แล้ว
+// การมี 2 เกณฑ์คือต้นเหตุที่ใบรายงานเคยขึ้น "ผ่านเกณฑ์" คู่กับคะแนน 77
+// passRate ยังคำนวณและแสดงเป็น "ข้อมูลประกอบ" (ข้อได้มาตรฐานกี่ %) แต่ไม่ใช้ตัดสินผ่านแล้ว
+const PASS_SCORE_MIN=80;            // KPI: ผ่านมาตรฐาน
+const LV_GOOD_MIN=90;               // ดีกว่ามาตรฐาน
+const PASS_RATE_MIN=80;             // คงไว้สำหรับแสดงผล/ข้อมูลเก่าเท่านั้น
 const LV_GOOD=0,LV_PASS=1,LV_FAIL=2;
 const LV_META=[
   {lv:'ดีกว่ามาตรฐาน',c:'#16A34A',bg:'#DCFCE7',grad:['#15803D','#16A34A']},
   {lv:'ผ่านมาตรฐาน',c:'#2563EB',bg:'#DBEAFE',grad:['#1E40AF','#2563EB']},
   {lv:'ต่ำกว่ามาตรฐาน',c:'#DC2626',bg:'#FEE2E2',grad:['#B91C1C','#DC2626']}
 ];
-function levelOf(tot,passRate){
+function levelOf(tot,passRate){   // passRate รับไว้เพื่อความเข้ากันได้กับจุดเรียกเดิม — ไม่ใช้ตัดสินแล้ว
   const t=Number(tot)||0;
-  const pass=(passRate==null)?(t>=67):(Number(passRate)>=PASS_RATE_MIN);
-  const idx=pass?(t>=90?LV_GOOD:LV_PASS):LV_FAIL;
+  const pass=t>=PASS_SCORE_MIN;
+  const idx=pass?(t>=LV_GOOD_MIN?LV_GOOD:LV_PASS):LV_FAIL;
   const m=LV_META[idx];
   return{pass:pass,idx:idx,lv:m.lv,c:m.c,bg:m.bg,grad:m.grad};
 }
@@ -1593,9 +1609,9 @@ function levelOfRec(h){
 }
 // แถบเทียบระดับใต้วงคะแนน — ไฮไลต์ตาม "ระดับจริง" ไม่ใช่ % คะแนนล้วน
 function lvStrip(L){
-  return[{n:'ข้อผ่าน <80%',l:LV_META[LV_FAIL].lv,bg:'#FEE2E2',fg:'#991B1B',a:L.idx===LV_FAIL},
-         {n:'ข้อผ่าน ≥80%',l:LV_META[LV_PASS].lv,bg:'#DBEAFE',fg:'#2563EB',a:L.idx===LV_PASS},
-         {n:'+ คะแนน ≥90',l:LV_META[LV_GOOD].lv,bg:'#DBEAFE',fg:'#1E40AF',a:L.idx===LV_GOOD}];
+  return[{n:'คะแนน <80',l:LV_META[LV_FAIL].lv,bg:'#FEE2E2',fg:'#991B1B',a:L.idx===LV_FAIL},
+         {n:'คะแนน ≥80',l:LV_META[LV_PASS].lv,bg:'#DBEAFE',fg:'#2563EB',a:L.idx===LV_PASS},
+         {n:'คะแนน ≥90',l:LV_META[LV_GOOD].lv,bg:'#DBEAFE',fg:'#1E40AF',a:L.idx===LV_GOOD}];
 }
 function getUnscored(){const a=[];for(let i=0;i<AN();i++){if(sc[i]===-1)a.push(i);}return a;}
 function rItem(){
@@ -1758,7 +1774,7 @@ function getReportData(){
   const ds=dv?new Date(dv).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'-';
   const round=document.getElementById('f-round').value;
   const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
-  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=3;hS[it.h]+=sc[i];}});
+  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=PT_FULL;hS[it.h]+=ptOf(sc[i]);}});
   const probs=items.filter((_,i)=>sc[i]===1);
   const naItems=items.filter((_,i)=>sc[i]==='NA');
   const lvs=lvStrip(L);
@@ -1767,7 +1783,7 @@ function getReportData(){
 function rSum(){
   const{items,tot,na,naItems,pass,pr,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
   const bars=HMVD.map(h=>{const s=hS[h],m=hM[h],p=m>0?Math.round(s/m*100):0,c=HC[h];
-    return `<div class="br-row"><div class="br-n" style="color:${c}">${h}</div><div class="br-track"><div class="br-fill" style="width:${p}%;background:${c}"></div></div><div style="display:flex;align-items:baseline;gap:2px;min-width:42px;justify-content:flex-end"><div class="br-v" style="color:${c}">${m>0?s:'—'}</div><div class="br-p">/${m>0?m:'N/A'}</div></div></div>`;}).join('');
+    return `<div class="br-row"><div class="br-n" style="color:${c}">${h}</div><div class="br-track"><div class="br-fill" style="width:${p}%;background:${c}"></div></div><div style="display:flex;align-items:baseline;gap:2px;min-width:42px;justify-content:flex-end"><div class="br-v" style="color:${c}">${m>0?p:'—'}</div><div class="br-p">${m>0?'%':'N/A'}</div></div></div>`;}).join('');
   const naHtml=naItems.length?naItems.map(it=>`<div style="padding:5px 0;font-size:12px;color:#1D4ED8">⊘ ข้อ ${it.no} — ${it.t}</div>`).join(''):'';
   const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||'';
     const pht=ph[i]&&ph[i].length?`<div class="df-photos">${ph[i].map(p=>`<img class="df-photo" src="${p}">`).join('')}</div>`:'';
@@ -1779,7 +1795,7 @@ function rSum(){
     </div>
     <div class="sum-hero"><div class="hring"><div class="hn">${tot}</div><div class="hmx">/100</div></div>
       <div class="hr"><div class="hpct">${tot}%</div><div class="hlbl">${items.length-na} หัวข้อ${na>0?' (ข้าม '+na+' N/A)':''}</div><div class="hbadge">${lv}</div></div></div>
-    <div style="margin:0 0 12px;padding:9px 13px;border-radius:10px;font-size:13px;font-weight:700;text-align:center;background:${pass?'#DCFCE7':'#FEE2E2'};color:${pass?'#15803D':'#B91C1C'}">${pass?'✓ ผ่านเกณฑ์':'✗ ไม่ผ่านเกณฑ์'} · ข้อได้มาตรฐาน ${pr}% <span style="font-weight:500;opacity:.8">(เส้นผ่าน 80%)</span></div>
+    <div style="margin:0 0 12px;padding:9px 13px;border-radius:10px;font-size:13px;font-weight:700;text-align:center;background:${pass?'#DCFCE7':'#FEE2E2'};color:${pass?'#15803D':'#B91C1C'}">${pass?'✓ ผ่านเกณฑ์':'✗ ไม่ผ่านเกณฑ์'} · เกณฑ์ ${PASS_SCORE_MIN} คะแนน <span style="font-weight:500;opacity:.8">(ข้อได้มาตรฐาน ${pr}%)</span></div>
     <div class="scard"><div class="shd"><div class="sico" style="background:#DBEAFE">📊</div><div class="sttl">คะแนนแยกรายหมวด</div></div><div class="sbd">${bars}</div></div>
     <div class="lvstrip">${lvs.map(l=>`<div class="lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg+';':'border-color:transparent'}"><div class="lvn" style="color:${l.fg}">${l.n}</div><div class="lvl" style="color:${l.fg}">${l.l}</div></div>`).join('')}</div>
     ${naItems.length?`<div class="scard"><div class="shd"><div class="sico" style="background:#E0F2FE">⊘</div><div class="sttl" style="color:#1D4ED8">หัวข้อ N/A — ข้ามไป (${naItems.length} หัวข้อ)</div></div><div class="sbd" style="padding:10px 15px">${naHtml}</div></div>`:''}
@@ -1803,7 +1819,7 @@ function buildPrintReport(){
   const{items,tot,na,pass,pr,lv,dept,aname,adet,insp,ds,round,hS,hM,probs,lvs}=getReportData();
   const [g1,g2]=tierGrad(tot,pr);
   const bars=HMVD.map(h=>{const s=hS[h],m=hM[h],p=m>0?Math.round(s/m*100):0,c=HC[h];
-    return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v"><b style="color:${c}">${m>0?s:'—'}/${m>0?m:'N/A'}</b><span class="pr-bar-pct">${p}%</span></div></div>`;}).join('');
+    return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v"><b style="color:${c}">${m>0?p+'%':'N/A'}</b><span class="pr-bar-pct">${m>0?Math.round(m/PT_FULL)+' ข้อ':''}</span></div></div>`;}).join('');
   const lvHtml=lvs.map(l=>`<div class="pr-lvbox" style="background:${l.bg};${l.a?'border-color:'+l.fg:''}"><div class="pr-lvn" style="color:${l.fg}">${l.n}</div><div class="pr-lvl" style="color:${l.fg}">${l.l}</div></div>`).join('');
   const dfHtml=probs.length?probs.map(it=>{const i=items.indexOf(it),s=sc[i],note=nt[i]||'';
     const has=ph[i]&&ph[i].length;
@@ -1826,12 +1842,16 @@ function buildPrintReport(){
         <div class="pr-score-n">${tot}<span class="pr-score-mx">/100</span></div>
         <div class="pr-score-mx">${items.length-na} หัวข้อ × 3 คะแนน${na>0?' (ข้าม '+na+' N/A)':''}</div>
         <div class="pr-score-lv">${lv}</div>
-        <div class="pr-score-lv" style="background:${pass?'rgba(220,252,231,.95)':'rgba(254,226,226,.95)'};color:${pass?'#15803D':'#B91C1C'}">${pass?'✓ ผ่านเกณฑ์':'✗ ไม่ผ่านเกณฑ์'} · ข้อได้มาตรฐาน ${pr}%</div>
+        <div class="pr-score-lv" style="background:${pass?'rgba(220,252,231,.95)':'rgba(254,226,226,.95)'};color:${pass?'#15803D':'#B91C1C'}">${pass?'✓ ผ่านเกณฑ์':'✗ ไม่ผ่านเกณฑ์'} · เกณฑ์ ${PASS_SCORE_MIN} คะแนน</div>
       </div>
     </div>
     <div class="pr-sec-ttl">📊 คะแนนแยกรายหมวด</div>
     <div class="pr-bars">${bars}</div>
     <div class="pr-levels">${lvHtml}</div>
+    <div style="font-size:9px;color:#475569;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:6px 9px;margin-bottom:10px;line-height:1.7">
+      <b>วิธีคิดคะแนน</b> (เกณฑ์ v${SCORE_VER}) · แต้มต่อข้อ: ไม่ผ่านมาตรฐาน = ${PT[1]} · ผ่านมาตรฐาน = ${PT[2]} · ดีกว่ามาตรฐาน = ${PT[3]} · N/A ไม่นับทั้งตัวตั้งและตัวหาร<br>
+      คะแนน = เฉลี่ยแต้มทุกช่อง (ข้อ × ผู้ตรวจ) → ผ่านมาตรฐานครบทุกข้อ = ${PT[2]} คะแนน = เกณฑ์ผ่าน ${PASS_SCORE_MIN} พอดี · ดีกว่ามาตรฐาน ตั้งแต่ ${LV_GOOD_MIN} คะแนนขึ้นไป
+    </div>
     <div class="pr-sec-ttl">${probs.length?'⚠️ จุดต้องแก้ไข ('+probs.length+' หัวข้อ)':'✅ สรุปผล'}</div>
     <div class="pr-defects">${dfHtml}</div>
     <div class="pr-sig">
@@ -1867,15 +1887,16 @@ function printReport(){
 
 // Consolidated multi-inspector report → same polished print style as the single report.
 // Score = plain average across all inspectors (officialScore); bars = per-cat average;
-// จุดต้องแก้ไข grouped by item (items where >=1 inspector scored 0-2), listing under each
-// item only the inspectors who scored 0-2 (name + score badge + note + photo).
+// จุดต้องแก้ไข grouped by item (items where >=1 inspector scored "ไม่ผ่านมาตรฐาน"), listing
+// under each item only the inspectors who actually flagged it (name + score badge + note + photo).
+// The count badge reads "N/M คนแจ้ง" — N = ผู้ที่ให้ไม่ผ่าน, M = ผู้ที่ให้คะแนนข้อนี้ (ข้าม NA).
 function buildConsolidatedReport(){
   if(isInAppBrowser()){alert('เบราว์เซอร์ในแอปนี้ (เช่น LINE) ไม่รองรับการพิมพ์/บันทึก PDF\n\nวิธีแก้: กดปุ่ม ⋯ มุมขวาบน แล้วเลือก "เปิดในเบราว์เซอร์"');return;}
-  if(!cmpLast||!cmpLast.raters||cmpLast.raters.length<2){showToast('⚠️ ต้องมีผู้ตรวจอย่างน้อย 2 คน (เลือกพื้นที่/หน่วยงานในแท็บเทียบผลก่อน)');return;}
+  if(!cmpLast||!cmpLast.raters||!cmpLast.raters.length){showToast('⚠️ ยังไม่มีผลตรวจให้ออกรายงาน (เลือกพื้นที่/หน่วยงานในแท็บเทียบผลก่อน)');return;}
   const{raters,rows,officialScore,offLv}=cmpLast;
-  const tot=officialScore==null?0:officialScore;const _or=rows.filter(r=>r.mean!=null),pr=_or.length?Math.round(_or.filter(r=>r.mean>=2).length/_or.length*100):0;const L=levelOf(tot,pr),pass=L.pass,[g1,g2]=L.grad;
+  const tot=officialScore==null?0:officialScore;const _or=rows.filter(r=>r.ptMean!=null),pr=_or.length?Math.round(_or.filter(r=>r.ptMean>=PT[2]).length/_or.length*100):0;const L=levelOf(tot,pr),pass=L.pass,[g1,g2]=L.grad;
   const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
-  rows.forEach(r=>{if(r.mean!=null){hM[r.it.h]+=3;hS[r.it.h]+=r.mean;}});
+  rows.forEach(r=>{if(r.ptMean!=null){hM[r.it.h]+=PT_FULL;hS[r.it.h]+=r.ptMean;}});
   const bars=HMVD.map(h=>{const p=hM[h]>0?Math.round(hS[h]/hM[h]*100):0,c=HC[h];
     return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v"><b style="color:${c}">${hM[h]>0?p+'%':'N/A'}</b></div></div>`;}).join('');
   const lvs=lvStrip(L);
@@ -1885,14 +1906,14 @@ function buildConsolidatedReport(){
     const flagged=raters.map(rt=>{
       const f=(rt.items||[]).find(x=>x.no===r.it.no);if(!f)return null;
       const v=f.sc;if(v==='NA'||v===''||v==null)return null;
-      const s=Number(v);if(s>2)return null;
+      const s=Number(v);if(s>1)return null;          // เฉพาะคนที่ให้ "ไม่ผ่านมาตรฐาน" จริง (คนที่ให้ 2 = ผ่าน ไม่ใช่ "คนแจ้ง")
       return {name:rt.insp||'—',s,note:(f.nt||'').trim(),ph:(f.ph&&f.ph.length)?f.ph[0]:''};
     }).filter(Boolean);
     if(!flagged.length)return'';
     const chips=flagged.map(x=>`<span class="pr-gchip" style="background:${SBG[x.s]};color:${SFG[x.s]}">${cmpEsc(x.name)} · ${SL[x.s]}</span>`).join('');
     const notes=flagged.filter(x=>x.note).map(x=>`<div class="pr-gnote">• ${cmpEsc(x.note)} <span class="pr-gnm">(${cmpEsc(x.name)})</span></div>`).join('');
     const phs=flagged.filter(x=>x.ph).map(x=>`<img class="pr-gthumb" src="${x.ph}" alt="" title="${cmpEsc(x.name)}" onerror="this.style.display='none'">`).join('');
-    return `<div class="pr-dcard pr-gcard" style="--pr-cat:${HC[r.it.h]}"><div class="pr-ghead"><div class="pr-dttl">ข้อ ${r.it.no} — ${cmpEsc(r.it.t)}</div><span class="pr-gcnt">⚠️ ${flagged.length} คนแจ้ง</span></div><div class="pr-gchips">${chips}</div>${notes?`<div class="pr-gnotes">${notes}</div>`:''}${phs?`<div class="pr-gphotos">${phs}</div>`:''}</div>`;
+    return `<div class="pr-dcard pr-gcard" style="--pr-cat:${HC[r.it.h]}"><div class="pr-ghead"><div class="pr-dttl">ข้อ ${r.it.no} — ${cmpEsc(r.it.t)}</div><span class="pr-gcnt">⚠️ ${flagged.length}/${r.nums.length} คนแจ้ง</span></div><div class="pr-gchips">${chips}</div>${notes?`<div class="pr-gnotes">${notes}</div>`:''}${phs?`<div class="pr-gphotos">${phs}</div>`:''}</div>`;
   }).join(''):`<div class="pr-ok">✅ ไม่มีข้อที่ผู้ตรวจให้ "ไม่ผ่านมาตรฐาน"</div>`;
   const aname=cmpArea==='Custom'?'พื้นที่อื่น':(ANAME[cmpArea]||cmpArea);
   const dept=deptName(cmpDept)||'—',roundTxt=cmpRound||'ล่าสุดของแต่ละคน';
@@ -1914,13 +1935,17 @@ function buildConsolidatedReport(){
         <div class="pr-score-n">${tot}<span class="pr-score-mx">/100</span></div>
         <div class="pr-score-mx">เฉลี่ยจากผู้ตรวจ ${raters.length} คน</div>
         <div class="pr-score-lv">${L.lv}</div>
-        <div class="pr-score-lv" style="background:${pass?'rgba(220,252,231,.95)':'rgba(254,226,226,.95)'};color:${pass?'#15803D':'#B91C1C'}">${pass?'✓ ผ่านเกณฑ์':'✗ ไม่ผ่านเกณฑ์'} · ข้อได้มาตรฐาน ${pr}%</div>
+        <div class="pr-score-lv" style="background:${pass?'rgba(220,252,231,.95)':'rgba(254,226,226,.95)'};color:${pass?'#15803D':'#B91C1C'}">${pass?'✓ ผ่านเกณฑ์':'✗ ไม่ผ่านเกณฑ์'} · เกณฑ์ ${PASS_SCORE_MIN} คะแนน</div>
       </div>
     </div>
     <div class="pr-ins">👥 ผู้ตรวจ ${raters.length} คน: ${inspList}</div>
     <div class="pr-sec-ttl">📊 คะแนนแยกรายหมวด (เฉลี่ยทุกคน)</div>
     <div class="pr-bars">${bars}</div>
     <div class="pr-levels">${lvHtml}</div>
+    <div style="font-size:9px;color:#475569;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:6px 9px;margin-bottom:10px;line-height:1.7">
+      <b>วิธีคิดคะแนน</b> (เกณฑ์ v${SCORE_VER}) · แต้มต่อข้อ: ไม่ผ่านมาตรฐาน = ${PT[1]} · ผ่านมาตรฐาน = ${PT[2]} · ดีกว่ามาตรฐาน = ${PT[3]} · N/A ไม่นับทั้งตัวตั้งและตัวหาร<br>
+      คะแนน = เฉลี่ยแต้มทุกช่อง (ข้อ × ผู้ตรวจ) → ผ่านมาตรฐานครบทุกข้อ = ${PT[2]} คะแนน = เกณฑ์ผ่าน ${PASS_SCORE_MIN} พอดี · ดีกว่ามาตรฐาน ตั้งแต่ ${LV_GOOD_MIN} คะแนนขึ้นไป
+    </div>
     <div class="pr-sec-ttl">${lowRows.length?'⚠️ จุดต้องแก้ไข ('+lowRows.length+' ข้อ)':'✅ สรุปผล'}</div>
     <div class="pr-defects pr-gcol">${dfHtml}</div>
     <div class="pr-sig">
@@ -2064,6 +2089,8 @@ function syncToFirestore(h){
       inspector:h.insp,inspectorUid:(CURRENT_USER&&CURRENT_USER.uid)||null,inspectorName:(CURRENT_USER&&CURRENT_USER.name)||h.insp,round:h.round,totalScore:h.tot,critArea:h.critArea||h.area,critVersion:h.critVersion||0,
       naCount:h.items.filter(it=>it.sc==='NA').length,
       passed:_lv.pass,passRate:_pr,level:_lv.lv,
+      // ล็อกเกณฑ์ที่ใช้คิดคะแนนใบนี้ไว้กับตัวเรคคอร์ด — เปลี่ยนสูตรในอนาคตแล้วคะแนนเก่าไม่ขยับเอง
+      scoreVer:SCORE_VER,scorePoints:{fail:PT[1],pass:PT[2],good:PT[3]},passScoreMin:PASS_SCORE_MIN,
       categoryScores,
       createdAt:firebase.firestore.FieldValue.serverTimestamp(),
       clientSavedAt:h.saved
@@ -2110,7 +2137,7 @@ async function saveResult(){
   const dv=document.getElementById('f-date').value||new Date().toISOString().split('T')[0];
   const round=document.getElementById('f-round').value;
   const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
-  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=3;hS[it.h]+=sc[i];}});
+  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=PT_FULL;hS[it.h]+=ptOf(sc[i]);}});
   const defs=items.filter((_,i)=>sc[i]===1).map(it=>{const i=items.indexOf(it);return{no:it.no,t:it.t,sc:sc[i],nt:nt[i]};});
   const fullItems=items.map((it,i)=>({no:it.no,h:it.h,t:it.t,sc:sc[i]==='NA'?'NA':(sc[i]>=0?sc[i]:''),nt:nt[i]||'',ph:(ph[i]||[]).slice(0,3)}));
   // Editing keeps the record's original id + pinned criteria version (don't bump).
@@ -2230,7 +2257,7 @@ function adminRowHtml(r){
         <div class="insp-name">${cmpEsc(r.inspector)}</div>
         <div class="insp-meta">${cmpEsc(deptName(r.dept)||'—')}${time?' · '+time:''}${r.naCount?' · ข้าม '+r.naCount+' N/A':''}</div>
       </div>
-      <div class="insp-score" style="color:${c}">${pct(r.totalScore)}%</div>
+      <div class="insp-score" style="color:${c}">${pct(r.totalScore)}%${(Number(r.scoreVer)||1)<SCORE_VER?'<span style="display:block;font-size:9px;font-weight:600;color:#D97706;line-height:1.2">เกณฑ์เก่า</span>':''}</div>
       <button onclick="event.stopPropagation();editAdminReport('${r.id}')" title="แก้ไขรายการนี้" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 8px;margin-left:8px;cursor:pointer;font-size:14px;line-height:1">✏️</button>
     </div>
     <div id="insp-detail-${r.id}" class="insp-detail" style="display:none"></div>
@@ -2366,6 +2393,45 @@ async function deleteSelectedAdmin(){
   showToast('🗑️ ลบข้อมูลที่เลือกแล้ว');
   loadAdminData();
 }
+// ───── คำนวณคะแนนย้อนหลังด้วยเกณฑ์ปัจจุบัน (SCORE_VER) ─────
+// คะแนนรายข้อของทุกคนถูกเก็บครบใน subcollection items อยู่แล้ว จึงคิดใหม่ได้โดยไม่ต้องตรวจซ้ำ
+// เขียนทับเฉพาะฟิลด์สรุป (totalScore/passed/passRate/level/categoryScores) — ไม่แตะคะแนนรายข้อที่ผู้ตรวจให้ไว้
+async function rescoreAll(){
+  if(!db){showToast('⚠️ ต่อคลาวด์ไม่ได้ จึงคำนวณย้อนหลังไม่ได้');return;}
+  // กฎ Firestore ยอมให้แอดมินเท่านั้นแก้ผลตรวจของคนอื่น — กันไว้ตั้งแต่หน้าจอจะได้ไม่ยิงแล้วพังทีละใบ
+  if(!(CURRENT_USER&&CURRENT_USER.role==='admin')){showToast('⚠️ เฉพาะแอดมินเท่านั้นที่คำนวณคะแนนย้อนหลังได้');return;}
+  const stale=adminData.filter(d=>(Number(d.scoreVer)||1)<SCORE_VER);
+  if(!stale.length){showToast('✅ ทุกรายการคิดด้วยเกณฑ์ v'+SCORE_VER+' แล้ว');return;}
+  const NL=String.fromCharCode(10);
+  if(!confirm('คำนวณคะแนนใหม่ '+stale.length+' รายการ ด้วยเกณฑ์ v'+SCORE_VER+NL
+    +'(ไม่ผ่าน='+PT[1]+' · ผ่าน='+PT[2]+' · ดีกว่า='+PT[3]+' · เกณฑ์ผ่าน '+PASS_SCORE_MIN+' คะแนน)'+NL+NL
+    +'คะแนนรายข้อที่ผู้ตรวจให้ไว้ไม่ถูกแก้ไข เปลี่ยนเฉพาะคะแนนสรุปของแต่ละใบ'))return;
+  showSpinner(true,'กำลังคำนวณคะแนนใหม่...');
+  let done=0,fail=0;
+  for(const d of stale){
+    try{
+      const snap=await db.collection('inspections').doc(d.id).collection('items').get();
+      const items=snap.docs.map(x=>x.data()).map(it=>({h:it.category,sc:it.isNA?'NA':normScore(it.score==null?'':it.score)}));
+      if(!items.length){fail++;continue;}
+      const tot=totOfItems(items),prate=passRateOf(items),lv=levelOf(tot,prate);
+      const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
+      items.forEach(it=>{const v=it.sc;if(v==='NA'||v===''||v==null||!(it.h in hM))return;hM[it.h]+=PT_FULL;hS[it.h]+=ptOf(v);});
+      const categoryScores={};HMVD.forEach(c=>{categoryScores[c]={score:hS[c]||0,max:hM[c]||0};});
+      await db.collection('inspections').doc(d.id).update({
+        totalScore:tot,passed:lv.pass,passRate:prate,level:lv.lv,categoryScores,
+        scoreVer:SCORE_VER,scorePoints:{fail:PT[1],pass:PT[2],good:PT[3]},passScoreMin:PASS_SCORE_MIN
+      });
+      done++;showSpinner(true,'กำลังคำนวณคะแนนใหม่... '+done+'/'+stale.length);
+    }catch(err){console.warn('[rescore] ไม่สำเร็จ',d.id,err);fail++;}
+  }
+  // ประวัติในเครื่องคิดใหม่จากคะแนนรายข้อที่เก็บไว้อยู่แล้ว (normHist)
+  hist=normHist(hist.map(h=>(h&&Array.isArray(h.items))?Object.assign({},h,{tot:totOfItems(h.items)}):h));
+  persistHist();
+  invalidateCloudRecs();
+  showSpinner(false);
+  showToast(fail?('♻️ คำนวณใหม่ '+done+' รายการ · ไม่สำเร็จ '+fail):('♻️ คำนวณคะแนนใหม่แล้ว '+done+' รายการ'));
+  loadAdminData();
+}
 function resetAll(){if(inspecting&&!confirm('⚠️ ล้างงานตรวจที่กำลังทำอยู่ใช่ไหม? ข้อมูลที่กรอกจะหายทั้งหมด'))return;clearDraft();init();cur=0;showSt(0);setNbSub('กรอกข้อมูลก่อนเริ่ม');setPb(0,0);}
 // ───── ผลตรวจรวมสำหรับหน้าหลัก + จัดอันดับ (BUG-4) ─────
 // เดิม: อ่านจาก localStorage ของเครื่องตัวเองอย่างเดียว → แต่ละเครื่องเห็นไม่ตรงกัน, ล้างแคช
@@ -2392,7 +2458,7 @@ function ensureCloudRecords(force){
 function recFromCloud(d){
   return{id:d.id,date:d.date||'',area:d.area||'',aname:d.areaName||ANAME[d.area]||d.area||'',
     adet:d.areaDetail||'',dept:d.dept||'',insp:d.inspector||d.inspectorName||'—',round:d.round||'',
-    tot:pct(d.totalScore),na:Number(d.naCount)||0,
+    tot:pct(d.totalScore),na:Number(d.naCount)||0,sv:Number(d.scoreVer)||1,cat:d.categoryScores||null,
     passRate:(typeof d.passRate==='number')?d.passRate:null,
     passed:(typeof d.passed==='boolean')?d.passed:null,
     saved:d.clientSavedAt||d.date||'',cloud:true};
@@ -2425,35 +2491,157 @@ function renderHome(){
   document.getElementById('st-pending').textContent=pending;
   document.getElementById('dprog-pct').textContent=pct+'%';
   document.getElementById('dprog-fill').style.width=pct+'%';
-  const recent=recs.slice(0,3);
-  document.getElementById('recent-list').innerHTML=(recent.length?recent.map(h=>{
-    const c=levelOfRec(h).c;
+  // "ล่าสุด" = กลุ่ม (รอบ | หน่วยงาน | พื้นที่) ล่าสุด 3 กลุ่ม พร้อมคะแนนเฉลี่ยของผู้ตรวจทุกคน
+  // ใช้ groupRecs() ตัวเดียวกับหน้าสรุปผล — เลขสองหน้าจะได้ตรงกันเสมอ
+  const groups=groupRecs(recs).sort((a,b)=>String(b.saved||'').localeCompare(String(a.saved||'')));
+  const recent=groups.slice(0,3);
+  const lgN=groups.reduce((a,g)=>a+g.legacyN,0);
+  document.getElementById('recent-list').innerHTML=(recent.length?recent.map(g=>{
+    const L=levelOf(g.score);
     return `<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border)">
-      <div style="font-size:20px">${AICO[h.area]||'📍'}</div>
-      <div style="flex:1"><div style="font-size:13px;font-weight:600">${escA(h.aname)}</div><div style="font-size:11px;color:var(--muted)">${escA(deptName(h.dept))} · ${escA(h.insp||'—')} · ${new Date(h.date).toLocaleDateString('th-TH')}</div></div>
-      <div style="font-size:16px;font-weight:800;color:${c}">${h.tot}%</div></div>`;}).join('')
-    :'<div class="recent-empty">ยังไม่มีประวัติ</div>')+recSourceNote('margin:8px 0 0');
+      <div style="font-size:20px;flex:none">${AICO[g.area]||'📍'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escA(ANAME[g.area]||g.area)}</div>
+        <div style="font-size:11px;color:var(--muted)">${escA(deptName(g.dept)||'ไม่ระบุหน่วยงาน')} · รอบ ${escA(g.round)} · ผู้ตรวจ ${g.n} คน${g.legacyN?' · <b style="color:#B45309">⚠️ เกณฑ์เก่า</b>':''}</div>
+      </div>
+      <div style="text-align:right;flex:none">
+        <div style="font-size:16px;font-weight:800;color:${L.c}">${g.score}</div>
+        <div style="font-size:9.5px;font-weight:600;color:${L.c}">${L.lv}</div>
+      </div></div>`;}).join('')
+    :'<div class="recent-empty">ยังไม่มีประวัติ</div>')+legacyNote(lgN)+recSourceNote('margin:8px 0 0');
 }
 // หมายเหตุ: หน้า "ประวัติการตรวจ" ใช้ loadAdminData() (ดึงจาก Firestore) ไม่ได้ใช้ rHist() แล้ว —
 // rHist() เดิมเขียนลง #hist-list ซึ่งไม่มีใน markup อีกต่อไป (เป็นโค้ดตาย) จึงถอดออก
 
 function rRank(){renderRank();ensureCloudRecords().then(ch=>{if(ch)renderRank();});}
+// ───── หน้าสรุปผล: จัดกลุ่ม รอบตรวจ → หน่วยงาน → พื้นที่ตรวจ ─────
+// คะแนนทุกระดับ = เฉลี่ยแต้มทุกช่อง (ข้อ × ผู้ตรวจ) ตามสูตรเดียวกับใบรายงาน
+// categoryScores ที่บันทึกไว้ตอนเซฟคือ "ผลรวมแต้ม" กับ "แต้มเต็ม" ของแต่ละหมวดอยู่แล้ว จึงรวมข้ามใบได้ทันที
+// โดยไม่ต้องโหลดคะแนนรายข้อของทุกคน (ซึ่งจะกลายเป็น 1 query ต่อ 1 ใบ = ช้าและเปลือง)
+function recCat(r){
+  if(r&&r.cat&&typeof r.cat==='object')return r.cat;
+  if(r&&r.hS&&r.hM){const o={};HMVD.forEach(k=>{o[k]={score:r.hS[k]||0,max:r.hM[k]||0};});return o;}
+  return null;
+}
+function grpScore(recs){
+  let s=0,m=0,ok=recs.length>0;
+  recs.forEach(r=>{
+    const cs=recCat(r);
+    if(!cs){ok=false;return;}
+    let any=false;
+    Object.keys(cs).forEach(k=>{const v=cs[k]||{},mx=Number(v.max)||0;if(mx>0){any=true;s+=Number(v.score)||0;m+=mx;}});
+    if(!any)ok=false;
+  });
+  if(ok&&m>0)return pct(s/m*100);
+  // สำรอง: ใบเก่าที่ไม่มี categoryScores → เฉลี่ยคะแนนรวมของผู้ตรวจแต่ละคนแทน
+  return recs.length?pct(recs.reduce((a,r)=>a+(Number(r.tot)||0),0)/recs.length):0;
+}
+// จัดกลุ่มผลตรวจเป็น (รอบ | หน่วยงาน | พื้นที่) พร้อมคะแนนเฉลี่ยของผู้ตรวจทุกคนในกลุ่ม
+// ใช้ร่วมกันระหว่างหน้าหลักกับหน้าสรุปผล — คะแนนสองหน้าจะได้ไม่มีทางออกมาคนละเลข
+function groupRecs(recs){
+  // 1 ผู้ตรวจ = 1 ใบต่อกลุ่ม — ถ้าคนเดียวส่งซ้ำ เอาใบล่าสุดของคนนั้น
+  const cells={};
+  (recs||[]).forEach(h=>{
+    const k=[h.round||'—',h.dept||'',h.area||'—',h.insp||'—'].join('§');
+    const pv=cells[k];
+    if(!pv||new Date(h.saved||h.date)>new Date(pv.saved||pv.date))cells[k]=h;
+  });
+  const map={};
+  Object.values(cells).forEach(h=>{
+    const rd=h.round||'—',dp=h.dept||'',ar=h.area||'—',k=[rd,dp,ar].join('§');
+    if(!map[k])map[k]={round:rd,dept:dp,area:ar,recs:[]};
+    map[k].recs.push(h);
+  });
+  return Object.values(map).map(g=>{
+    g.n=g.recs.length;
+    g.score=grpScore(g.recs);
+    g.date=g.recs.map(r=>r.date||'').sort().slice(-1)[0]||'';
+    g.saved=g.recs.map(r=>r.saved||r.date||'').sort().slice(-1)[0]||'';
+    g.legacyN=g.recs.filter(r=>(Number(r.sv)||1)<SCORE_VER).length;
+    return g;
+  });
+}
+function rankAreaRow(g,dp,rd){
+  const L=levelOf(g.score),dt=g.date?new Date(g.date).toLocaleDateString('th-TH'):'—';
+  return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0">'
+    +'<span style="font-size:15px;flex:none">'+(AICO[g.area]||'📍')+'</span>'
+    +'<div style="flex:1;min-width:0">'
+    +'<div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escA(ANAME[g.area]||g.area)+'</div>'
+    +'<div style="font-size:10.5px;color:var(--muted)">ผู้ตรวจ '+g.n+' คน · '+dt+(g.legacyN?' · <b style="color:#B45309">⚠️ เกณฑ์เก่า</b>':'')+'</div></div>'
+    +'<div style="font-size:14px;font-weight:800;color:'+L.c+';min-width:30px;text-align:right">'+g.score+'</div>'
+    +'<button class="exp-btn" style="flex:none" data-a="'+escA(g.area)+'" data-d="'+escA(dp)+'" data-r="'+escA(rd)+'"'
+    +' onclick="openAreaReport(this.dataset.a,this.dataset.d,this.dataset.r)">📄 Report</button></div>';
+}
+function rankDeptCard(d,i,rd,medals,mbc){
+  const L=levelOf(d.score);
+  const rows=d.areas.map(g=>rankAreaRow(g,d.dp,rd)).join('');
+  return '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:9px">'
+    +'<div style="display:flex;align-items:center;gap:10px">'
+    +'<div class="rnum" style="background:'+(i<3?mbc[i]:'#94A3B8')+';color:#fff">'+(i<3?medals[i]:i+1)+'</div>'
+    +'<div style="flex:1;min-width:0">'
+    +'<div class="rname">'+escA(deptName(d.dp)||'ไม่ระบุหน่วยงาน')+'</div>'
+    +'<div class="rmeta">'+d.areas.length+' พื้นที่ · ผู้ตรวจรวม '+d.n+' คน'+(d.legacyN?' · <b style="color:#B45309">⚠️ เกณฑ์เก่า '+d.legacyN+' ใบ</b>':'')+'</div>'
+    +'<div class="rtrack"><div class="rfill" style="width:'+d.score+'%;background:'+L.c+'"></div></div></div>'
+    +'<div style="text-align:right;min-width:50px">'
+    +'<div class="rpct" style="color:'+L.c+'">'+d.score+'</div>'
+    +'<div style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:7px;background:'+L.bg+';color:'+L.c+';margin-top:3px">'+L.lv+'</div>'
+    +'</div></div>'
+    +'<div style="margin-top:9px;border-top:1px dashed var(--border);padding-top:4px">'+rows+'</div></div>';
+}
+// แถบเตือนว่ายังมีใบที่คิดด้วยเกณฑ์เก่า — ใช้ทั้งหน้าหลักและหน้าสรุปผล
+function legacyNote(n){
+  return n?('<div style="font-size:11px;color:#92400E;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:7px 10px;margin:0 0 10px">⚠️ มี '+n+' ใบที่ยังเก็บคะแนนสรุปด้วยเกณฑ์เก่า — เลขในหน้านี้อ่านจากคะแนนสรุปที่เก็บไว้ ส่วนใบ <b>Report</b> คิดใหม่จากคะแนนรายข้อทุกครั้ง <b>สองที่จึงยังไม่ตรงกัน</b> จนกว่าจะกด <b>♻️ คำนวณคะแนนใหม่</b> ในหน้าประวัติการตรวจ</div>'):'';
+}
 function renderRank(){
   const el=document.getElementById('rank-list');
   const recs=allRecords();
-  if(!recs.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">ยังไม่มีข้อมูล</div><div class="empty-desc">ตรวจและบันทึกผลแล้วจะแสดง Ranking ที่นี่</div></div>'+recSourceNote('grid-column:1/-1');return;}
-  const grp={};
-  recs.forEach(h=>{const k=h.aname+'|'+h.dept;if(!grp[k]||new Date(h.date)>new Date(grp[k].date))grp[k]=h;});
-  const ranked=Object.values(grp).sort((a,b)=>b.tot-a.tot);
+  if(!recs.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">ยังไม่มีข้อมูล</div><div class="empty-desc">ตรวจและบันทึกผลแล้วจะแสดงสรุปผลที่นี่</div></div>'+recSourceNote('grid-column:1/-1');return;}
+  const groups=groupRecs(recs);
+  const legacy=groups.reduce((a,g)=>a+g.legacyN,0);
+  const tree={};
+  groups.forEach(g=>{tree[g.round]=tree[g.round]||{};(tree[g.round][g.dept]=tree[g.round][g.dept]||[]).push(g);});
+  const rounds=Object.keys(tree).sort((x,y)=>String(y).localeCompare(String(x),'th',{numeric:true}));
   const medals=['🥇','🥈','🥉'],mbc=['#60A5FA','#94A3B8','#3B82F6'];
-  el.innerHTML='<div class="sec-title">อันดับคะแนนล่าสุดแต่ละพื้นที่</div>'+recSourceNote('grid-column:1/-1')+ranked.map((h,i)=>{
-    const L=levelOfRec(h),c=L.c,bg=L.bg,lv=L.lv;
-    return `<div class="ritem"><div class="rnum" style="background:${i<3?mbc[i]:'#94A3B8'};color:#fff">${i<3?medals[i]:i+1}</div>
-      <div style="font-size:22px">${AICO[h.area]||'📍'}</div>
-      <div class="rinfo"><div class="rname">${escA(h.aname)}</div><div class="rmeta">${escA(deptName(h.dept))} · ${new Date(h.date).toLocaleDateString('th-TH')}</div>
-        <div class="rtrack"><div class="rfill" style="width:${h.tot}%;background:${c}"></div></div></div>
-      <div style="text-align:right;min-width:50px"><div class="rpct" style="color:${c}">${h.tot}%</div>
-        <div style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:7px;background:${bg};color:${c};margin-top:3px">${lv}</div></div></div>`;}).join('');
+  const body=rounds.map((rd,ri)=>{
+    const depts=Object.keys(tree[rd]).map(dp=>{
+      const areas=tree[rd][dp].slice().sort((x,y)=>y.score-x.score);
+      const all=areas.reduce((acc,g)=>acc.concat(g.recs),[]);
+      return{dp:dp,areas:areas,n:all.length,score:grpScore(all),legacyN:areas.reduce((a,g)=>a+g.legacyN,0)};
+    }).sort((x,y)=>y.score-x.score);
+    const allR=depts.reduce((acc,d)=>acc.concat(d.areas.reduce((x,g)=>x.concat(g.recs),[])),[]);
+    const rScore=grpScore(allR),RL=levelOf(rScore);
+    const cards=depts.map((d,i)=>rankDeptCard(d,i,rd,medals,mbc)).join('');
+    return '<details '+(ri===0?'open':'')+' style="margin-bottom:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px">'
+      +'<summary style="cursor:pointer">'
+      +'<span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;vertical-align:middle">'
+      +'<b style="font-size:13px">🔄 รอบ '+escA(rd)+'</b>'
+      +'<span style="font-size:11px;color:var(--muted)">'+depts.length+' หน่วยงาน · ผู้ตรวจรวม '+allR.length+' คน</span>'
+      +'<span style="font-size:11px;font-weight:800;padding:2px 8px;border-radius:8px;background:'+RL.bg+';color:'+RL.c+'">เฉลี่ยทั้งรอบ '+rScore+' · '+RL.lv+'</span>'
+      +'</span></summary><div style="padding-top:10px">'+cards+'</div></details>';
+  }).join('');
+  el.innerHTML='<div style="grid-column:1/-1">'
+    +'<div class="sec-title">รอบตรวจ → หน่วยงาน → พื้นที่ตรวจ</div>'
+    +recSourceNote('')+legacyNote(legacy)+body+'</div>';
+}
+// ปุ่ม Report ในหน้าสรุปผล → ใบรายงานรวมผู้ตรวจ (A4 / PDF) ของพื้นที่ + หน่วยงาน + รอบนั้น
+// ดึงคะแนนรายข้อของทุกคนผ่าน cmpLoad() แล้วคิดด้วย cmpBuild() ซึ่งเป็นสูตรเดียวกับแท็บเทียบคะแนน
+async function openAreaReport(areaKey,deptCode,round){
+  if(isInAppBrowser()){alert('เบราว์เซอร์ในแอปนี้ (เช่น LINE) ไม่รองรับการพิมพ์/บันทึก PDF'+String.fromCharCode(10,10)+'วิธีแก้: กดปุ่ม ⋯ มุมขวาบน แล้วเลือก "เปิดในเบราว์เซอร์"');return;}
+  showSpinner(true,'กำลังรวมผลผู้ตรวจ...');
+  cmpArea=areaKey; cmpDept=deptCode||''; cmpRound=(round&&round!=='—')?round:'';
+  cmpData=null; cmpLast=null;
+  try{ await cmpLoad(); }catch(err){ console.warn('[report] โหลดคะแนนรายข้อไม่สำเร็จ:',err); }
+  // cmpRender จะตั้ง cmpLast ให้เมื่อมีผู้ตรวจ >=2 คน — น้อยกว่านั้นสร้างเองจากชุดเดียวกัน
+  if(!cmpLast){
+    const pool=((cmpData&&cmpData.raters)||[]).filter(r=>!cmpRound||r.round===cmpRound);
+    const byInsp={};
+    pool.forEach(h=>{const k=h.insp||'—';if(!byInsp[k]||new Date(h.saved||h.date)>new Date(byInsp[k].saved||byInsp[k].date))byInsp[k]=h;});
+    const raters=Object.values(byInsp);
+    if(!raters.length){showSpinner(false);showToast('⚠️ ไม่พบคะแนนรายข้อของกลุ่มนี้ — อาจยังซิงก์ขึ้นคลาวด์ไม่สำเร็จ');return;}
+    cmpLast=cmpBuild(raters);
+  }
+  showSpinner(false);
+  buildConsolidatedReport();
 }
 function cmpEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function cmpScCell(v,ri,no){
@@ -2597,9 +2785,10 @@ function cmpOfficialForRound(roundRaters){
   let sum=0,cnt=0,pcnt=0;
   nos.forEach(no=>{
     const nums=raters.map(r=>{const f=(r.items||[]).find(x=>x.no===no);return f?f.sc:'';}).filter(v=>v!=='NA'&&v!==''&&v!=null).map(Number);
-    if(nums.length){const mean=nums.reduce((a,v)=>a+v,0)/nums.length;sum+=mean;cnt++;if(mean>=2)pcnt++;}
+    // แปลงคะแนนของแต่ละคนเป็นแต้มก่อน แล้วค่อยเฉลี่ย (ห้ามสลับลำดับ)
+    if(nums.length){const ptMean=nums.reduce((a,v)=>a+ptOf(v),0)/nums.length;sum+=ptMean;cnt++;if(ptMean>=PT[2])pcnt++;}
   });
-  return{score:cnt?pct(sum/(cnt*3)*100):null,pr:cnt?Math.round(pcnt/cnt*100):null,n:raters.length};
+  return{score:cnt?pct(sum/cnt):null,pr:cnt?Math.round(pcnt/cnt*100):null,n:raters.length};
 }
 // กราฟแนวโน้มคะแนนเฉลี่ยทางการข้ามรอบ (inline SVG · ไม่ใช้ library · ทำงานออฟไลน์)
 function cmpTrendHtml(){
@@ -2613,7 +2802,10 @@ function cmpTrendHtml(){
   const y=v=>padT+plotH*(1-v/100);
   const tc=d=>levelOf(d.score,d.pr==null?null:d.pr).c;
   let grid='';
-  [0,20,40,60,80,100].forEach(g=>{const yy=y(g).toFixed(1),p=g===80;grid+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" style="stroke:${p?'#16A34A':'var(--border)'};stroke-width:${p?1:0.5}"${p?' stroke-dasharray="4 3"':''}/><text x="${padL-4}" y="${(+yy+3).toFixed(1)}" font-size="8" style="fill:var(--muted)" text-anchor="end">${g}</text>`;});
+  [0,20,40,60,80,100].forEach(g=>{const yy=y(g).toFixed(1);grid+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" style="stroke:var(--border);stroke-width:0.5"/><text x="${padL-4}" y="${(+yy+3).toFixed(1)}" font-size="8" style="fill:var(--muted)" text-anchor="end">${g}</text>`;});
+  // เส้นเกณฑ์ผ่าน = 80 ซึ่งตรงกับ KPI และตรงกับ "ผ่านมาตรฐานครบทุกข้อ" พอดีตามตารางแต้มใหม่
+  const yBase=y(PASS_SCORE_MIN).toFixed(1);
+  grid+=`<line x1="${padL}" y1="${yBase}" x2="${W-padR}" y2="${yBase}" style="stroke:#16A34A;stroke-width:1" stroke-dasharray="4 3"/><text x="${W-padR}" y="${(+yBase-3).toFixed(1)}" font-size="8" font-weight="700" fill="#16A34A" text-anchor="end">${PASS_SCORE_MIN}</text>`;
   const line=data.map((d,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(d.score).toFixed(1)}`).join(' ');
   const dots=data.map((d,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(d.score).toFixed(1)}" r="3.5" fill="${tc(d)}"/><text x="${x(i).toFixed(1)}" y="${(y(d.score)-6).toFixed(1)}" font-size="8.5" font-weight="700" fill="${tc(d)}" text-anchor="middle">${d.score}</text>`).join('');
   const xl=data.map((d,i)=>{const anc=i===0?'start':i===n-1?'end':'middle';return`<text x="${x(i).toFixed(1)}" y="${H-8}" font-size="8" style="fill:var(--muted)" text-anchor="${anc}">${cmpEsc(String(d.round))}</text>`;}).join('');
@@ -2629,8 +2821,36 @@ function cmpTrendHtml(){
       <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;overflow:visible" preserveAspectRatio="xMidYMid meet">
         ${grid}<path d="${line}" fill="none" style="stroke:var(--green)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots}${xl}
       </svg>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6">คะแนนเฉลี่ยทางการแต่ละรอบ (รวมผู้ตรวจทุกคนในรอบ · เส้นประเขียว = เกณฑ์ผ่าน 80%) · ${data.length} รอบ</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6">คะแนนเฉลี่ยทางการแต่ละรอบ (รวมผู้ตรวจทุกคนในรอบ · เส้นประเขียว = เกณฑ์ผ่าน 80 คะแนน) · ${data.length} รอบ</div>
     </div>`;
+}
+// ───── คำนวณสรุปจากผู้ตรวจชุดหนึ่ง (พื้นที่ + หน่วยงาน + รอบเดียวกัน) ─────
+// ใช้ร่วมกัน 2 ที่: แท็บเทียบคะแนน และปุ่ม Report ในหน้าสรุปผล — สูตรเดียวกันเสมอ จะได้ไม่มีทางออกมาคนละเลข
+function cmpBuild(raters){
+  // union ของทุกข้อจากผู้ตรวจทุกคน (ไม่ยึดคนแรก) — เรียงตามเลขข้อ ข้อที่บางคนไม่มีจะเว้นว่างให้
+  const itemMap={};
+  raters.forEach(r=>(r.items||[]).forEach(it=>{if(it&&it.no!=null&&!itemMap[it.no])itemMap[it.no]={no:it.no,h:it.h,t:it.t};}));
+  const base=Object.values(itemMap).sort((a,b)=>{const pa=String(a.no).split('.').map(Number),pb=String(b.no).split('.').map(Number);for(let i=0;i<Math.max(pa.length,pb.length);i++){const d=(pa[i]||0)-(pb[i]||0);if(d)return d;}return 0;});
+  const rows=base.map(it=>{
+    const scores=raters.map(r=>{const f=(r.items||[]).find(x=>x.no===it.no);return f?f.sc:'';});
+    const nums=scores.filter(v=>v!=='NA'&&v!==''&&v!=null).map(Number);
+    const spread=nums.length>=2?Math.max(...nums)-Math.min(...nums):null;
+    const mean=nums.length?nums.reduce((a,v)=>a+v,0)/nums.length:null;           // คะแนนดิบเฉลี่ย 1-3 — ใช้โชว์ในตารางเท่านั้น
+    const ptMean=nums.length?nums.reduce((a,v)=>a+ptOf(v),0)/nums.length:null;   // แต้มเฉลี่ย 0-100 — ใช้คิดคะแนนจริง
+    return {it,scores,nums,spread,mean,ptMean};
+  });
+  const valid=rows.filter(r=>r.spread!=null);
+  const overall=valid.length?Math.round(valid.reduce((a,r)=>a+Math.max(0,(2-r.spread)/2),0)/valid.length*100):0;
+  const review=rows.filter(r=>r.spread!=null&&r.spread>=2).sort((a,b)=>b.spread-a.spread);
+  // คะแนนเฉลี่ยทางการ: แปลงคะแนนของทุกคนเป็นแต้ม (0/80/100) → เฉลี่ยทุกช่อง (ข้อ × ผู้ตรวจ) → คะแนนเดียวต่อพื้นที่+หน่วยงาน+รอบ
+  const scoredMeans=rows.filter(r=>r.ptMean!=null);
+  const officialScore=scoredMeans.length?pct(scoredMeans.reduce((a,r)=>a+r.ptMean,0)/scoredMeans.length):null;
+  const oPr=scoredMeans.length?Math.round(scoredMeans.filter(r=>r.ptMean>=PT[2]).length/scoredMeans.length*100):null;
+  const offL=levelOf(officialScore||0,oPr);
+  // คะแนนรวมของผู้ตรวจแต่ละคน (ข้าม NA · เต็ม 100 แต้มต่อข้อ) — เอาไว้เทียบกันในตาราง
+  const raterTotals=raters.map(r=>{let s=0,m=0;base.forEach(it=>{const f=(r.items||[]).find(x=>x.no===it.no);const v=f?f.sc:'';if(v==='NA'||v===''||v==null)return;m+=PT_FULL;s+=ptOf(v);});return m?pct(s/m*100):null;});
+  const raterPr=raters.map(r=>{let n=0,p=0;base.forEach(it=>{const f=(r.items||[]).find(x=>x.no===it.no);const v=f?f.sc:'';if(v==='NA'||v===''||v==null)return;n++;if(Number(v)>=2)p++;});return n?Math.round(p/n*100):null;});
+  return{raters,base,rows,overall,review,officialScore,oPr,offL,offLv:officialScore==null?'–':offL.lv,raterTotals,raterPr};
 }
 function cmpRender(){
   const bEl=document.getElementById('cmp-body');
@@ -2647,35 +2867,14 @@ function cmpRender(){
   const multiRoundNote=(!cmpRound&&cmpData._rounds.length>1)?'<div style="font-size:11px;color:#D97706;background:#E0F2FE;border-radius:8px;padding:7px 10px;margin-bottom:12px">ℹ️ กำลังเทียบครั้งล่าสุดของแต่ละคน (อาจคนละรอบกัน) — เลือก "รอบตรวจ" ด้านบนเพื่อเทียบเฉพาะรอบเดียว</div>':'';
   const noDept=raters.filter(r=>!r.dept).map(r=>r.insp||'—');
   const noDeptNote=noDept.length?`<div style="font-size:11px;color:#D97706;background:#E0F2FE;border-radius:8px;padding:7px 10px;margin-bottom:12px">ℹ️ รวมผู้ตรวจที่ไม่ได้ระบุหน่วยงานไว้ด้วย: <b>${cmpEsc(noDept.join(', '))}</b> — ถ้าไม่ควรอยู่ในหน่วยงานนี้ ให้แก้หน่วยงานในประวัติการตรวจ</div>`:'';
-  // union ของทุกข้อจากผู้ตรวจทุกคน (ไม่ยึดคนแรก) — เรียงตามเลขข้อ ข้อที่บางคนไม่มีจะเว้นว่างให้
-  const itemMap={};
-  raters.forEach(r=>(r.items||[]).forEach(it=>{if(it&&it.no!=null&&!itemMap[it.no])itemMap[it.no]={no:it.no,h:it.h,t:it.t};}));
-  const base=Object.values(itemMap).sort((a,b)=>{const pa=String(a.no).split('.').map(Number),pb=String(b.no).split('.').map(Number);for(let i=0;i<Math.max(pa.length,pb.length);i++){const d=(pa[i]||0)-(pb[i]||0);if(d)return d;}return 0;});
-  const rows=base.map(it=>{
-    const scores=raters.map(r=>{const f=(r.items||[]).find(x=>x.no===it.no);return f?f.sc:'';});
-    const nums=scores.filter(v=>v!=='NA'&&v!==''&&v!=null).map(Number);
-    const spread=nums.length>=2?Math.max(...nums)-Math.min(...nums):null;
-    const mean=nums.length?nums.reduce((a,v)=>a+v,0)/nums.length:null;
-    return {it,scores,nums,spread,mean};
-  });
-  const valid=rows.filter(r=>r.spread!=null);
-  const overall=valid.length?Math.round(valid.reduce((a,r)=>a+Math.max(0,(2-r.spread)/2),0)/valid.length*100):0;
-  const review=rows.filter(r=>r.spread!=null&&r.spread>=2).sort((a,b)=>b.spread-a.spread);
+  const B=cmpBuild(raters);
+  const{base,rows,overall,review,officialScore,offLv,raterTotals,raterPr}=B,_oPr=B.oPr,_oL=B.offL;
   const oc=overall>=85?'#2563EB':overall>=70?'#D97706':'#DC2626';
-  // คะแนนเฉลี่ยทางการ (Method B): เฉลี่ยคะแนนรายข้อของผู้ตรวจทุกคน (ข้าม NA) แล้วรวมเป็น % เดียวต่อพื้นที่+หน่วยงาน+รอบ
-  const scoredMeans=rows.filter(r=>r.mean!=null);
-  const officialScore=scoredMeans.length?pct(scoredMeans.reduce((a,r)=>a+r.mean,0)/(scoredMeans.length*3)*100):null;
-  const _oPr=scoredMeans.length?Math.round(scoredMeans.filter(r=>r.mean>=2).length/scoredMeans.length*100):null;
-  const _oL=levelOf(officialScore||0,_oPr);
-  const offLv=officialScore==null?'–':_oL.lv;
   const offColor=officialScore==null?'#94A3B8':_oL.c;
   const relLabel=overall>=85?'เชื่อถือได้สูง':overall>=70?'ปานกลาง':'ควรทบทวนเกณฑ์';
-  // % คะแนนรวมของผู้ตรวจแต่ละคน (ข้าม NA · เต็ม 3 ต่อข้อ) — เทียบคะแนนรวมกัน
-  const raterTotals=raters.map(r=>{let s=0,m=0;base.forEach(it=>{const f=(r.items||[]).find(x=>x.no===it.no);const v=f?f.sc:'';if(v==='NA'||v===''||v==null)return;m+=3;s+=Number(v);});return m?pct(s/m*100):null;});
-  const raterPr=raters.map(r=>{let n=0,p=0;base.forEach(it=>{const f=(r.items||[]).find(x=>x.no===it.no);const v=f?f.sc:'';if(v==='NA'||v===''||v==null)return;n++;if(Number(v)>=2)p++;});return n?Math.round(p/n*100):null;});
   const totColor=(t,i)=>t==null?'#94A3B8':levelOf(t,raterPr[i]).c;
   const totalRow=`<tr style="border-top:2px solid var(--border);background:#F1F5F9"><td></td><td style="padding:8px;font-size:12px;font-weight:800">คะแนนรวม %</td>${raterTotals.map((t,i)=>`<td style="text-align:center;font-weight:800;color:${totColor(t,i)}">${t==null?'–':t+'%'}</td>`).join('')}<td style="text-align:center;font-weight:800;color:${offColor}" title="คะแนนเฉลี่ยทางการ">${officialScore==null?'–':officialScore+'%'}</td><td></td></tr>`;
-  cmpLast={raters,rows,raterTotals,raterPr,overall,review,officialScore,offLv,offL:_oL};
+  cmpLast=B;
   const ths=raters.map(r=>`<th style="padding:7px 3px;font-weight:600;font-size:11px;white-space:nowrap">${cmpEsc(r.insp||'—')}</th>`).join('');
   const trs=rows.map(r=>{
     const sp=r.spread;
@@ -2739,8 +2938,9 @@ function cmpRender(){
         <tbody>${totalRow}${trs}</tbody></table></div>
     <div style="font-size:11px;color:var(--muted);background:var(--bg);border-radius:8px;padding:9px 11px;margin-bottom:18px;line-height:1.7">
       <b>เกณฑ์ "ต่างกัน":</b> คะแนนสูงสุด − ต่ำสุด ของข้อนั้นในบรรดาผู้ตรวจ (ข้าม NA) → <span style="color:#2563EB;font-weight:700">น้อย</span> = ต่าง 0 · <span style="color:#D97706;font-weight:700">กลาง</span> = ต่าง 1 · <span style="color:#DC2626;font-weight:700">สูง</span> = ต่าง 2<br>
-      <b>ความสอดคล้อง %:</b> เฉลี่ยของ (2 − ต่างกัน) ÷ 2 ทุกข้อ × 100 (100% = ให้ตรงกันทุกข้อ) · <b>ข้อควรทบทวน:</b> ข้อที่ต่างกัน ≥ 2 · <b>คะแนนรวม %:</b> คะแนนที่แต่ละคนให้ ÷ คะแนนเต็ม (เต็ม 3/ข้อ ข้าม NA)<br>
-      <b>เฉลี่ย (รายข้อ):</b> ค่าเฉลี่ยคะแนนของข้อนั้นจากผู้ตรวจทุกคน (ข้าม NA) · <b>คะแนนเฉลี่ยทางการ:</b> เอาค่าเฉลี่ยรายข้อมารวมกัน ÷ คะแนนเต็ม × 100 = คะแนนกลางของพื้นที่+หน่วยงานนี้ที่รวมความเห็นผู้ตรวจทุกคนแล้ว
+      <b>ความสอดคล้อง %:</b> เฉลี่ยของ (2 − ต่างกัน) ÷ 2 ทุกข้อ × 100 (100% = ให้ตรงกันทุกข้อ) · <b>ข้อควรทบทวน:</b> ข้อที่ต่างกัน ≥ 2 · <b>คะแนนรวม %:</b> แปลงคะแนนที่แต่ละคนให้เป็นแต้ม แล้วเฉลี่ย (ข้าม NA)<br>
+      <b>ตารางแต้ม:</b> ไม่ผ่านมาตรฐาน = 0 · ผ่านมาตรฐาน = 80 · ดีกว่ามาตรฐาน = 100 · N/A ไม่นับทั้งตัวตั้งและตัวหาร → <b>ผ่านมาตรฐานครบทุกข้อ = 80 = เกณฑ์ผ่าน</b><br>
+      <b>เฉลี่ย (รายข้อ):</b> ค่าเฉลี่ยคะแนนของข้อนั้นจากผู้ตรวจทุกคน (ข้าม NA) · <b>คะแนนเฉลี่ยทางการ:</b> เฉลี่ยแต้มของทุกช่อง (ข้อ × ผู้ตรวจ) = คะแนนกลางของพื้นที่+หน่วยงานนี้ที่รวมความเห็นผู้ตรวจทุกคนแล้ว · แปลงเป็นแต้มก่อนแล้วจึงเฉลี่ย ข้อที่มีคนแจ้งไม่ผ่านจึงไม่ถูกคะแนนดีของคนอื่นกลบ
     </div>
     <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:7px">ข้อที่ควรทบทวนเกณฑ์ (เรียงตามความต่าง)</div>
     ${reviewHtml}`;
