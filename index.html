@@ -1774,7 +1774,7 @@ function getReportData(){
   const ds=dv?new Date(dv).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'-';
   const round=document.getElementById('f-round').value;
   const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
-  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=PT_FULL;hS[it.h]+=ptOf(sc[i]);}});
+  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0&&(it.h in hM)){hM[it.h]+=PT_FULL;hS[it.h]+=ptOf(sc[i]);}});
   const probs=items.filter((_,i)=>sc[i]===1);
   const naItems=items.filter((_,i)=>sc[i]==='NA');
   const lvs=lvStrip(L);
@@ -1896,7 +1896,7 @@ function buildConsolidatedReport(){
   const{raters,rows,officialScore,offLv}=cmpLast;
   const tot=officialScore==null?0:officialScore;const _or=rows.filter(r=>r.ptMean!=null),pr=_or.length?Math.round(_or.filter(r=>r.ptMean>=PT[2]).length/_or.length*100):0;const L=levelOf(tot,pr),pass=L.pass,[g1,g2]=L.grad;
   const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
-  rows.forEach(r=>{if(r.ptMean!=null){hM[r.it.h]+=PT_FULL;hS[r.it.h]+=r.ptMean;}});
+  rows.forEach(r=>{if(!(r.it.h in hM))return;r.nums.forEach(v=>{hM[r.it.h]+=PT_FULL;hS[r.it.h]+=ptOf(v);});});
   const bars=HMVD.map(h=>{const p=hM[h]>0?Math.round(hS[h]/hM[h]*100):0,c=HC[h];
     return `<div class="pr-bar-row"><div class="pr-bar-n" style="color:${c}">${h}</div><div class="pr-bar-track"><div class="pr-bar-fill" style="width:${p}%;background:${c}"></div></div><div class="pr-bar-v"><b style="color:${c}">${hM[h]>0?p+'%':'N/A'}</b></div></div>`;}).join('');
   const lvs=lvStrip(L);
@@ -2137,7 +2137,7 @@ async function saveResult(){
   const dv=document.getElementById('f-date').value||new Date().toISOString().split('T')[0];
   const round=document.getElementById('f-round').value;
   const hS={},hM={};HMVD.forEach(h=>{hS[h]=0;hM[h]=0;});
-  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0){hM[it.h]+=PT_FULL;hS[it.h]+=ptOf(sc[i]);}});
+  items.forEach((it,i)=>{if(sc[i]!=='NA'&&sc[i]>=0&&(it.h in hM)){hM[it.h]+=PT_FULL;hS[it.h]+=ptOf(sc[i]);}});
   const defs=items.filter((_,i)=>sc[i]===1).map(it=>{const i=items.indexOf(it);return{no:it.no,t:it.t,sc:sc[i],nt:nt[i]};});
   const fullItems=items.map((it,i)=>({no:it.no,h:it.h,t:it.t,sc:sc[i]==='NA'?'NA':(sc[i]>=0?sc[i]:''),nt:nt[i]||'',ph:(ph[i]||[]).slice(0,3)}));
   // Editing keeps the record's original id + pinned criteria version (don't bump).
@@ -2782,13 +2782,16 @@ function cmpOfficialForRound(roundRaters){
   if(!raters.length)return{score:null,pr:null,n:0};
   const nos=[];const seen={};
   raters.forEach(r=>(r.items||[]).forEach(it=>{if(it&&it.no!=null&&!seen[it.no]){seen[it.no]=1;nos.push(it.no);}}));
-  let sum=0,cnt=0,pcnt=0;
+  let ptSum=0,cellN=0,cnt=0,pcnt=0;
   nos.forEach(no=>{
     const nums=raters.map(r=>{const f=(r.items||[]).find(x=>x.no===no);return f?f.sc:'';}).filter(v=>v!=='NA'&&v!==''&&v!=null).map(Number);
-    // แปลงคะแนนของแต่ละคนเป็นแต้มก่อน แล้วค่อยเฉลี่ย (ห้ามสลับลำดับ)
-    if(nums.length){const ptMean=nums.reduce((a,v)=>a+ptOf(v),0)/nums.length;sum+=ptMean;cnt++;if(ptMean>=PT[2])pcnt++;}
+    // แปลงคะแนนของแต่ละคนเป็นแต้มก่อน แล้วค่อยเฉลี่ยทุกช่อง (ห้ามสลับลำดับ)
+    if(nums.length){
+      nums.forEach(v=>{ptSum+=ptOf(v);cellN++;});
+      const ptMean=nums.reduce((a,v)=>a+ptOf(v),0)/nums.length;cnt++;if(ptMean>=PT[2])pcnt++;
+    }
   });
-  return{score:cnt?pct(sum/cnt):null,pr:cnt?Math.round(pcnt/cnt*100):null,n:raters.length};
+  return{score:cellN?pct(ptSum/cellN):null,pr:cnt?Math.round(pcnt/cnt*100):null,n:raters.length};
 }
 // กราฟแนวโน้มคะแนนเฉลี่ยทางการข้ามรอบ (inline SVG · ไม่ใช้ library · ทำงานออฟไลน์)
 function cmpTrendHtml(){
@@ -2844,7 +2847,12 @@ function cmpBuild(raters){
   const review=rows.filter(r=>r.spread!=null&&r.spread>=2).sort((a,b)=>b.spread-a.spread);
   // คะแนนเฉลี่ยทางการ: แปลงคะแนนของทุกคนเป็นแต้ม (0/80/100) → เฉลี่ยทุกช่อง (ข้อ × ผู้ตรวจ) → คะแนนเดียวต่อพื้นที่+หน่วยงาน+รอบ
   const scoredMeans=rows.filter(r=>r.ptMean!=null);
-  const officialScore=scoredMeans.length?pct(scoredMeans.reduce((a,r)=>a+r.ptMean,0)/scoredMeans.length):null;
+  // ต้องเฉลี่ย "ทุกช่อง (ข้อ × ผู้ตรวจ)" ตรงตามสูตรที่พิมพ์บนใบ ไม่ใช่ "เฉลี่ยของค่าเฉลี่ยรายข้อ"
+  // สองแบบนี้ให้เลขต่างกันเมื่อแต่ละข้อมีคนให้คะแนนไม่เท่ากัน (บางคนกด N/A) และหน้าสรุปผล
+  // รวมจาก categoryScores ซึ่งเป็นการเฉลี่ยทุกช่องอยู่แล้ว — ใช้คนละแบบเมื่อไหร่ เลขสองหน้าจะเพี้ยนกัน 1-2 คะแนนทันที
+  let _ptSum=0,_cellN=0;
+  rows.forEach(r=>r.nums.forEach(v=>{_ptSum+=ptOf(v);_cellN++;}));
+  const officialScore=_cellN?pct(_ptSum/_cellN):null;
   const oPr=scoredMeans.length?Math.round(scoredMeans.filter(r=>r.ptMean>=PT[2]).length/scoredMeans.length*100):null;
   const offL=levelOf(officialScore||0,oPr);
   // คะแนนรวมของผู้ตรวจแต่ละคน (ข้าม NA · เต็ม 100 แต้มต่อข้อ) — เอาไว้เทียบกันในตาราง
