@@ -285,7 +285,7 @@ select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 
 /* ===== PRINT REPORT (A4, 1 page) ===== */
 #print-report{position:fixed;left:-9999px;top:0;width:210mm;height:297mm;background:#fff;overflow:hidden;z-index:-1}
-.pr-page{width:210mm;box-sizing:border-box;padding:0 10mm;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1E293B;transform-origin:top left;
+.pr-page{width:210mm;box-sizing:border-box;padding:0 10mm;display:flow-root;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1E293B;transform-origin:top left;
   -webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
 .pr-page *{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
 .pr-head{display:flex;align-items:stretch;gap:6mm;padding-bottom:3.5mm;margin-bottom:4mm;position:relative}
@@ -1864,14 +1864,24 @@ function buildPrintReport(){
 }
 function fitPrintPage(){
   const inner=document.getElementById('pr-inner');
-  inner.style.zoom=1;
+  if(!(window.CSS&&CSS.supports&&CSS.supports('zoom','1.1'))){inner.style.zoom='';inner.style.width='';return;}
   const pxPerMm=96/25.4;
-  const availPx=279*pxPerMm;               // A4 (297mm) − 9mm บน/ล่าง
-  const contentPx=inner.scrollHeight;
-  if(contentPx<=availPx)return;            // พอดีหน้าเดียว — ไม่ต้องย่อ
-  const scale=(availPx/contentPx)*0.97;
-  // ย่อให้อยู่หน้าเดียวเฉพาะเมื่อย่อไม่มาก (ยังอ่านออก) · ถ้าเยอะเกินไป → ปล่อยไหลหลายหน้า (ไม่ตัดข้อมูลทิ้ง)
-  inner.style.zoom=scale>=0.7?scale:1;
+  const pageW=210*pxPerMm;                 // ความกว้างกระดาษ A4
+  const availH=279*pxPerMm;                // A4 (297mm) − 9mm บน/ล่าง
+  const MIN=.62,MAX=1.15;                  // ย่อ/ขยายได้ไม่เกินนี้ (ให้ยังอ่านสบาย)
+  // จัดหน้าใหม่ที่ความกว้าง pageW/s แล้ว zoom=s → เนื้อหากว้างเต็มหน้ากระดาษเสมอ
+  // (ของเดิมใช้ zoom เฉยๆ เนื้อหาเลยหดทั้งกว้างและสูง เหลือที่ว่างด้านขวา/ด้านล่าง)
+  const apply=s=>{inner.style.zoom=s;inner.style.width=(pageW/s)+'px';};
+  // ชิ้นที่ขึ้นบรรทัดใหม่ไม่ได้ (ชิปหัวรายงาน · กล่องคะแนน) จะล้นขอบถ้าขยายมากไป → เทียบกับตอน s=1
+  const ovf=()=>{let m=0;inner.querySelectorAll('*').forEach(el=>{const d=el.scrollWidth-el.clientWidth;if(d>m)m=d;});return m;};
+  apply(1);const ov0=ovf();
+  const tooHigh=()=>{const r=inner.getBoundingClientRect();return !!r.width&&r.height*pageW/r.width>availH;};
+  const fits=s=>{apply(s);return !(s>1&&ovf()>ov0)&&!tooHigh();};
+  if(fits(MAX))return;                     // เนื้อหาน้อย → ขยายได้เต็มที่เท่าที่อนุญาต
+  if(!fits(MIN)){apply(1);return;}         // เนื้อหาเยอะมาก → ปล่อยไหลหลายหน้า ดีกว่าย่อจนอ่านไม่ออก
+  let lo=MIN,hi=MAX;                       // หา s ที่ใหญ่สุดที่ยังอยู่ในหน้าเดียว
+  for(let i=0;i<8;i++){const mid=(lo+hi)/2;if(fits(mid))lo=mid;else hi=mid;}
+  apply(lo);
 }
 function isInAppBrowser(){
   return /Line\/|FBAN|FBAV|Instagram|MicroMessenger|GSA\/[^\s]* Nebula/i.test(navigator.userAgent);
